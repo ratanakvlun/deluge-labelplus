@@ -42,7 +42,7 @@ GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
 WEBUI_SCRIPT = "%s.js" % MODULE_NAME
 
 STATUS_ID = "%s_id" % MODULE_NAME
-STATUS_PATH = "%s_path" % MODULE_NAME
+STATUS_NAME = "%s_name" % MODULE_NAME
 
 NULL_PARENT = "-"
 ID_ALL = "All"
@@ -61,6 +61,7 @@ GTKUI_DEFAULTS = {
 
 OPTION_DEFAULTS = {
   "include_children": False,
+  "show_full_name": False,
 }
 
 LABEL_DEFAULTS = {

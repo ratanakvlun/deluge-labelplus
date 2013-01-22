@@ -36,7 +36,7 @@ PLUGIN_NAME = "LabelPlus";
 MODULE_NAME = "labelplus";
 DISPLAY_NAME = _("Label Plus");
 
-STATUS_PATH = MODULE_NAME + "_path";
+STATUS_NAME = MODULE_NAME + "_name";
 
 
 LabelPlusPlugin = Ext.extend(Deluge.Plugin, {
@@ -45,12 +45,12 @@ LabelPlusPlugin = Ext.extend(Deluge.Plugin, {
 
   onDisable: function() {
     console.log("LabelPlusPlugin.onDisable");
-    this.deregisterTorrentStatus(STATUS_PATH);
+    this.deregisterTorrentStatus(STATUS_NAME);
   },
 
   onEnable: function() {
     console.log("LabelPlusPlugin.onEnable");
-    this.registerTorrentStatus(STATUS_PATH, DISPLAY_NAME, {
+    this.registerTorrentStatus(STATUS_NAME, DISPLAY_NAME, {
       colCfg: {
         sortable: true
       }

@@ -47,7 +47,7 @@ from deluge.ui.client import client
 import deluge.configmanager
 
 from labelplus.common.constant import DISPLAY_NAME
-from labelplus.common.constant import STATUS_PATH
+from labelplus.common.constant import STATUS_NAME
 from labelplus.common.constant import GTKUI_CONFIG
 from labelplus.common.constant import GTKUI_DEFAULTS
 
@@ -90,7 +90,7 @@ class GtkUI(GtkPluginBase):
         GTKUI_CONFIG, defaults=GTKUI_DEFAULTS)
 
     component.get("TorrentView").add_text_column(DISPLAY_NAME,
-        status_field=[STATUS_PATH])
+        status_field=[STATUS_NAME])
 
     self.label_selection_menu = LabelSelectionMenu()
     self.sep = component.get("MenuBar").add_torrentmenu_separator()

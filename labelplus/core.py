@@ -54,7 +54,7 @@ from common.debug import debug
 
 from common.constant import PLUGIN_NAME, MODULE_NAME
 from common.constant import CORE_CONFIG
-from common.constant import STATUS_ID, STATUS_PATH
+from common.constant import STATUS_ID, STATUS_NAME
 from common.constant import OPTION_DEFAULTS, LABEL_DEFAULTS
 from common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from common.constant import RESERVED_IDS
@@ -133,7 +133,7 @@ class Core(CorePluginBase):
         "TorrentRemovedEvent", self.on_torrent_removed)
 
     component.get("CorePluginManager").deregister_status_field(STATUS_ID)
-    component.get("CorePluginManager").deregister_status_field(STATUS_PATH)
+    component.get("CorePluginManager").deregister_status_field(STATUS_NAME)
 
     component.get("FilterManager").deregister_filter(STATUS_ID)
 
@@ -436,7 +436,7 @@ class Core(CorePluginBase):
         STATUS_ID, self._filter_by_label)
 
     component.get("CorePluginManager").register_status_field(
-        STATUS_PATH, self._get_torrent_label_ancestry)
+        STATUS_NAME, self._get_torrent_label_name)
     component.get("CorePluginManager").register_status_field(
         STATUS_ID, self._get_torrent_label)
 
@@ -605,13 +605,18 @@ class Core(CorePluginBase):
     return self._mappings.get(torrent_id) or ""
 
 
-  def _get_torrent_label_ancestry(self, torrent_id):
+  def _get_torrent_label_name(self, torrent_id):
 
     label_id = self._mappings.get(torrent_id)
     if not label_id:
       return ""
 
-    return self._get_label_ancestry(label_id)
+    if self._prefs["options"]["show_full_name"]:
+      name = self._get_label_ancestry(label_id)
+    else:
+      name = self._labels[label_id]["name"]
+
+    return name
 
 
   def _get_label_ancestry(self, label_id):

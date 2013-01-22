@@ -81,6 +81,7 @@ class Preferences(object):
 
     self.general_widgets = (
       self.we.chk_include_children,
+      self.we.chk_show_full_name,
     )
 
     self.defaults_widgets = (
