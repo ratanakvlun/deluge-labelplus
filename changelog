@@ -1,2 +1,5 @@
+Version 0.2.12
+- Add client-side caching
+
 Version 0.2.11
 - Add preference to toggle between short/full label names
