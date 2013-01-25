@@ -237,54 +237,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
-  def get_labels(self):
-
-    labels = []
-    for id in self._labels:
-      if id != NULL_PARENT:
-        labels.append((id, self._labels[id]["name"]))
-
-    return labels
-
-
-  @export
-  @init_check
-  def get_label_counts(self):
-
-    label_count = 0
-    counts = {}
-    for id in sorted(self._labels, reverse=True):
-      if id == NULL_PARENT: continue
-
-      count = len(self._index[id]["torrents"])
-      label_count += count
-
-      if self._prefs["options"]["include_children"]:
-        for child in self._index[id]["children"]:
-          count += counts[child]["count"]
-
-      counts[id] = {
-        "name": self._labels[id]["name"],
-        "count": count,
-      }
-
-    total = len(self._torrents)
-    counts[ID_ALL] = {
-      "name": ID_ALL,
-      "count": total,
-    }
-
-    counts[ID_NONE] = {
-      "name": ID_NONE,
-      "count": total-label_count,
-    }
-
-    return counts
-
-
-  @export
-  @debug()
   def get_label_data(self, timestamp):
 
     if timestamp:
@@ -293,7 +245,7 @@ class Core(CorePluginBase):
       t = datetime.datetime(1, 1, 1)
 
     if t < self._last_modified:
-      return (cPickle.dumps(self._last_modified), self.get_label_counts())
+      return (cPickle.dumps(self._last_modified), self._get_label_counts())
     else:
       return None
 
@@ -622,6 +574,39 @@ class Core(CorePluginBase):
       self._apply_torrent_options(torrent_id)
       log.debug("[%s] Torrent labeled %s and options applied",
           PLUGIN_NAME, label_id)
+
+
+  def _get_label_counts(self):
+
+    label_count = 0
+    counts = {}
+    for id in sorted(self._labels, reverse=True):
+      if id == NULL_PARENT: continue
+
+      count = len(self._index[id]["torrents"])
+      label_count += count
+
+      if self._prefs["options"]["include_children"]:
+        for child in self._index[id]["children"]:
+          count += counts[child]["count"]
+
+      counts[id] = {
+        "name": self._labels[id]["name"],
+        "count": count,
+      }
+
+    total = len(self._torrents)
+    counts[ID_ALL] = {
+      "name": ID_ALL,
+      "count": total,
+    }
+
+    counts[ID_NONE] = {
+      "name": ID_NONE,
+      "count": total-label_count,
+    }
+
+    return counts
 
 
   def _get_torrent_label(self, torrent_id):
