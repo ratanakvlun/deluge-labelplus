@@ -50,6 +50,7 @@ from labelplus.common.constant import DISPLAY_NAME
 from labelplus.common.constant import STATUS_NAME
 from labelplus.common.constant import GTKUI_CONFIG
 from labelplus.common.constant import GTKUI_DEFAULTS
+from labelplus.common.constant import RESERVED_IDS
 
 from label_selection_menu import LabelSelectionMenu
 from label_sidebar import LabelSidebar
@@ -72,6 +73,9 @@ class GtkUI(GtkPluginBase):
 
   def enable(self):
 
+    self.timestamp = None
+    self.label_data = None
+
     client.labelplus.is_initialized().addCallback(self.cb_check)
 
 
@@ -82,6 +86,14 @@ class GtkUI(GtkPluginBase):
     elif self.retries < MAX_RETRIES:
       reactor.callLater(WAIT_TIME, self.enable)
       self.retries += 1
+
+
+  def cb_data_init(self, data):
+
+    self.timestamp = data[0]
+    self.label_data = data[1]
+
+    self._do_load()
 
 
   def _do_load(self):
@@ -128,3 +140,23 @@ class GtkUI(GtkPluginBase):
 
     if self.initialized:
       self.label_sidebar.update_counts()
+
+
+  def cb_update_data(self, data):
+
+    if data is not None:
+      self.timestamp = data[0]
+      self.label_data = data[1]
+
+      self.label_sidebar.update_counts(self.label_data)
+
+
+  def get_labels(self):
+
+    data = self.label_data
+    labels = []
+    for id in data:
+      if id not in RESERVED_IDS:
+        labels.append((id, data[id]["name"]))
+
+    return labels
