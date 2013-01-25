@@ -40,6 +40,8 @@
 
 
 import os.path
+import cPickle
+import datetime
 
 import deluge.common
 import deluge.configmanager
@@ -183,6 +185,7 @@ class Core(CorePluginBase):
 
     self._build_label_ancestry(id)
 
+    self._last_modified = datetime.datetime.now()
     self._config.save()
 
     return id
@@ -201,6 +204,7 @@ class Core(CorePluginBase):
     parent_id = Label.get_parent(label_id)
     self._index[parent_id]["children"].remove(label_id)
 
+    self._last_modified = datetime.datetime.now()
     self._config.save()
 
 
@@ -227,6 +231,7 @@ class Core(CorePluginBase):
       self._apply_data_completed_path(label_id)
       self._propagate_path_to_descendents(label_id)
 
+    self._last_modified = datetime.datetime.now()
     self._config.save()
 
 
@@ -279,6 +284,21 @@ class Core(CorePluginBase):
 
 
   @export
+  @debug()
+  def get_label_data(self, timestamp):
+
+    if timestamp:
+      t = cPickle.loads(timestamp)
+    else:
+      t = datetime.datetime(1, 1, 1)
+
+    if t < self._last_modified:
+      return (cPickle.dumps(self._last_modified), self.get_label_counts())
+    else:
+      return None
+
+
+  @export
   @init_check
   @debug()
   def set_options(self, label_id, options_in):
@@ -313,6 +333,7 @@ class Core(CorePluginBase):
       if autolabel:
         self.set_torrent_labels(label_id, autolabel)
 
+    self._last_modified = datetime.datetime.now()
     self._config.save()
 
 
@@ -338,6 +359,7 @@ class Core(CorePluginBase):
     self._normalize_label_data(prefs["defaults"])
     self._prefs["defaults"].update(prefs["defaults"])
 
+    self._last_modified = datetime.datetime.now()
     self._config.save()
 
 
@@ -376,6 +398,7 @@ class Core(CorePluginBase):
     for id in (t for t in torrent_list if t in self._torrents):
       self._set_torrent_label(id, label_id)
 
+    self._last_modified = datetime.datetime.now()
     self._config.save()
 
 
@@ -445,6 +468,7 @@ class Core(CorePluginBase):
     component.get("EventManager").register_event_handler(
         "TorrentRemovedEvent", self.on_torrent_removed)
 
+    self._last_modified = datetime.datetime.now()
     self.initialized = True
 
     log.debug("[%s] Core initialized", PLUGIN_NAME)
