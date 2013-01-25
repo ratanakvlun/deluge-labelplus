@@ -39,7 +39,7 @@ import gtk
 from deluge import component
 from deluge.ui.client import client
 
-from labelplus.common.constant import DISPLAY_NAME
+from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
 from labelplus.common.constant import ID_NONE
 
 import labelplus.common.label as Label
@@ -56,6 +56,8 @@ class LabelSelectionMenu(gtk.MenuItem):
   def __init__(self):
 
     gtk.MenuItem.__init__(self, DISPLAY_NAME)
+
+    self.plugin = component.get("GtkPlugin.%s" % PLUGIN_NAME)
 
     self.submenu = gtk.Menu()
     self.set_submenu(self.submenu)
@@ -77,11 +79,12 @@ class LabelSelectionMenu(gtk.MenuItem):
       if child is not self.none_item:
         self.submenu.remove(child)
 
-    client.labelplus.get_labels().addCallback(self.cb_get_labels_ok)
+    labels = self.plugin.get_labels()
+    self._load_labels(labels)
 
 
   @debug()
-  def cb_get_labels_ok(self, labels):
+  def _load_labels(self, labels):
 
     if labels:
       self.submenu.append(gtk.SeparatorMenuItem())

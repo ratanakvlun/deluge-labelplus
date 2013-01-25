@@ -175,6 +175,8 @@ class LabelSidebar(object):
 
   def __init__(self):
 
+    self.plugin = component.get("GtkPlugin.%s" % PLUGIN_NAME)
+
     self.config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
     self.state = self.config["sidebar_state"]
 
@@ -195,15 +197,15 @@ class LabelSidebar(object):
     }
 
     self._install_label_tree()
-    self._loaded = True
 
-    client.labelplus.get_label_counts().addCallback(self.cb_complete_init)
+    counts = self.plugin.get_label_counts()
+    self.update_counts(counts)
+
+    self._complete_init()
 
 
   @debug()
   def unload(self):
-
-    self._loaded = False
 
     self.config.save()
 
@@ -223,18 +225,8 @@ class LabelSidebar(object):
     del self.label_tree
 
 
-  def update_counts(self):
-
-    client.labelplus.get_label_counts().addCallback(
-        self.cb_get_label_counts_ok)
-
-
   @debug()
-  def cb_complete_init(self, counts):
-
-    require(self._loaded, "Plugin not loaded")
-
-    self.cb_get_label_counts_ok(counts)
+  def _complete_init(self):
 
     self.label_tree.set_model(self.sorted_store)
     self._load_tree_state()
@@ -254,12 +246,7 @@ class LabelSidebar(object):
     self.menu.show_all()
 
 
-  def cb_get_label_counts_ok(self, counts):
-
-    require(self._loaded, "Plugin not loaded")
-
-    counts[ID_ALL]["name"] = _(ID_ALL)
-    counts[ID_NONE]["name"] = _(ID_NONE)
+  def update_counts(self, counts):
 
     self.sorted_store.set_sort_column_id(-1, gtk.SORT_ASCENDING)
     self.label_tree.freeze_child_notify()

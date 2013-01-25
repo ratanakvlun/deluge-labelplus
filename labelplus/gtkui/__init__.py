@@ -50,7 +50,7 @@ from labelplus.common.constant import DISPLAY_NAME
 from labelplus.common.constant import STATUS_NAME
 from labelplus.common.constant import GTKUI_CONFIG
 from labelplus.common.constant import GTKUI_DEFAULTS
-from labelplus.common.constant import RESERVED_IDS
+from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
 
 from label_selection_menu import LabelSelectionMenu
 from label_sidebar import LabelSidebar
@@ -82,7 +82,8 @@ class GtkUI(GtkPluginBase):
   def cb_check(self, result):
 
     if result == True:
-      self._do_load()
+      client.labelplus.get_label_data(self.timestamp).addCallback(
+        self.cb_data_init)
     elif self.retries < MAX_RETRIES:
       reactor.callLater(WAIT_TIME, self.enable)
       self.retries += 1
@@ -92,6 +93,9 @@ class GtkUI(GtkPluginBase):
 
     self.timestamp = data[0]
     self.label_data = data[1]
+
+    self.label_data[ID_ALL]["name"] = _(ID_ALL)
+    self.label_data[ID_NONE]["name"] = _(ID_NONE)
 
     self._do_load()
 
@@ -139,7 +143,8 @@ class GtkUI(GtkPluginBase):
   def update(self):
 
     if self.initialized:
-      self.label_sidebar.update_counts()
+      client.labelplus.get_label_data(self.timestamp).addCallback(
+        self.cb_update_data)
 
 
   def cb_update_data(self, data):
@@ -147,6 +152,9 @@ class GtkUI(GtkPluginBase):
     if data is not None:
       self.timestamp = data[0]
       self.label_data = data[1]
+
+      self.label_data[ID_ALL]["name"] = _(ID_ALL)
+      self.label_data[ID_NONE]["name"] = _(ID_NONE)
 
       self.label_sidebar.update_counts(self.label_data)
 
@@ -160,3 +168,8 @@ class GtkUI(GtkPluginBase):
         labels.append((id, data[id]["name"]))
 
     return labels
+
+
+  def get_label_counts(self):
+
+    return self.label_data
