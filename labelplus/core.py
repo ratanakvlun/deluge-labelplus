@@ -377,6 +377,7 @@ class Core(CorePluginBase):
           log.debug("[%s] Torrent %s is labeled %s", PLUGIN_NAME,
               torrent_id, label_id)
 
+          self._last_modified = datetime.datetime.now()
           self._config.save()
 
           return
@@ -393,6 +394,7 @@ class Core(CorePluginBase):
       del self._mappings[torrent_id]
       log.debug("[%s] Torrent removed from index and mappings", PLUGIN_NAME)
 
+      self._last_modified = datetime.datetime.now()
       self._config.save()
 
 
