@@ -1,3 +1,7 @@
+Version 0.2.13
+- Add label field to add torrent dialog
+- Fix caching bug in torrent add/remove handlers
+
 Version 0.2.12
 - Add client-side caching
 
