@@ -132,7 +132,7 @@ class Core(CorePluginBase):
     component.get("EventManager").deregister_event_handler(
         "TorrentAddedEvent", self.on_torrent_added)
     component.get("EventManager").deregister_event_handler(
-        "TorrentRemovedEvent", self.on_torrent_removed)
+        "PreTorrentRemovedEvent", self.on_torrent_removed)
 
     component.get("CorePluginManager").deregister_status_field(STATUS_ID)
     component.get("CorePluginManager").deregister_status_field(STATUS_NAME)
@@ -420,7 +420,7 @@ class Core(CorePluginBase):
     component.get("EventManager").register_event_handler(
         "TorrentAddedEvent", self.on_torrent_added)
     component.get("EventManager").register_event_handler(
-        "TorrentRemovedEvent", self.on_torrent_removed)
+        "PreTorrentRemovedEvent", self.on_torrent_removed)
 
     self._last_modified = datetime.datetime.now()
     self.initialized = True
