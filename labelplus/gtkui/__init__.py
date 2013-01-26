@@ -55,6 +55,7 @@ from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
 from label_selection_menu import LabelSelectionMenu
 from label_sidebar import LabelSidebar
 from preferences import Preferences
+from add_torrent_ext import AddTorrentExt
 
 
 MAX_RETRIES = 10
@@ -116,6 +117,8 @@ class GtkUI(GtkPluginBase):
 
     self.preferences = Preferences()
 
+    self.add_torrent_ext = AddTorrentExt()
+
     self.initialized = True
 
 
@@ -138,6 +141,8 @@ class GtkUI(GtkPluginBase):
       del self.label_sidebar
 
       self.preferences.unload()
+
+      self.add_torrent_ext.unload()
 
 
   def update(self):
