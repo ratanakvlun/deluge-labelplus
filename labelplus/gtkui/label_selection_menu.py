@@ -62,10 +62,6 @@ class LabelSelectionMenu(gtk.MenuItem):
     self.submenu = gtk.Menu()
     self.set_submenu(self.submenu)
 
-    self.none_item = gtk.MenuItem(_(ID_NONE))
-    self.none_item.connect("activate", self.on_select_label, None)
-    self.submenu.append(self.none_item)
-
     self.connect("activate", self.on_activate)
     self.show_all()
 
@@ -76,8 +72,11 @@ class LabelSelectionMenu(gtk.MenuItem):
     self.handler_block_by_func(self.on_activate)
 
     for child in self.submenu.get_children():
-      if child is not self.none_item:
-        self.submenu.remove(child)
+      self.submenu.remove(child)
+
+    item = gtk.MenuItem(_(ID_NONE))
+    item.connect("activate", self.on_select_label, None)
+    self.submenu.append(item)
 
     labels = self.plugin.get_labels()
     self._load_labels(labels)
