@@ -428,9 +428,9 @@ class LabelSidebar(object):
         if id == ID_ALL:
           filter_data = {}
         elif id == ID_NONE:
-          filter_data = {STATUS_ID: ID_NONE}
+          filter_data = {STATUS_ID: [ID_NONE]}
         else:
-          filter_data = {STATUS_ID: id}
+          filter_data = {STATUS_ID: [id]}
 
         component.get("TorrentView").set_filter(filter_data)
         self.filter_path = model.get_path(row)
