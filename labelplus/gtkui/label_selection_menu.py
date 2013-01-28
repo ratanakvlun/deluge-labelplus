@@ -63,6 +63,8 @@ class LabelSelectionMenu(gtk.MenuItem):
     self.set_submenu(self.submenu)
 
     self.connect("activate", self.on_activate)
+    self.on_activate(self)
+
     self.show_all()
 
 
