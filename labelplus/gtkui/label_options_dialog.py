@@ -189,6 +189,10 @@ class LabelOptionsDialog(object):
   @debug()
   def cb_do_close(self, widget, event=None):
 
+    self.config["label_options_pos"] = self.we.wnd_label_options.get_position()
+    self.config["label_options_size"] = self.we.wnd_label_options.get_size()
+    self.config.save()
+
     self.we.wnd_label_options.destroy()
 
 
@@ -196,11 +200,6 @@ class LabelOptionsDialog(object):
   def on_btn_ok_clicked(self, widget):
 
     self._save_options()
-
-    self.config["label_options_pos"] = self.we.wnd_label_options.get_position()
-    self.config["label_options_size"] = self.we.wnd_label_options.get_size()
-    self.config.save()
-
     self.cb_do_close(widget)
 
 

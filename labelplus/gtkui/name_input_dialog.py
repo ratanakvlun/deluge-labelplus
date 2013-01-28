@@ -119,6 +119,10 @@ class NameInputDialog(object):
 
   def cb_do_close(self, widget, event=None):
 
+    self.config["name_input_pos"] = self.we.wnd_name_input.get_position()
+    self.config["name_input_size"] = self.we.wnd_name_input.get_size()
+    self.config.save()
+
     self.we.wnd_name_input.destroy()
 
 
@@ -153,10 +157,6 @@ class NameInputDialog(object):
 
   @debug()
   def cb_do_submit_ok(self, result):
-
-    self.config["name_input_pos"] = self.we.wnd_name_input.get_position()
-    self.config["name_input_size"] = self.we.wnd_name_input.get_size()
-    self.config.save()
 
     self.cb_do_close(None)
 
