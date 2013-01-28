@@ -84,8 +84,14 @@ class NameInputDialog(object):
         gtk.ICON_SIZE_SMALL_TOOLBAR)
     self.we.wnd_name_input.set_icon(icon)
 
+    cur_pos = self.we.wnd_name_input.get_position()
+    pos = self.config["name_input_pos"]
+    pos = (cur_pos[i] if coord < 0 else coord for i, coord in enumerate(pos))
+    self.we.wnd_name_input.move(*pos)
+
     size = self.config["name_input_size"]
-    if all(coord > 0 for coord in size):
+    size[1] = 1
+    if all(dim > 0 for dim in size):
       self.we.wnd_name_input.resize(*size)
 
     if self.method == "add":
@@ -148,6 +154,7 @@ class NameInputDialog(object):
   @debug()
   def cb_do_submit_ok(self, result):
 
+    self.config["name_input_pos"] = self.we.wnd_name_input.get_position()
     self.config["name_input_size"] = self.we.wnd_name_input.get_size()
     self.config.save()
 
