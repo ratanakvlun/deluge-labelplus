@@ -53,6 +53,7 @@ GTKUI_DEFAULTS = {
   "name_input_size": (-1, -1),
   "name_input_pos": (-1, -1),
   "label_options_size": (-1, -1),
+  "label_options_pos": (-1, -1),
   "prefs_state": [],
   "sidebar_state": {
     "selected": ID_ALL,
