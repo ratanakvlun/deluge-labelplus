@@ -5,7 +5,7 @@
   <widget class="GtkWindow" id="wnd_label_options">
     <property name="title" translatable="yes">Label Options</property>
     <property name="modal">True</property>
-    <property name="window_position">mouse</property>
+    <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>

@@ -83,13 +83,12 @@ class LabelOptionsDialog(object):
         gtk.ICON_SIZE_SMALL_TOOLBAR)
     self.we.wnd_label_options.set_icon(icon)
 
-    cur_pos = self.we.wnd_label_options.get_position()
     pos = self.config["label_options_pos"]
-    pos = (cur_pos[i] if coord < 0 else coord for i, coord in enumerate(pos))
-    self.we.wnd_label_options.move(*pos)
+    if pos:
+      self.we.wnd_label_options.move(*pos)
 
     size = self.config["label_options_size"]
-    if all(dim > 0 for dim in size):
+    if size:
       self.we.wnd_label_options.resize(*size)
 
     self.we.lbl_header.set_markup("<b>%s</b>" % self.we.lbl_header.get_text())
@@ -189,8 +188,10 @@ class LabelOptionsDialog(object):
   @debug()
   def cb_do_close(self, widget, event=None):
 
-    self.config["label_options_pos"] = self.we.wnd_label_options.get_position()
-    self.config["label_options_size"] = self.we.wnd_label_options.get_size()
+    self.config["label_options_pos"] = \
+        list(self.we.wnd_label_options.get_position())
+    self.config["label_options_size"] = \
+        list(self.we.wnd_label_options.get_size())
     self.config.save()
 
     self.we.wnd_label_options.destroy()

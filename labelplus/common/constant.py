@@ -50,10 +50,10 @@ ID_NONE = "None"
 RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
 
 GTKUI_DEFAULTS = {
-  "name_input_size": (-1, -1),
-  "name_input_pos": (-1, -1),
-  "label_options_size": (-1, -1),
-  "label_options_pos": (-1, -1),
+  "name_input_size": None,
+  "name_input_pos": None,
+  "label_options_size": None,
+  "label_options_pos": None,
   "prefs_state": [],
   "sidebar_state": {
     "selected": ID_ALL,
