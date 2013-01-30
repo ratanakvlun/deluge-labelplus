@@ -64,6 +64,7 @@ GTKUI_DEFAULTS = {
 OPTION_DEFAULTS = {
   "include_children": False,
   "show_full_name": False,
+  "move_on_changes": False,
 }
 
 LABEL_DEFAULTS = {

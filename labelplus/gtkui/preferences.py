@@ -82,6 +82,7 @@ class Preferences(object):
     self.general_widgets = (
       self.we.chk_include_children,
       self.we.chk_show_full_name,
+      self.we.chk_move_on_changes,
     )
 
     self.defaults_widgets = (
@@ -138,6 +139,8 @@ class Preferences(object):
       self.we.fcb_move_data_completed_select.hide()
       self.we.txt_move_data_completed_entry.show()
 
+    self.we.blk_preferences.connect("expose-event", self._do_set_unavailable)
+
     self.plugin.add_preferences_page(DISPLAY_NAME, self.we.blk_preferences)
     self.plugin.register_hook("on_show_prefs", self._load_settings)
     self.plugin.register_hook("on_apply_prefs", self._save_settings)
@@ -157,6 +160,18 @@ class Preferences(object):
 
     self._load_general(OPTION_DEFAULTS)
     self._load_defaults(LABEL_DEFAULTS)
+
+
+  def _do_set_unavailable(self, widget, event):
+
+    flag = "MoveTools" in self.plugin.get_enabled_plugins()
+    self.we.chk_move_on_changes.set_sensitive(flag)
+
+    if flag:
+      self.we.chk_move_on_changes.set_tooltip_text(None)
+    else:
+      self.we.chk_move_on_changes.set_tooltip_text(
+          _("Requires Move Tools plugin"))
 
 
   def _load_settings(self, widget=None, data=None):
