@@ -234,6 +234,10 @@ class Core(CorePluginBase):
     self._last_modified = datetime.datetime.now()
     self._config.save()
 
+    if (obj["data"]["move_data_completed_mode"] == "subfolder" and
+        self._prefs["options"]["move_on_changes"]):
+      self._subtree_move_completed(label_id)
+
 
   @export
   @init_check
@@ -261,10 +265,13 @@ class Core(CorePluginBase):
     retroactive = options_in.get("tmp_auto_retroactive", False)
     unlabeled_only = options_in.get("tmp_auto_unlabeled", True)
 
-    old_move_path = self._labels[label_id]["data"]["move_data_completed_path"]
+    options = self._labels[label_id]["data"]
+
+    old_download = options["download_settings"]
+    old_move = options["move_data_completed"]
+    old_move_path = options["move_data_completed_path"]
 
     self._normalize_label_data(options_in)
-    options = self._labels[label_id]["data"]
     options.update(options_in)
 
     self._config.save()
@@ -272,8 +279,21 @@ class Core(CorePluginBase):
     for id in self._index[label_id]["torrents"]:
       self._apply_torrent_options(id)
 
+    # Make sure descendent labels are updated if path changed
     if old_move_path != options["move_data_completed_path"]:
       self._propagate_path_to_descendents(label_id)
+
+      self._config.save()
+
+      if self._prefs["options"]["move_on_changes"]:
+        self._subtree_move_completed(label_id)
+    else:
+      # If move completed was just turned on...
+      if (options["download_settings"] and
+          options["move_data_completed"] and
+          (not old_download or not old_move) and
+          self._prefs["options"]["move_on_changes"]):
+        self._do_move_completed(label_id, self._index[label_id]["torrents"])
 
     if options["auto_settings"] and retroactive:
       autolabel = []
@@ -347,11 +367,15 @@ class Core(CorePluginBase):
     Validation.require((label_id not in RESERVED_IDS and
         label_id in self._labels) or (not label_id), "Unknown Label")
 
-    for id in (t for t in torrent_list if t in self._torrents):
+    torrents = [t for t in torrent_list if t in self._torrents]
+    for id in torrents:
       self._set_torrent_label(id, label_id)
 
     self._last_modified = datetime.datetime.now()
     self._config.save()
+
+    if label_id:
+      self._do_move_completed(label_id, torrents)
 
 
   @export
@@ -809,6 +833,26 @@ class Core(CorePluginBase):
 
     for id in self._index[parent_id]["children"]:
       descend(id)
+
+
+  def _subtree_move_completed(self, parent_id):
+
+    self._do_move_completed(parent_id, self._index[parent_id]["torrents"])
+
+    for id in self._index[parent_id]["children"]:
+      self._subtree_move_completed(id)
+
+
+  def _do_move_completed(self, label_id, torrent_list):
+
+    options = self._labels[label_id]["data"]
+    if (self._prefs["options"]["move_on_changes"] and
+        options["download_settings"] and
+        options["move_data_completed"]):
+      try:
+        component.get("CorePlugin.MoveTools").move_completed(torrent_list)
+      except KeyError:
+        pass
 
 
   def _get_default_save_path(self):
