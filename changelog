@@ -1,3 +1,7 @@
+Version 0.2.14
+- Add auto move completed when label path changes (Requires Move Tools)
+- Minor fixes
+
 Version 0.2.13
 - Add label field to add torrent dialog
 - Fix caching bug in torrent add/remove handlers
