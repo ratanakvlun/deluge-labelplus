@@ -292,7 +292,7 @@ class Preferences(object):
     if options["move_data_completed_mode"] == "folder":
       if self.daemon_is_local:
         options["move_data_completed_path"] = \
-            self.we.fcb_move_data_completed_select.get_current_folder()
+            self.we.fcb_move_data_completed_select.get_filename()
       else:
         options["move_data_completed_path"] = \
             self.we.txt_move_data_completed_entry.get_text().strip()

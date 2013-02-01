@@ -256,7 +256,7 @@ class LabelOptionsDialog(object):
 
   def on_folder_changed(self, widget):
 
-    folder = widget.get_current_folder()
+    folder = widget.get_filename()
     self.we.txt_move_data_completed_entry.set_text(folder)
 
 
