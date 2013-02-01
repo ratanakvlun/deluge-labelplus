@@ -75,6 +75,7 @@ class LabelSelectionMenu(gtk.MenuItem):
 
     for child in self.submenu.get_children():
       self.submenu.remove(child)
+      child.destroy()
 
     item = gtk.MenuItem(_(ID_NONE))
     item.connect("activate", self.on_select_label, None)

@@ -508,6 +508,7 @@ class LabelSidebar(object):
         for handler in self.external_handlers:
           view.disconnect(handler)
 
+        viewport.destroy()
         return
 
 

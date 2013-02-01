@@ -69,7 +69,11 @@ class AddTorrentExt(object):
 
     self.submenu = self.menu.get_submenu()
 
-    self.lv.get_selection().connect("changed", self._do_update_label_text)
+    self.handlers.append((
+      self.lv.get_selection(),
+      self.lv.get_selection().connect("changed", self._do_update_label_text),
+    ))
+
     self.btn_select.connect("button-release-event", self._do_show_menu)
 
     self._install_ext_block()
@@ -78,9 +82,10 @@ class AddTorrentExt(object):
 
   def unload(self):
 
-    self._deregister_button_handlers()
+    self._deregister_handlers()
     self.menu.destroy()
     self._uninstall_ext_block()
+    self.blk_ext.destroy()
 
 
   def _build_ext_block(self):
@@ -215,7 +220,7 @@ class AddTorrentExt(object):
     self.handlers.append((btn, btn.connect("clicked", self._do_add)))
 
 
-  def _deregister_button_handlers(self):
+  def _deregister_handlers(self):
 
     for widget, handler in self.handlers:
       widget.disconnect(handler)
