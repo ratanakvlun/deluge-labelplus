@@ -134,6 +134,9 @@ class Core(CorePluginBase):
     component.get("EventManager").deregister_event_handler(
         "PreTorrentRemovedEvent", self.on_torrent_removed)
 
+    component.get("AlertManager").deregister_handler(
+        self.on_torrent_finished)
+
     component.get("CorePluginManager").deregister_status_field(STATUS_ID)
     component.get("CorePluginManager").deregister_status_field(STATUS_NAME)
 
@@ -424,6 +427,21 @@ class Core(CorePluginBase):
     self._last_modified = datetime.datetime.now()
 
 
+  @debug()
+  def on_torrent_finished(self, alert):
+
+    torrent_id = str(alert.handle.info_hash())
+
+    if torrent_id in self._mappings:
+      log.debug("[%s] Labeled torrent %s finished", PLUGIN_NAME, torrent_id)
+      label_id = self._mappings[torrent_id]
+      torrent = self._torrents[torrent_id]
+
+      path = torrent.get_status(["save_path"])["save_path"]
+      if path != self._labels[label_id]["data"]["move_data_completed_path"]:
+        self._do_move_completed(label_id, [torrent_id])
+
+
   def _initialize(self):
 
     component.get("EventManager").deregister_event_handler(
@@ -447,6 +465,9 @@ class Core(CorePluginBase):
         "TorrentAddedEvent", self.on_torrent_added)
     component.get("EventManager").register_event_handler(
         "PreTorrentRemovedEvent", self.on_torrent_removed)
+
+    component.get("AlertManager").register_handler(
+        "torrent_finished_alert", self.on_torrent_finished)
 
     self._last_modified = datetime.datetime.now()
     self.initialized = True
