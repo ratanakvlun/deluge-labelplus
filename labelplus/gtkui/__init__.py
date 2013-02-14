@@ -130,8 +130,6 @@ class GtkUI(GtkPluginBase):
       self._config.save()
       deluge.configmanager.close(self._config)
 
-      component.get("TorrentView").remove_column(DISPLAY_NAME)
-
       component.get("MenuBar").torrentmenu.remove(self.sep)
       component.get("MenuBar").torrentmenu.remove(self.label_selection_menu)
       self.label_selection_menu.destroy()
@@ -143,6 +141,8 @@ class GtkUI(GtkPluginBase):
       self.preferences.unload()
 
       self.add_torrent_ext.unload()
+
+      component.get("TorrentView").remove_column(DISPLAY_NAME)
 
 
   def update(self):
