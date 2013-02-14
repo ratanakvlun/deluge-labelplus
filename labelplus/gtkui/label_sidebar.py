@@ -42,7 +42,7 @@ from deluge.log import LOG as log
 from deluge.ui.client import client
 import deluge.configmanager
 
-from labelplus.common.constant import PLUGIN_NAME, DISPLAY_NAME
+from labelplus.common.constant import PLUGIN_NAME, DISPLAY_NAME, MODULE_NAME
 from labelplus.common.constant import RESERVED_IDS
 from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from labelplus.common.constant import STATUS_ID
@@ -440,76 +440,14 @@ class LabelSidebar(object):
 
   def _install_label_tree(self):
 
-    filter_view = component.get("FilterTreeView")
-    view = filter_view.label_view
-    sidebar = filter_view.sidebar
-
-    for tab_child in sidebar.notebook.get_children():
-      if sidebar.notebook.get_tab_label_text(tab_child) == "Filters":
-        tab_child.remove(view)
-
-        viewport = gtk.Viewport()
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
-
-        vbox = gtk.VBox()
-        vbox.pack_start(view, False)
-        vbox.pack_start(self.label_tree, True)
-        viewport.add(vbox)
-
-        tab_child.add(viewport)
-        tab_child.show_all()
-
-
-        def on_row_expanded(widget, row, path):
-
-          if not widget.has_focus():
-            # Block next call to the handler that sets the filter
-            selection = widget.get_selection()
-            selection.handler_block_by_func(filter_view.on_selection_changed)
-
-
-            def unblock_handler(widget):
-
-              widget.disconnect(handler)
-              widget.handler_unblock_by_func(filter_view.on_selection_changed)
-
-
-            handler = selection.connect("changed", unblock_handler)
-
-
-        self.external_handlers.append(
-            view.connect("row-expanded", on_row_expanded))
-        self.external_handlers.append(
-            view.connect("cursor-changed", self.on_cursor_changed))
-        self.external_handlers.append(
-            view.connect("focus-in-event", self.on_focus_in))
-
-        return
+    sidebar = component.get("SideBar")
+    sidebar.add_tab(self.label_tree, MODULE_NAME, DISPLAY_NAME)
 
 
   def _uninstall_label_tree(self):
 
-    filter_view = component.get("FilterTreeView")
-    view = filter_view.label_view
-    sidebar = filter_view.sidebar
-
-    for tab_child in sidebar.notebook.get_children():
-      if sidebar.notebook.get_tab_label_text(tab_child) == "Filters":
-        viewport = tab_child.get_child()
-
-        vbox = viewport.get_child()
-        vbox.remove(view)
-        vbox.remove(self.label_tree)
-
-        tab_child.remove(viewport)
-        tab_child.add(view)
-        tab_child.show_all()
-
-        for handler in self.external_handlers:
-          view.disconnect(handler)
-
-        viewport.destroy()
-        return
+    sidebar = component.get("SideBar")
+    sidebar.remove_tab(MODULE_NAME)
 
 
   def _build_label_tree(self):
