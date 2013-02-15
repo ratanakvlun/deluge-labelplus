@@ -512,10 +512,10 @@ class LabelSidebar(object):
       client.labelplus.remove_label(id)
 
 
-    self.label_tree.freeze_child_notify()
+    self.label_tree.freeze_notify()
     row = self.row_map[label_id]
     treemodel_subtree_op(self.store, row, post_func=remove)
-    self.label_tree.thaw_child_notify()
+    self.label_tree.thaw_notify()
 
     self._load_tree_state()
 
