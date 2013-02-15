@@ -362,6 +362,7 @@ class LabelSidebar(object):
     model, row = widget.get_selection().get_selected()
     selected_path = model.get_path(row) if row else None
     if path and selected_path:
+      widget.scroll_to_cell(selected_path)
       if path != selected_path:
         widget.set_cursor(selected_path)
       else:
