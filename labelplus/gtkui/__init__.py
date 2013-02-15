@@ -50,7 +50,7 @@ from deluge.plugins.pluginbase import GtkPluginBase
 from deluge.ui.client import client
 import deluge.configmanager
 
-from labelplus.common.constant import DISPLAY_NAME
+from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
 from labelplus.common.constant import STATUS_NAME
 from labelplus.common.constant import GTKUI_CONFIG
 from labelplus.common.constant import GTKUI_DEFAULTS
@@ -243,7 +243,18 @@ class GtkUI(GtkPluginBase):
           return True
 
 
+    class ModuleFilter(object):
+
+
+      def filter(self, record):
+
+        record.msg = "[%s] %s" % (PLUGIN_NAME, record.msg)
+
+        return True
+
+
     dnd.log.setLevel(logging.INFO)
+    dnd.log.addFilter(ModuleFilter())
 
     src_target = dnd.DragTarget(
       name="torrent_ids",
