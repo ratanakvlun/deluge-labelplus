@@ -440,14 +440,28 @@ class LabelSidebar(object):
 
   def _install_label_tree(self):
 
-    sidebar = component.get("SideBar")
+    filter_view = component.get("FilterTreeView")
+    view = filter_view.label_view
+    sidebar = filter_view.sidebar
+
     sidebar.add_tab(self.label_tree, MODULE_NAME, DISPLAY_NAME)
+
+    self.external_handlers.append(
+        view.connect("cursor-changed", self.on_cursor_changed))
+    self.external_handlers.append(
+        view.connect("focus-in-event", self.on_focus_in))
 
 
   def _uninstall_label_tree(self):
 
-    sidebar = component.get("SideBar")
+    filter_view = component.get("FilterTreeView")
+    view = filter_view.label_view
+    sidebar = filter_view.sidebar
+
     sidebar.remove_tab(MODULE_NAME)
+
+    for handler in self.external_handlers:
+     view.disconnect(handler)
 
 
   def _build_label_tree(self):
