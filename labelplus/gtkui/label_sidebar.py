@@ -238,6 +238,7 @@ class LabelSidebar(object):
     self.label_tree.connect("button-press-event", self.on_button_pressed)
     self.label_tree.connect("button-release-event", self.on_button_released)
     self.label_tree.connect("row-collapsed", self.on_row_collapsed)
+    self.label_tree.connect("row-expanded", self.on_row_expanded)
     self.label_tree.connect("cursor-changed", self.on_cursor_changed)
     self.label_tree.connect("focus-in-event", self.on_focus_in)
 
@@ -288,38 +289,6 @@ class LabelSidebar(object):
     id, name, count = widget.get_model()[path]
 
     if event.button == 1:
-      # Workaround for expanders not toggling
-      size = widget.style_get_property("expander-size")
-      pad = widget.style_get_property("horizontal-separator")
-      cell_area = widget.get_cell_area(path, column)
-
-      expander_left = cell_area[0]-size-(2*pad)-1
-      expander_right = cell_area[0]-pad+1
-      if cell_x >= expander_left and cell_x <= expander_right:
-        if widget.row_expanded(path):
-          widget.collapse_row(path)
-
-          for item in list(self.state["expanded"]):
-            if Label.is_ancestor(id, item):
-              self.state["expanded"].remove(item)
-
-          if id in self.state["expanded"]:
-            self.state["expanded"].remove(id)
-
-          self.config.save()
-
-          return True
-        else:
-          widget.expand_row(path, False)
-          if widget.row_expanded(path):
-
-            if id not in self.state["expanded"]:
-              self.state["expanded"].append(id)
-              self.config.save()
-
-            return True
-          # Else no expander at that position
-
       # Double click shows the options dialog
       if event.type == gtk.gdk._2BUTTON_PRESS:
         if id not in RESERVED_IDS:
@@ -347,7 +316,27 @@ class LabelSidebar(object):
       self.menu.popup(None, None, None, event.button, event.time)
 
 
+  def on_row_expanded(self, widget, row, path):
+
+    id = widget.get_model()[path][0]
+
+    if id not in self.state["expanded"]:
+      self.state["expanded"].append(id)
+      self.config.save()
+
+
   def on_row_collapsed(self, widget, row, path):
+
+    id = widget.get_model()[path][0]
+
+    for item in list(self.state["expanded"]):
+      if Label.is_ancestor(id, item):
+        self.state["expanded"].remove(item)
+
+      if id in self.state["expanded"]:
+        self.state["expanded"].remove(id)
+
+    self.config.save()
 
     # Select the collapsed row if the filter row is its descendent
     if path == self.filter_path[:len(path)]:
