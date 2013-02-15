@@ -422,7 +422,7 @@ class LabelSidebar(object):
     sidebar.remove_tab(MODULE_NAME)
 
     for handler in self.external_handlers:
-     view.disconnect(handler)
+      view.disconnect(handler)
 
 
   def _build_label_tree(self):
