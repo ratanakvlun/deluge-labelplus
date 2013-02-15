@@ -408,9 +408,9 @@ class LabelSidebar(object):
     sidebar.add_tab(self.label_tree, MODULE_NAME, DISPLAY_NAME)
 
     self.external_handlers.append(
-        view.connect("cursor-changed", self.on_cursor_changed))
+        (view, view.connect("cursor-changed", self.on_cursor_changed)))
     self.external_handlers.append(
-        view.connect("focus-in-event", self.on_focus_in))
+        (view, view.connect("focus-in-event", self.on_focus_in)))
 
 
     def on_hide(widget):
@@ -434,12 +434,12 @@ class LabelSidebar(object):
     notebook = sidebar.notebook
 
     self.external_handlers.append(
-      notebook.connect("hide", on_hide))
+      (notebook, notebook.connect("hide", on_hide)))
 
-    self.external_handlers.append(
-      notebook.connect("switch-page", on_switch_page, view))
-    self.external_handlers.append(
-      notebook.connect("switch-page", on_switch_page, self.label_tree))
+    self.external_handlers.append((notebook,
+      notebook.connect("switch-page", on_switch_page, view)))
+    self.external_handlers.append((notebook,
+      notebook.connect("switch-page", on_switch_page, self.label_tree)))
 
 
   def _uninstall_label_tree(self):
@@ -450,8 +450,9 @@ class LabelSidebar(object):
 
     sidebar.remove_tab(MODULE_NAME)
 
-    for handler in self.external_handlers:
-      view.disconnect(handler)
+    for obj, handler in self.external_handlers:
+      if obj.handler_is_connected(handler):
+        obj.disconnect(handler)
 
 
   def _build_label_tree(self):
