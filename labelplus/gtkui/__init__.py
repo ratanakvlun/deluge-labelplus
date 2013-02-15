@@ -124,6 +124,8 @@ class GtkUI(GtkPluginBase):
 
   def disable(self):
 
+    self.retries = MAX_RETRIES
+
     if self.initialized:
       self.initialized = False
 
