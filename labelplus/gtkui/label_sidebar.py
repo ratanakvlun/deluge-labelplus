@@ -191,9 +191,8 @@ class LabelSidebar(object):
     self.filter_path = None
     self.external_handlers = []
 
-    root = self.store.append(None, [NULL_PARENT, DISPLAY_NAME, 0])
     self.row_map = {
-      NULL_PARENT: root,
+      NULL_PARENT: None,
     }
 
     self._install_label_tree()
@@ -266,8 +265,8 @@ class LabelSidebar(object):
         else:
           parent_id = Label.get_parent(id)
 
-        parent = self.row_map.get(parent_id)
-        if parent:
+        if parent_id in self.row_map:
+          parent = self.row_map.get(parent_id)
           data = [id, counts[id]["name"], counts[id]["count"]]
           row = self.store.append(parent, data)
           self.row_map[id] = row
@@ -289,78 +288,57 @@ class LabelSidebar(object):
     id, name, count = widget.get_model()[path]
 
     if event.button == 1:
-      # Toggle expander of "header" row
-      if id == NULL_PARENT:
+      # Workaround for expanders not toggling
+      size = widget.style_get_property("expander-size")
+      pad = widget.style_get_property("horizontal-separator")
+      cell_area = widget.get_cell_area(path, column)
+
+      expander_left = cell_area[0]-size-(2*pad)-1
+      expander_right = cell_area[0]-pad+1
+      if cell_x >= expander_left and cell_x <= expander_right:
         if widget.row_expanded(path):
           widget.collapse_row(path)
+
+          for item in list(self.state["expanded"]):
+            if Label.is_ancestor(id, item):
+              self.state["expanded"].remove(item)
+
+          if id in self.state["expanded"]:
+            self.state["expanded"].remove(id)
+
+          self.config.save()
+
+          return True
         else:
-          # Only allow selection handler if focused (sets filter)
-          if widget.has_focus():
-            self._load_tree_state()
-          else:
-            widget.get_selection().handler_block_by_func(
-                self.on_selection_changed)
-            self._load_tree_state()
-            widget.get_selection().handler_unblock_by_func(
-                self.on_selection_changed)
-      else:
-        # Workaround for expanders not toggling
-        size = widget.style_get_property("expander-size")
-        pad = widget.style_get_property("horizontal-separator")
-        cell_area = widget.get_cell_area(path, column)
-
-        expander_left = cell_area[0]-size-(2*pad)-1
-        expander_right = cell_area[0]-pad+1
-        if cell_x >= expander_left and cell_x <= expander_right:
+          widget.expand_row(path, False)
           if widget.row_expanded(path):
-            widget.collapse_row(path)
 
-            for item in list(self.state["expanded"]):
-              if Label.is_ancestor(id, item):
-                self.state["expanded"].remove(item)
-
-            if id in self.state["expanded"]:
-              self.state["expanded"].remove(id)
-
-            self.config.save()
+            if id not in self.state["expanded"]:
+              self.state["expanded"].append(id)
+              self.config.save()
 
             return True
-          else:
-            widget.expand_row(path, False)
-            if widget.row_expanded(path):
+          # Else no expander at that position
 
-              if id not in self.state["expanded"]:
-                self.state["expanded"].append(id)
-                self.config.save()
-
-              return True
-            # Else no expander at that position
-
-        # Double click shows the options dialog
-        if event.type == gtk.gdk._2BUTTON_PRESS:
-          if id not in RESERVED_IDS:
-            self.menu.target_id = id
-            self.menu.on_options(None)
+      # Double click shows the options dialog
+      if event.type == gtk.gdk._2BUTTON_PRESS:
+        if id not in RESERVED_IDS:
+          self.menu.target_id = id
+          self.menu.on_options(None)
     elif event.button == 3:
       # Ensure tree view reflects the row at the event
-      if id != NULL_PARENT:
-        model, row = widget.get_selection().get_selected()
-        selected_path = model.get_path(row) if row else None
-        if path != selected_path:
-          widget.get_selection().select_path(path)
+      model, row = widget.get_selection().get_selected()
+      selected_path = model.get_path(row) if row else None
+      if path != selected_path:
+        widget.get_selection().select_path(path)
 
       # Determine sensitivity for popup menu
       level = self.menu.LEVEL3
-      if id == NULL_PARENT:
-        level = self.menu.LEVEL1
-      elif id in RESERVED_IDS:
+      if id in RESERVED_IDS:
         level = self.menu.LEVEL2
 
       self.menu.set_sensitivity(level)
       self.menu.target_id = id
-
-    if id == NULL_PARENT:
-      return True
 
 
   def on_button_released(self, widget, event):
@@ -374,8 +352,7 @@ class LabelSidebar(object):
     # Select the collapsed row if the filter row is its descendent
     if path == self.filter_path[:len(path)]:
       id = widget.get_model().get_value(row, 0)
-      if id != NULL_PARENT:
-        widget.get_selection().select_path(path)
+      widget.get_selection().select_path(path)
 
 
   def on_focus_in(self, widget, event):
@@ -408,18 +385,17 @@ class LabelSidebar(object):
     model, row = widget.get_selected()
     if row:
       id, name = model.get(row, 0, 1)
-      if id != NULL_PARENT:
-        if id == ID_ALL:
-          filter_data = {}
-        elif id == ID_NONE:
-          filter_data = {STATUS_ID: [ID_NONE]}
-        else:
-          filter_data = {STATUS_ID: [id]}
+      if id == ID_ALL:
+        filter_data = {}
+      elif id == ID_NONE:
+        filter_data = {STATUS_ID: [ID_NONE]}
+      else:
+        filter_data = {STATUS_ID: [id]}
 
-        component.get("TorrentView").set_filter(filter_data)
-        self.filter_path = model.get_path(row)
+      component.get("TorrentView").set_filter(filter_data)
+      self.filter_path = model.get_path(row)
 
-        self.state["selected"] = id
+      self.state["selected"] = id
 
 
   def _install_label_tree(self):
@@ -469,21 +445,10 @@ class LabelSidebar(object):
 
     id, name, count = model.get(row, 0, 1, 2)
 
-    if id == NULL_PARENT:
-      bg = component.get("FilterTreeView").colour_background
-      fg = component.get("FilterTreeView").colour_foreground
-
-      cell.set_property("cell-background-gdk", bg)
-      cell.set_property("foreground-gdk", fg)
-      label_str = name
+    if self._has_descendent_counts(id):
+      label_str = "%s (%s) ..." % (name, count)
     else:
-      cell.set_property("cell-background", None)
-      cell.set_property("foreground", None)
-
-      if self._has_descendent_counts(id):
-        label_str = "%s (%s) ..." % (name, count)
-      else:
-        label_str = "%s (%s)" % (name, count)
+      label_str = "%s (%s)" % (name, count)
 
     cell.set_property("text", label_str)
 
@@ -525,7 +490,10 @@ class LabelSidebar(object):
 
     path = self.store.get_path(row)
     path = self.sorted_store.convert_child_path_to_path(path)
-    self.label_tree.expand_to_path(path[:-1])
+
+    parent_path = path[:-1]
+    if parent_path:
+      self.label_tree.expand_to_path(parent_path)
 
     self.label_tree.get_selection().select_path(path)
     self.filter_path = path
