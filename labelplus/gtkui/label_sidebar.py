@@ -476,10 +476,7 @@ class LabelSidebar(object):
 
     id, name, count = model.get(row, 0, 1, 2)
 
-    if self._has_descendent_counts(id):
-      label_str = "%s (%s) ..." % (name, count)
-    else:
-      label_str = "%s (%s)" % (name, count)
+    label_str = "%s (%s)" % (name, count)
 
     cell.set_property("text", label_str)
 
@@ -549,18 +546,6 @@ class LabelSidebar(object):
     self.label_tree.thaw_notify()
 
     self._load_tree_state()
-
-
-  def _has_descendent_counts(self, label_id):
-
-
-    def check(model, path, row):
-      id, count = model.get(row, 0, 2)
-      return id != label_id and count > 0
-
-
-    row = self.row_map[label_id]
-    return treemodel_subtree_op(self.store, row, pre_func=check)
 
 
   def _label_sort_asc(self, store, iter1, iter2):
