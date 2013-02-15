@@ -402,22 +402,6 @@ class LabelSidebar(object):
 
       widget.get_selection().emit("changed")
 
-      # Autoscroll
-      if not column:
-        column = widget.get_column(0)
-
-      window = widget.get_ancestor(gtk.ScrolledWindow)
-      vadjustment = window.get_vadjustment()
-      row_area = widget.get_background_area(path, column)
-      offset = widget.translate_coordinates(widget.get_parent(), 0, 0)
-
-      top_y = row_area[1] + offset[1]
-      bottom_y = top_y + row_area[3]
-      if top_y < vadjustment.value:
-        vadjustment.clamp_page(top_y, top_y + vadjustment.page_size)
-      elif bottom_y - vadjustment.page_size > vadjustment.value:
-        vadjustment.clamp_page(bottom_y - vadjustment.page_size, bottom_y)
-
 
   def on_selection_changed(self, widget):
 
