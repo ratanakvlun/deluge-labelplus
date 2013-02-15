@@ -423,10 +423,23 @@ class LabelSidebar(object):
       self.label_tree.set_cursor(path)
 
 
+    def on_switch_page(widget, page, page_num, treeview):
+
+      if widget.has_focus():
+        child = widget.get_nth_page(page_num)
+        if treeview.is_ancestor(child):
+          treeview.get_selection().emit("changed")
+
+
     notebook = sidebar.notebook
 
     self.external_handlers.append(
       notebook.connect("hide", on_hide))
+
+    self.external_handlers.append(
+      notebook.connect("switch-page", on_switch_page, view))
+    self.external_handlers.append(
+      notebook.connect("switch-page", on_switch_page, self.label_tree))
 
 
   def _uninstall_label_tree(self):
