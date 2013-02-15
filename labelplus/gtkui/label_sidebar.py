@@ -413,6 +413,22 @@ class LabelSidebar(object):
         view.connect("focus-in-event", self.on_focus_in))
 
 
+    def on_hide(widget):
+
+      row = self.row_map[ID_ALL]
+
+      path = self.store.get_path(row)
+      path = self.sorted_store.convert_child_path_to_path(path)
+
+      self.label_tree.set_cursor(path)
+
+
+    notebook = sidebar.notebook
+
+    self.external_handlers.append(
+      notebook.connect("hide", on_hide))
+
+
   def _uninstall_label_tree(self):
 
     filter_view = component.get("FilterTreeView")
