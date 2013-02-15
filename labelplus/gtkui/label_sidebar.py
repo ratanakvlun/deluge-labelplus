@@ -430,6 +430,12 @@ class LabelSidebar(object):
     self.external_handlers.append((notebook,
       notebook.connect("switch-page", on_switch_page, self.label_tree)))
 
+    # Hack to make initial drag and drop work properly between tabs
+    page = notebook.get_current_page()
+    parent_page = notebook.page_num(self.label_tree.parent)
+    notebook.set_current_page(parent_page)
+    notebook.set_current_page(page)
+
 
   def _uninstall_label_tree(self):
 
