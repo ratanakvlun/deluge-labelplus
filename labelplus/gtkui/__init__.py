@@ -39,6 +39,10 @@
 #
 
 
+import logging
+
+import gtk
+
 from twisted.internet import reactor
 
 from deluge import component
@@ -56,6 +60,8 @@ from label_selection_menu import LabelSelectionMenu
 from label_sidebar import LabelSidebar
 from preferences import Preferences
 from add_torrent_ext import AddTorrentExt
+
+import dnd
 
 
 MAX_RETRIES = 10
@@ -119,6 +125,8 @@ class GtkUI(GtkPluginBase):
 
     self.add_torrent_ext = AddTorrentExt()
 
+    self.enable_dnd()
+
     self.initialized = True
 
 
@@ -131,6 +139,8 @@ class GtkUI(GtkPluginBase):
 
       self._config.save()
       deluge.configmanager.close(self._config)
+
+      self.disable_dnd()
 
       component.get("MenuBar").torrentmenu.remove(self.sep)
       component.get("MenuBar").torrentmenu.remove(self.label_selection_menu)
@@ -180,3 +190,93 @@ class GtkUI(GtkPluginBase):
   def get_label_counts(self):
 
     return self.label_data
+
+
+  def enable_dnd(self):
+
+
+    def get_drag_icon(widget, x, y):
+
+      num = widget.get_selection().count_selected_rows()
+
+      if num > 1:
+        pixbuf = self.icon_multiple
+      else:
+        pixbuf = self.icon_single
+
+      return (pixbuf, 0, 0)
+
+
+    def get_ids(widget, path, col, selection, *args):
+
+      selection.set("TEXT", 8, "OK")
+
+      return True
+
+
+    def receive_ids(widget, path, col, pos, selection, *args):
+
+      if selection.data == "OK":
+        model = widget.get_model()
+        id = model[path][0]
+
+        if id == ID_NONE:
+          id = None
+
+        if id not in RESERVED_IDS:
+          torrents = component.get("TorrentView").get_selected_torrents()
+          client.labelplus.set_torrent_labels(id, torrents)
+
+          return True
+
+
+    def peek_ids(widget, path, col, pos, selection, *args):
+
+      if selection.data == "OK":
+        model = widget.get_model()
+        id = model[path][0]
+
+        if id == ID_NONE:
+          id = None
+
+        if id not in RESERVED_IDS:
+          return True
+
+
+    dnd.log.setLevel(logging.INFO)
+
+    src_target = dnd.DragTarget(
+      name="torrent_ids",
+      scope=gtk.TARGET_SAME_APP,
+      action=gtk.gdk.ACTION_MOVE,
+      data_func=get_ids,
+    )
+
+    src_treeview = component.get("TorrentView").treeview
+
+    self.icon_single = \
+        src_treeview.render_icon(gtk.STOCK_DND, gtk.ICON_SIZE_DND)
+    self.icon_multiple = \
+        src_treeview.render_icon(gtk.STOCK_DND_MULTIPLE, gtk.ICON_SIZE_DND)
+
+    self.src_proxy = dnd.TreeViewDragSourceProxy(src_treeview, get_drag_icon)
+    self.src_proxy.add_target(src_target)
+
+    dest_target = dnd.DragTarget(
+      name="torrent_ids",
+      scope=gtk.TARGET_SAME_APP,
+      action=gtk.gdk.ACTION_MOVE,
+      pos=gtk.TREE_VIEW_DROP_INTO_OR_BEFORE,
+      data_func=receive_ids,
+      aux_func=peek_ids,
+    )
+
+    dest_treeview = self.label_sidebar.label_tree
+    self.dest_proxy = dnd.TreeViewDragDestProxy(dest_treeview)
+    self.dest_proxy.add_target(dest_target)
+
+
+  def disable_dnd(self):
+
+    self.dest_proxy.unload()
+    self.src_proxy.unload()
