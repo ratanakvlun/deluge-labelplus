@@ -288,6 +288,12 @@ class LabelSidebar(object):
     path, column, cell_x, cell_y = path_info
     id, name, count = widget.get_model()[path]
 
+    # Ensure tree view reflects the row at the event
+    model, row = widget.get_selection().get_selected()
+    selected_path = model.get_path(row) if row else None
+    if path != selected_path:
+      widget.set_cursor(path)
+
     if event.button == 1:
       # Double click shows the options dialog
       if event.type == gtk.gdk._2BUTTON_PRESS:
@@ -295,12 +301,6 @@ class LabelSidebar(object):
           self.menu.target_id = id
           self.menu.on_options(None)
     elif event.button == 3:
-      # Ensure tree view reflects the row at the event
-      model, row = widget.get_selection().get_selected()
-      selected_path = model.get_path(row) if row else None
-      if path != selected_path:
-        widget.get_selection().select_path(path)
-
       # Determine sensitivity for popup menu
       level = self.menu.LEVEL3
       if id in RESERVED_IDS:
