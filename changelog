@@ -1,3 +1,9 @@
+Version 0.2.15
+- Drag and drop torrents on label tree to label them
+- Move label tree to its own tab for proper scrolling
+- Move completed after recheck (if 'move on label path change' set in prefs)
+- Various fixes
+
 Version 0.2.14
 - Add auto move completed when label path changes (Requires Move Tools)
 - Minor fixes
