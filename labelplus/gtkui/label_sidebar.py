@@ -436,6 +436,18 @@ class LabelSidebar(object):
     notebook.set_current_page(parent_page)
     notebook.set_current_page(page)
 
+    # Make sure expanders are indented by overriding default style
+    name = self.label_tree.get_name()
+    path = self.label_tree.path()
+
+    rc_string = """
+        style '%s' { GtkTreeView::indent-expanders = 1 }
+        widget '%s' style '%s'
+    """ % (name, path, name)
+
+    gtk.rc_parse_string(rc_string)
+    gtk.rc_reset_styles(self.label_tree.get_toplevel().get_settings())
+
 
   def _uninstall_label_tree(self):
 
@@ -463,6 +475,9 @@ class LabelSidebar(object):
     tree_view.set_headers_visible(False)
     tree_view.set_search_column(1)
     tree_view.set_enable_tree_lines(True)
+
+    name = "%s_tree_view" % MODULE_NAME
+    tree_view.set_name(name)
 
     return tree_view
 
