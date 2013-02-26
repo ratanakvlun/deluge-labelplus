@@ -1,3 +1,7 @@
+Version 0.2.16
+- Override Deluge 1.3.6 styling so that expanders are indented
+- Various fixes
+
 Version 0.2.15
 - Drag and drop torrents on label tree to label them
 - Move label tree to its own tab for proper scrolling
