@@ -754,6 +754,7 @@
                                                     <property name="shadow_type">in</property>
                                                     <child>
                                                       <widget class="GtkTextView" id="tv_auto_queries">
+                                                        <property name="height_request">50</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="pixels_above_lines">3</property>
