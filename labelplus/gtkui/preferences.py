@@ -73,6 +73,7 @@ class Preferences(object):
     self.plugin = component.get("PluginManager")
     self.we = WidgetEncapsulator(get_resource("wnd_preferences.glade"))
     self.daemon_is_local = client.is_localhost()
+    self.last_prefs = None
 
     self.header_widgets = (
       self.we.lbl_general,
@@ -176,6 +177,7 @@ class Preferences(object):
 
   def _load_settings(self, widget=None, data=None):
 
+    self.last_prefs = None
     client.labelplus.get_preferences().addCallback(self._do_load)
 
 
@@ -185,12 +187,30 @@ class Preferences(object):
     general = self._get_general()
     defaults = self._get_defaults()
 
-    prefs = {
-      "options": general,
-      "defaults": defaults,
-    }
+    if self.last_prefs:
+      need_save = False
 
-    client.labelplus.set_preferences(prefs)
+      for k, v in general.iteritems():
+        if self.last_prefs["options"].get(k) != v:
+          need_save = True
+          break
+
+      if not need_save:
+        for k, v in defaults.iteritems():
+          if self.last_prefs["defaults"].get(k) != v:
+            need_save = True
+            break
+    else:
+      need_save = True
+
+    if need_save:
+      prefs = {
+        "options": general,
+        "defaults": defaults,
+      }
+
+      client.labelplus.set_preferences(prefs)
+      self.last_prefs = prefs
 
     expanded = []
     for exp in self.exp_group:
@@ -203,6 +223,8 @@ class Preferences(object):
 
   @debug()
   def _do_load(self, prefs):
+
+    self.last_prefs = prefs
 
     general = prefs["options"]
     defaults = prefs["defaults"]
@@ -298,6 +320,6 @@ class Preferences(object):
             self.we.txt_move_data_completed_entry.get_text().strip()
 
     lines = textview_get_text(self.we.tv_auto_queries).split("\n")
-    options["auto_queries"] = [x.strip() for x in lines if x.strip()]
+    options["auto_queries"] = tuple(x.strip() for x in lines if x.strip())
 
     return options
