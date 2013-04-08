@@ -718,7 +718,7 @@ class Core(CorePluginBase):
   def _has_auto_apply_match(self, label_id, torrent_id):
 
     name = self._torrents[torrent_id].get_status(["name"])["name"]
-    trackers = (t["url"] for t in self._torrents[torrent_id].trackers)
+    trackers = tuple(t["url"] for t in self._torrents[torrent_id].trackers)
 
     options = self._labels[label_id]["data"]
     for line in options["auto_queries"]:
