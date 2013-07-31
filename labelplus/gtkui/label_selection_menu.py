@@ -53,9 +53,9 @@ HANDLER = 1
 class LabelSelectionMenu(gtk.MenuItem):
 
 
-  def __init__(self):
+  def __init__(self, label=DISPLAY_NAME):
 
-    gtk.MenuItem.__init__(self, DISPLAY_NAME)
+    gtk.MenuItem.__init__(self, label)
 
     self.plugin = component.get("GtkPlugin.%s" % PLUGIN_NAME)
 
