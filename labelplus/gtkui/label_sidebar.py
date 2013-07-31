@@ -279,6 +279,23 @@ class LabelSidebar(object):
     self.sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
 
 
+  def select_label(self, label_id):
+
+    if label_id == "":
+      label_id = ID_NONE
+
+    row = self.row_map.get(label_id)
+    if row:
+      notebook = component.get("FilterTreeView").sidebar.notebook
+      page = notebook.page_num(self.label_tree.parent)
+      notebook.set_current_page(page)
+
+      path = self.store.get_path(row)
+      path = self.sorted_store.convert_child_path_to_path(path)
+      self.label_tree.expand_to_path(path)
+      self.label_tree.set_cursor(path)
+
+
   def on_button_pressed(self, widget, event):
 
     x, y = event.get_coords()
