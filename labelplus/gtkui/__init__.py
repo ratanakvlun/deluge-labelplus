@@ -115,9 +115,9 @@ class GtkUI(GtkPluginBase):
     component.get("TorrentView").add_text_column(DISPLAY_NAME,
         status_field=[STATUS_NAME])
 
-    self.label_selection_menu = LabelSelectionMenu()
+    self.menu = self._create_menu()
     self.sep = component.get("MenuBar").add_torrentmenu_separator()
-    component.get("MenuBar").torrentmenu.append(self.label_selection_menu)
+    component.get("MenuBar").torrentmenu.append(self.menu)
 
     self.label_sidebar = LabelSidebar()
 
@@ -143,9 +143,8 @@ class GtkUI(GtkPluginBase):
       self.disable_dnd()
 
       component.get("MenuBar").torrentmenu.remove(self.sep)
-      component.get("MenuBar").torrentmenu.remove(self.label_selection_menu)
-      self.label_selection_menu.destroy()
-      del self.label_selection_menu
+      component.get("MenuBar").torrentmenu.remove(self.menu)
+      self._destroy_menu()
 
       self.label_sidebar.unload()
       del self.label_sidebar
@@ -155,6 +154,48 @@ class GtkUI(GtkPluginBase):
       self.add_torrent_ext.unload()
 
       component.get("TorrentView").remove_column(DISPLAY_NAME)
+
+
+  def _create_menu(self):
+
+    menu = gtk.MenuItem(DISPLAY_NAME)
+    menu.connect("activate", self._on_activate)
+    submenu = gtk.Menu()
+
+    self.label_selection_menu = LabelSelectionMenu(_("Set Label"))
+    submenu.append(self.label_selection_menu)
+
+    self.menu_jump_item = gtk.MenuItem(_("Go to Label"))
+    self.menu_jump_item.connect("activate", self._do_go_to_label)
+    submenu.append(self.menu_jump_item)
+
+    menu.set_submenu(submenu)
+    menu.show_all()
+
+    return menu
+
+
+  def _destroy_menu(self):
+
+    self.label_selection_menu.destroy()
+    del self.label_selection_menu
+
+    self.menu.destroy()
+    del self.menu
+
+
+  def _on_activate(self, widget):
+
+    if len(component.get("TorrentView").get_selected_torrents()) == 1:
+      self.menu_jump_item.set_sensitive(True)
+    else:
+      self.menu_jump_item.set_sensitive(False)
+
+
+  def _do_go_to_label(self, widget):
+
+    id = component.get("TorrentView").get_selected_torrent()
+    client.labelplus.get_torrent_label(id).addCallback(self.label_sidebar.select_label)
 
 
   def update(self):
