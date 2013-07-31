@@ -382,6 +382,14 @@ class Core(CorePluginBase):
 
   @export
   @init_check
+  @debug()
+  def get_torrent_label(self, torrent_id):
+
+    return self._get_torrent_label(torrent_id)
+
+
+  @export
+  @init_check
   def get_daemon_vars(self):
 
     vars = {
