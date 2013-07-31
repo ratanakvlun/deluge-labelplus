@@ -377,8 +377,7 @@ class Core(CorePluginBase):
     self._last_modified = datetime.datetime.now()
     self._config.save()
 
-    if label_id:
-      self._do_move_completed(label_id, torrents)
+    self._do_move_completed(label_id, torrents)
 
 
   @export
@@ -866,10 +865,12 @@ class Core(CorePluginBase):
 
   def _do_move_completed(self, label_id, torrent_list):
 
-    options = self._labels[label_id]["data"]
-    if (self._prefs["options"]["move_on_changes"] and
+    if label_id:
+      options = self._labels[label_id]["data"]
+
+    if (not label_id or (self._prefs["options"]["move_on_changes"] and
         options["download_settings"] and
-        options["move_data_completed"]):
+        options["move_data_completed"])):
       try:
         component.get("CorePlugin.MoveTools").move_completed(torrent_list)
       except KeyError:
