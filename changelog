@@ -1,3 +1,8 @@
+Version 0.2.17
+- Add ability to jump to label in the sidebar based on a torrent's label
+- Fix bug where only the first tracker was matched when autolabeling
+- Fix bug where torrents set to no label were not moved back to default path
+
 Version 0.2.16
 - Override Deluge 1.3.6 styling so that expanders are indented
 - Various fixes
