@@ -84,6 +84,7 @@ class Preferences(object):
       self.we.chk_include_children,
       self.we.chk_show_full_name,
       self.we.chk_move_on_changes,
+      self.we.chk_autolabel_uses_regex,
     )
 
     self.defaults_widgets = (
