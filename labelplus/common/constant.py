@@ -65,6 +65,7 @@ OPTION_DEFAULTS = {
   "include_children": False,
   "show_full_name": False,
   "move_on_changes": False,
+  "autolabel_uses_regex": False,
 }
 
 LABEL_DEFAULTS = {

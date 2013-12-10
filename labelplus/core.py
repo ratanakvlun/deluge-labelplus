@@ -42,6 +42,7 @@
 import os.path
 import cPickle
 import datetime
+import re
 
 import deluge.common
 import deluge.configmanager
@@ -724,19 +725,32 @@ class Core(CorePluginBase):
 
   def _has_auto_apply_match(self, label_id, torrent_id):
 
+    uses_regex = self._prefs["options"]["autolabel_uses_regex"]
+
     name = self._torrents[torrent_id].get_status(["name"])["name"]
     trackers = tuple(t["url"] for t in self._torrents[torrent_id].trackers)
 
     options = self._labels[label_id]["data"]
     for line in options["auto_queries"]:
-      terms = line.split()
+      if uses_regex:
+        re_line = re.compile(line)
+      else:
+        terms = line.split()
 
       if options["auto_name"]:
-        if all(t in name for t in terms):
+        if uses_regex:
+          match = re_line.search(name)
+          if match:
+            return True
+        elif all(t in name for t in terms):
           return True
       elif options["auto_tracker"]:
         for tracker in trackers:
-          if all(t in tracker for t in terms):
+          if uses_regex:
+            match = re_line.search(tracker)
+            if match:
+              return True
+          elif all(t in tracker for t in terms):
             return True
 
     return False
