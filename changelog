@@ -1,3 +1,6 @@
+Version 0.2.18
+- Add auto-label regex support
+
 Version 0.2.17
 - Add ability to jump to label in the sidebar based on a torrent's label
 - Fix bug where only the first tracker was matched when autolabeling
