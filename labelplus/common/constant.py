@@ -66,6 +66,8 @@ OPTION_DEFAULTS = {
   "show_full_name": False,
   "move_on_changes": False,
   "autolabel_uses_regex": False,
+  "shared_limit_update_interval": 10,
+  "shared_limit_growth_margin": 10,
 }
 
 LABEL_DEFAULTS = {
@@ -80,6 +82,7 @@ LABEL_DEFAULTS = {
   "max_upload_speed": -1.0,
   "max_connections": -1,
   "max_upload_slots": -1,
+  "shared_limit": False,
 
   "queue_settings": False,
   "auto_managed": False,
