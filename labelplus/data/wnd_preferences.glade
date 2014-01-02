@@ -794,7 +794,7 @@
                                 <child>
                                   <widget class="GtkLabel" id="label5">
                                     <property name="visible">True</property>
-                                    <property name="label" translatable="yes">AutoLabel</property>
+                                    <property name="label" translatable="yes">Auto-label</property>
                                   </widget>
                                   <packing>
                                     <property name="type">label_item</property>

@@ -844,7 +844,7 @@
                   <widget class="GtkLabel" id="label11">
                     <property name="visible">True</property>
                     <property name="xpad">3</property>
-                    <property name="label" translatable="yes">AutoLabel</property>
+                    <property name="label" translatable="yes">Auto-label</property>
                   </widget>
                   <packing>
                     <property name="position">3</property>
