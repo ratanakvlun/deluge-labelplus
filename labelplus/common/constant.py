@@ -1,7 +1,7 @@
 #
 # constant.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
 # Deluge is free software.
 #
@@ -67,7 +67,8 @@ OPTION_DEFAULTS = {
   "move_on_changes": False,
   "autolabel_uses_regex": False,
   "shared_limit_update_interval": 10,
-  "shared_limit_growth_margin": 10,
+  "shared_limit_download_margin": 10.0,
+  "shared_limit_upload_margin": 10.0,
 }
 
 LABEL_DEFAULTS = {
