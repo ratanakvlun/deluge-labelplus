@@ -1,7 +1,7 @@
 #
 # name_input_dialog.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
 # Deluge is free software.
 #
@@ -68,6 +68,9 @@ class NameInputDialog(object):
 
     self.method = method
     self.label_id = label_id
+    self.label_name = label_name
+
+    self.close_func = None
 
     self.icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 16, 16)
     self.icon.fill(0)
@@ -98,11 +101,11 @@ class NameInputDialog(object):
     else:
       self.we.lbl_header.set_markup(
           "<b>%s</b>" % self.we.lbl_header.get_text())
-      self.we.lbl_selected_label.set_text(label_name)
-      self.we.lbl_selected_label.set_tooltip_text(label_name)
+      self.we.lbl_selected_label.set_text(self.label_name)
+      self.we.lbl_selected_label.set_tooltip_text(self.label_name)
 
       if self.method == "rename":
-        self.we.txt_name.set_text(label_name)
+        self.we.txt_name.set_text(self.label_name)
         self.we.txt_name.select_region(0, -1)
 
     self.we.model.signal_autoconnect({
@@ -116,6 +119,11 @@ class NameInputDialog(object):
     self.we.wnd_name_input.show()
 
 
+  def register_close_func(self, func):
+
+    self.close_func = func
+
+
   def cb_do_close(self, widget, event=None):
 
     self.config["name_input_pos"] = \
@@ -123,6 +131,9 @@ class NameInputDialog(object):
     self.config["name_input_size"] = \
         list(self.we.wnd_name_input.get_size())
     self.config.save()
+
+    if self.close_func:
+      self.close_func(self)
 
     self.we.wnd_name_input.destroy()
 
@@ -144,14 +155,14 @@ class NameInputDialog(object):
   def cb_do_submit(self, widget):
 
     self.we.btn_ok.set_sensitive(False)
-    label_name = self.we.txt_name.get_text()
+    self.label_name = self.we.txt_name.get_text()
 
     if self.method == "add":
-      deferred = client.labelplus.add_label(NULL_PARENT, label_name)
+      deferred = client.labelplus.add_label(NULL_PARENT, self.label_name)
     elif self.method == "sublabel":
-      deferred = client.labelplus.add_label(self.label_id, label_name)
+      deferred = client.labelplus.add_label(self.label_id, self.label_name)
     elif self.method == "rename":
-      deferred = client.labelplus.rename_label(self.label_id, label_name)
+      deferred = client.labelplus.rename_label(self.label_id, self.label_name)
 
     deferred.addCallbacks(self.cb_do_submit_ok, self.cb_do_submit_err)
 
@@ -159,6 +170,7 @@ class NameInputDialog(object):
   @debug()
   def cb_do_submit_ok(self, result):
 
+    self.label_id = result
     self.cb_do_close(None)
 
 
