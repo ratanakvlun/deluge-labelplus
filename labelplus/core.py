@@ -1,7 +1,7 @@
 #
 # core.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
 #
 # Basic plugin template created by:
@@ -890,9 +890,8 @@ class Core(CorePluginBase):
     if label_id:
       options = self._labels[label_id]["data"]
 
-    if (not label_id or (self._prefs["options"]["move_on_changes"] and
-        options["download_settings"] and
-        options["move_data_completed"])):
+    if self._prefs["options"]["move_on_changes"] and (not label_id or (
+        options["download_settings"] and options["move_data_completed"])):
       try:
         component.get("CorePlugin.MoveTools").move_completed(torrent_list)
       except KeyError:
