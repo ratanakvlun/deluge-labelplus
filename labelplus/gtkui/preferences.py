@@ -1,7 +1,7 @@
 #
 # preferences.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
 #
 # Deluge is free software.

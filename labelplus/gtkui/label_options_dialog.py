@@ -1,7 +1,7 @@
 #
 # label_options_dialog.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
 # Deluge is free software.
 #
