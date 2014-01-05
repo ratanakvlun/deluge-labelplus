@@ -285,6 +285,11 @@ class Preferences(object):
         options["move_data_completed_mode"])
     rb.set_active(True)
 
+    if options["shared_limit_on"]:
+      self.we.rb_shared_limit_on.set_active(True)
+    else:
+      self.we.rb_shared_limit_off.set_active(True)
+
     path = options["move_data_completed_path"]
     if self.daemon_is_local:
       self.we.fcb_move_data_completed_select.set_current_folder(path)
