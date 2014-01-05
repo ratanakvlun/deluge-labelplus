@@ -359,7 +359,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">&#x25CF;</property>
                                     <property name="xalign">1</property>
-                                    <property name="adjustment">-1 -1 9999 1 10 0</property>
+                                    <property name="adjustment">-1 -1 1000000000 1 10 0</property>
                                     <property name="digits">1</property>
                                     <property name="numeric">True</property>
                                   </widget>
@@ -401,7 +401,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">&#x25CF;</property>
                                     <property name="xalign">1</property>
-                                    <property name="adjustment">-1 -1 9999 1 10 0</property>
+                                    <property name="adjustment">-1 -1 1000000000 1 10 0</property>
                                     <property name="digits">1</property>
                                     <property name="numeric">True</property>
                                   </widget>
@@ -447,7 +447,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">&#x25CF;</property>
                                     <property name="xalign">1</property>
-                                    <property name="adjustment">-1 -1 9999 1 10 0</property>
+                                    <property name="adjustment">-1 -1 1000000000 1 10 0</property>
                                     <property name="numeric">True</property>
                                   </widget>
                                   <packing>
@@ -478,7 +478,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">&#x25CF;</property>
                                     <property name="xalign">1</property>
-                                    <property name="adjustment">-1 -1 9999 1 10 0</property>
+                                    <property name="adjustment">-1 -1 1000000000 1 10 0</property>
                                     <property name="numeric">True</property>
                                   </widget>
                                   <packing>
@@ -597,7 +597,7 @@
                                         <property name="can_focus">True</property>
                                         <property name="invisible_char">&#x25CF;</property>
                                         <property name="xalign">1</property>
-                                        <property name="adjustment">1 0 99999 0.10000000000000001 10 0</property>
+                                        <property name="adjustment">1 0 1000000000 0.10000000000000001 10 0</property>
                                         <property name="digits">1</property>
                                         <property name="numeric">True</property>
                                       </widget>
