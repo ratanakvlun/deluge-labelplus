@@ -102,6 +102,7 @@ class LabelOptionsDialog(object):
       self.we.chk_prioritize_first_last,
 
       self.we.chk_bandwidth_settings,
+      self.we.rb_shared_limit_on,
       self.we.spn_max_download_speed,
       self.we.spn_max_upload_speed,
       self.we.spn_max_connections,
@@ -301,6 +302,11 @@ class LabelOptionsDialog(object):
     rb = getattr(self.we, "rb_move_data_completed_to_%s" %
         options["move_data_completed_mode"])
     rb.set_active(True)
+
+    if options["shared_limit_on"]:
+      self.we.rb_shared_limit_on.set_active(True)
+    else:
+      self.we.rb_shared_limit_off.set_active(True)
 
     self.we.lbl_move_data_completed_path.set_tooltip_text(
         options["move_data_completed_path"])
