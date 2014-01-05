@@ -766,8 +766,25 @@ class Core(CorePluginBase):
       if key not in options:
         options[key] = OPTION_DEFAULTS[key]
 
+    if options["shared_limit_update_interval"] < 1:
+      options["shared_limit_update_interval"] = 1
+
+    if options["shared_limit_download_margin"] < 1.0:
+      options["shared_limit_download_margin"] = 1.0
+
+    if options["shared_limit_upload_margin"] < 1.0:
+      options["shared_limit_upload_margin"] = 1.0
+
 
   def _normalize_label_data(self, data):
+
+    for key in data.keys():
+      if key not in LABEL_DEFAULTS:
+        del data[key]
+
+    for key in LABEL_DEFAULTS:
+      if key not in data:
+        data[key] = LABEL_DEFAULTS[key]
 
     data["move_data_completed_path"] = \
         data["move_data_completed_path"].strip()
@@ -777,13 +794,20 @@ class Core(CorePluginBase):
     queries = [line for line in data["auto_queries"] if line.strip()]
     data["auto_queries"] = queries
 
-    for key in data.keys():
-      if key not in LABEL_DEFAULTS:
-        del data[key]
+    if data["max_download_speed"] == 0.0:
+      data["max_download_speed"] = LABEL_DEFAULTS["max_download_speed"]
 
-    for key in LABEL_DEFAULTS:
-      if key not in data:
-        data[key] = LABEL_DEFAULTS[key]
+    if data["max_upload_speed"] == 0.0:
+      data["max_upload_speed"] = LABEL_DEFAULTS["max_upload_speed"]
+
+    if data["max_connections"] == 0:
+      data["max_connections"] = LABEL_DEFAULTS["max_connections"]
+
+    if data["max_upload_slots"] == 0:
+      data["max_upload_slots"] = LABEL_DEFAULTS["max_upload_slots"]
+
+    if data["stop_ratio"] < 0.5:
+      data["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
   def _apply_torrent_options(self, torrent_id, reset=False):
