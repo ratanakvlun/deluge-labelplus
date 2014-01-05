@@ -83,7 +83,7 @@ LABEL_DEFAULTS = {
   "max_upload_speed": -1.0,
   "max_connections": -1,
   "max_upload_slots": -1,
-  "shared_limit": False,
+  "shared_limit_on": False,
 
   "queue_settings": False,
   "auto_managed": False,
