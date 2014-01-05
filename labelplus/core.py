@@ -283,6 +283,12 @@ class Core(CorePluginBase):
     for id in self._index[label_id]["torrents"]:
       self._apply_torrent_options(id)
 
+    if label_id in self._shared_limit_index:
+      self._shared_limit_index.remove(label_id)
+
+    if options["bandwidth_settings"] and options["shared_limit_on"]:
+      self._shared_limit_index.append(label_id)
+
     # Make sure descendent labels are updated if path changed
     if old_move_path != options["move_data_completed_path"]:
       self._propagate_path_to_descendents(label_id)
