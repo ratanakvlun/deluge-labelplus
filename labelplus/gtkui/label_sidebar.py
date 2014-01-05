@@ -1,7 +1,7 @@
 #
 # label_sidebar.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
 # Copyright (C) 2007 Andrew Resch <andrewresch@gmail.com>
 #
@@ -328,6 +328,10 @@ class LabelSidebar(object):
 
 
   def on_button_released(self, widget, event):
+
+    x, y = event.get_coords()
+    path_info = widget.get_path_at_pos(int(x), int(y))
+    if not path_info: return
 
     if event.button == 3:
       self.menu.popup(None, None, None, event.button, event.time)
