@@ -510,7 +510,14 @@ class Core(CorePluginBase):
   def _build_index(self):
 
     index = {}
+    shared_limit_index = []
+
     for id in self._labels:
+      if id not in RESERVED_IDS and (
+          self._labels[id]["data"]["bandwidth_settings"] and
+          self._labels[id]["data"]["shared_limit_on"]):
+        shared_limit_index.append(id)
+
       children = []
       torrents = []
 
@@ -530,6 +537,7 @@ class Core(CorePluginBase):
       }
 
     self._index = index
+    self._shared_limit_index = shared_limit_index
 
     for id in self._labels:
       self._build_label_ancestry(id)
