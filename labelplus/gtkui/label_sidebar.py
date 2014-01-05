@@ -79,7 +79,7 @@ class LabelSidebarMenu(gtk.Menu):
 
     self.append(gtk.SeparatorMenuItem())
     self._add_item(
-        "sublabel", _("Add Sub_Label"), gtk.STOCK_ADD, self.LEVEL3)
+        "sublabel", _("Add Sub_label"), gtk.STOCK_ADD, self.LEVEL3)
     self._add_item("rename", _("Re_name Label"), gtk.STOCK_EDIT, self.LEVEL3)
     self._add_item(
         "remove", _("_Remove Label"), gtk.STOCK_REMOVE, self.LEVEL3)
