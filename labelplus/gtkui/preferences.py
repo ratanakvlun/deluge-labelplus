@@ -77,6 +77,7 @@ class Preferences(object):
 
     self.header_widgets = (
       self.we.lbl_general,
+      self.we.lbl_shared_limit,
       self.we.lbl_defaults,
     )
 
@@ -85,6 +86,9 @@ class Preferences(object):
       self.we.chk_show_full_name,
       self.we.chk_move_on_changes,
       self.we.chk_autolabel_uses_regex,
+      self.we.spn_shared_limit_update_interval,
+      self.we.spn_shared_limit_download_margin,
+      self.we.spn_shared_limit_upload_margin,
     )
 
     self.defaults_widgets = (
@@ -93,6 +97,7 @@ class Preferences(object):
       self.we.chk_prioritize_first_last,
 
       self.we.chk_bandwidth_settings,
+      self.we.rb_shared_limit_on,
       self.we.spn_max_download_speed,
       self.we.spn_max_upload_speed,
       self.we.spn_max_connections,
