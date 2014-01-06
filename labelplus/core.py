@@ -945,6 +945,28 @@ class Core(CorePluginBase):
     return path
 
 
+  def _get_labeled_torrents_status(self, label_id, filters, status_fields):
+
+    filtered_torrents = []
+
+    for torrent_id in self._index[label_id]["torrents"]:
+      torrent = self._torrents[torrent_id]
+
+      filter_values = torrent.get_status(filters.keys())
+      filter_passed = True
+
+      for filter in filters:
+        if filter_values[filter] not in filters[filter]:
+          filter_passed = False
+          break
+
+      if filter_passed:
+        status_values = torrent.get_status(status_fields)
+        filtered_torrents.append((torrent, status_values))
+
+    return filtered_torrents
+
+
   def _rpc_deregister(self, name):
 
     server = component.get("RPCServer")
