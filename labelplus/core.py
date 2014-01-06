@@ -617,7 +617,7 @@ class Core(CorePluginBase):
       self._remove_label(id)
 
     for id in self._index[label_id]["torrents"]:
-      self._apply_torrent_options(id, reset=True)
+      self._reset_torrent_options(id)
 
       del self._mappings[id]
 
@@ -634,7 +634,7 @@ class Core(CorePluginBase):
     id = self._mappings.get(torrent_id)
     if id is not None:
       log.debug("[%s] Torrent current mapping: %s", PLUGIN_NAME, id)
-      self._apply_torrent_options(torrent_id, reset=True)
+      self._reset_torrent_options(torrent_id)
       self._index[id]["torrents"].remove(torrent_id)
       del self._mappings[torrent_id]
       log.debug("[%s] Torrent removed from index and mappings", PLUGIN_NAME)
@@ -824,54 +824,65 @@ class Core(CorePluginBase):
       data["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
-  def _apply_torrent_options(self, torrent_id, reset=False):
+  def _reset_torrent_options(self, torrent_id):
 
     label_id = self._mappings.get(torrent_id)
 
     options = self._labels[label_id]["data"]
     torrent = self._torrents[torrent_id]
 
-    if not reset and options["download_settings"]:
+    # Download settings
+    torrent.set_move_completed(self._core["move_completed"])
+    torrent.set_move_completed_path(self._core["move_completed_path"])
+    torrent.set_options({
+      "prioritize_first_last_pieces":
+        self._core["prioritize_first_last_pieces"],
+    })
+
+    # Bandwidth settings
+    torrent.set_max_download_speed(
+      self._core["max_download_speed_per_torrent"])
+    torrent.set_max_upload_speed(self._core["max_upload_speed_per_torrent"])
+    torrent.set_max_connections(self._core["max_connections_per_torrent"])
+    torrent.set_max_upload_slots(self._core["max_upload_slots_per_torrent"])
+
+    # Queue settings
+    torrent.set_auto_managed(self._core["auto_managed"])
+    torrent.set_stop_at_ratio(self._core["stop_seed_at_ratio"])
+    torrent.set_stop_ratio(self._core["stop_seed_ratio"])
+    torrent.set_remove_at_ratio(self._core["remove_seed_at_ratio"])
+
+
+  def _apply_torrent_options(self, torrent_id):
+
+    label_id = self._mappings.get(torrent_id)
+
+    options = self._labels[label_id]["data"]
+    torrent = self._torrents[torrent_id]
+
+    if options["download_settings"]:
+      torrent.set_move_completed(options["move_data_completed"])
+
       if options["move_data_completed"]:
-        torrent.set_move_completed(options["move_data_completed"])
         torrent.set_move_completed_path(options["move_data_completed_path"])
-      else:
-        torrent.set_move_completed(self._core["move_completed"])
-        torrent.set_move_completed_path(self._core["move_completed_path"])
 
       torrent.set_options({
         "prioritize_first_last_pieces": options["prioritize_first_last"],
       })
-    else:
-      torrent.set_move_completed(self._core["move_completed"])
-      torrent.set_move_completed_path(self._core["move_completed_path"])
-      torrent.set_options({
-        "prioritize_first_last_pieces":
-          self._core["prioritize_first_last_pieces"],
-      })
 
-    if not reset and options["bandwidth_settings"]:
+    if options["bandwidth_settings"]:
       torrent.set_max_download_speed(options["max_download_speed"])
       torrent.set_max_upload_speed(options["max_upload_speed"])
       torrent.set_max_connections(options["max_connections"])
       torrent.set_max_upload_slots(options["max_upload_slots"])
-    else:
-      torrent.set_max_download_speed(
-          self._core["max_download_speed_per_torrent"])
-      torrent.set_max_upload_speed(self._core["max_upload_speed_per_torrent"])
-      torrent.set_max_connections(self._core["max_connections_per_torrent"])
-      torrent.set_max_upload_slots(self._core["max_upload_slots_per_torrent"])
 
-    if not reset and options["queue_settings"]:
+    if options["queue_settings"]:
       torrent.set_auto_managed(options["auto_managed"])
       torrent.set_stop_at_ratio(options["stop_at_ratio"])
-      torrent.set_stop_ratio(options["stop_ratio"])
-      torrent.set_remove_at_ratio(options["remove_at_ratio"])
-    else:
-      torrent.set_auto_managed(self._core["auto_managed"])
-      torrent.set_stop_at_ratio(self._core["stop_seed_at_ratio"])
-      torrent.set_stop_ratio(self._core["stop_seed_ratio"])
-      torrent.set_remove_at_ratio(self._core["remove_seed_at_ratio"])
+
+      if options["stop_at_ratio"]:
+        torrent.set_stop_ratio(options["stop_ratio"])
+        torrent.set_remove_at_ratio(options["remove_at_ratio"])
 
 
   def _apply_data_completed_path(self, label_id):
