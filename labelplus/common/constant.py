@@ -59,6 +59,7 @@ GTKUI_DEFAULTS = {
     "selected": ID_ALL,
     "expanded": [],
   },
+  "show_label_bandwidth": False,
 }
 
 OPTION_DEFAULTS = {
