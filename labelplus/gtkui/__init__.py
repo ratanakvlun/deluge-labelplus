@@ -138,7 +138,7 @@ class GtkUI(GtkPluginBase):
       self.initialized = False
 
       self._config.save()
-      deluge.configmanager.close(self._config)
+      deluge.configmanager.close(GTKUI_CONFIG)
 
       self.disable_dnd()
 

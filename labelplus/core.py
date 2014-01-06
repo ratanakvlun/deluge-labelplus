@@ -128,7 +128,7 @@ class Core(CorePluginBase):
     self.initialized = False
 
     self._config.save()
-    deluge.configmanager.close(self._config)
+    deluge.configmanager.close(CORE_CONFIG)
 
     component.get("EventManager").deregister_event_handler(
         "TorrentAddedEvent", self.on_torrent_added)
