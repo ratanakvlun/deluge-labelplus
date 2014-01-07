@@ -56,6 +56,7 @@ from labelplus.common.constant import GTKUI_CONFIG
 from labelplus.common.constant import GTKUI_DEFAULTS
 from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
 
+from label_options_dialog import LabelOptionsDialog
 from label_selection_menu import LabelSelectionMenu
 from label_sidebar import LabelSidebar
 from preferences import Preferences
@@ -67,6 +68,13 @@ import dnd
 MAX_RETRIES = 10
 WAIT_TIME = 1.0
 
+UNITS = [
+  ("TiB", 1024.0**4),
+  ("GiB", 1024.0**3),
+  ("MiB", 1024.0**2),
+  ("KiB", 1024.0),
+  ("B", 1.0),
+]
 
 class GtkUI(GtkPluginBase):
 
@@ -127,6 +135,8 @@ class GtkUI(GtkPluginBase):
 
     self.enable_dnd()
 
+    self.status_item = None
+
     self.initialized = True
 
 
@@ -139,6 +149,8 @@ class GtkUI(GtkPluginBase):
 
       self._config.save()
       deluge.configmanager.close(GTKUI_CONFIG)
+
+      self._remove_status_bar_item()
 
       self.disable_dnd()
 
@@ -203,6 +215,13 @@ class GtkUI(GtkPluginBase):
     if self.initialized:
       client.labelplus.get_label_data(self.timestamp).addCallback(
         self.cb_update_data)
+
+      if self._config["show_label_bandwidth"]:
+        if not self.status_item:
+          self._add_status_bar_item()
+          reactor.callLater(1, self._status_bar_update)
+      else:
+        self._remove_status_bar_item()
 
 
   def cb_update_data(self, data):
@@ -332,3 +351,77 @@ class GtkUI(GtkPluginBase):
 
     self.dest_proxy.unload()
     self.src_proxy.unload()
+
+
+  def _add_status_bar_item(self):
+
+    self.status_item = component.get("StatusBar").add_item(
+      stock=gtk.STOCK_JUSTIFY_FILL,
+      text="",
+      callback=self._do_open_label_options,
+      tooltip="Label Bandwidth Usage")
+
+    self.status_item._ebox.hide_all()
+
+
+  def _remove_status_bar_item(self):
+
+    if self.status_item:
+      component.get("StatusBar").remove_item(self.status_item)
+      self.status_item = None
+
+
+  def _do_open_label_options(self, widget, event):
+
+    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
+      if self.label_sidebar.page_selected():
+        id = self.label_sidebar.get_selected_label()
+
+        if id not in RESERVED_IDS and id in self.label_data:
+          name = self.label_data[id]["name"]
+          LabelOptionsDialog(id, name, 1)
+
+
+  def _status_bar_update(self):
+
+    if self.status_item:
+      id = None
+
+      if self.label_sidebar.page_selected():
+        id = self.label_sidebar.get_selected_label()
+
+      if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
+        self.status_item._ebox.show_all()
+        client.labelplus.get_label_bandwidth_usage(id).addCallback(
+          self._do_status_bar_update)
+      else:
+        self.status_item._ebox.hide_all()
+        reactor.callLater(1, self._status_bar_update)
+
+
+  def _do_status_bar_update(self, result):
+
+    if self.status_item:
+      download_rate = result[0]
+      download_unit = "B"
+
+      upload_rate = result[1]
+      upload_unit = "B"
+
+      for (unit, bytes) in UNITS:
+        if download_rate >= bytes:
+          download_rate /= bytes
+          download_unit = unit
+          break
+
+      for (unit, bytes) in UNITS:
+        if upload_rate >= bytes:
+          upload_rate /= bytes
+          upload_unit = unit
+          break
+
+      self.status_item.set_text(
+        "%.1f %s/s | %.1f %s/s" % (
+          download_rate, download_unit, upload_rate, upload_unit))
+
+      reactor.callLater(1, self._status_bar_update)

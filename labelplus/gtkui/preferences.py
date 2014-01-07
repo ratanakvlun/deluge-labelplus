@@ -223,6 +223,9 @@ class Preferences(object):
       if exp.get_expanded():
         expanded.append(exp.get_name())
 
+    self.config["show_label_bandwidth"] = \
+      self.we.chk_show_label_bandwidth.get_active()
+
     self.config["prefs_state"] = expanded
     self.config.save()
 
@@ -237,6 +240,9 @@ class Preferences(object):
 
     self._load_general(general)
     self._load_defaults(defaults)
+
+    self.we.chk_show_label_bandwidth.set_active(
+      self.config["show_label_bandwidth"])
 
 
   def _load_general(self, general):

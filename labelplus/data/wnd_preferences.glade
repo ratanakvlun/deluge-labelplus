@@ -72,6 +72,18 @@
                               </packing>
                             </child>
                             <child>
+                              <widget class="GtkCheckButton" id="chk_show_label_bandwidth">
+                                <property name="label" translatable="yes">Show label bandwidth in status bar</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="position">3</property>
+                              </packing>
+                            </child>
+                            <child>
                               <widget class="GtkCheckButton" id="chk_move_on_changes">
                                 <property name="label" translatable="yes">Move completed when label path changes</property>
                                 <property name="visible">True</property>
@@ -80,7 +92,7 @@
                                 <property name="draw_indicator">True</property>
                               </widget>
                               <packing>
-                                <property name="position">3</property>
+                                <property name="position">4</property>
                               </packing>
                             </child>
                             <child>
@@ -92,7 +104,7 @@
                                 <property name="draw_indicator">True</property>
                               </widget>
                               <packing>
-                                <property name="position">4</property>
+                                <property name="position">5</property>
                               </packing>
                             </child>
                           </widget>
