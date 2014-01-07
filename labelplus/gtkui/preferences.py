@@ -47,6 +47,7 @@ import deluge.configmanager
 from labelplus.common.constant import DISPLAY_NAME
 from labelplus.common.constant import OPTION_DEFAULTS
 from labelplus.common.constant import LABEL_DEFAULTS
+from labelplus.common.constant import GTKUI_DEFAULTS
 from labelplus.common.constant import GTKUI_CONFIG
 
 from labelplus.common.file import get_resource
@@ -170,6 +171,9 @@ class Preferences(object):
 
     self._load_general(OPTION_DEFAULTS)
     self._load_defaults(LABEL_DEFAULTS)
+
+    self.we.chk_show_label_bandwidth.set_active(
+      GTKUI_DEFAULTS["show_label_bandwidth"])
 
 
   def _do_set_unavailable(self, widget, event):
