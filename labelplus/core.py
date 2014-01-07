@@ -397,6 +397,24 @@ class Core(CorePluginBase):
 
   @export
   @init_check
+  def get_label_bandwidth_usage(self, label_id):
+
+    Validation.require((label_id not in RESERVED_IDS and
+        label_id in self._labels) or (not label_id or label_id == ID_NONE),
+        "Unknown Label")
+
+    if not label_id:
+      label_id = ID_NONE
+
+    active_torrents = self._get_labeled_torrents_status(
+      label_id, {"state": ["Seeding", "Downloading"]},
+      ["download_payload_rate", "upload_payload_rate"])
+
+    return self._get_bandwidth_usage(active_torrents)
+
+
+  @export
+  @init_check
   def get_daemon_vars(self):
 
     vars = {
@@ -956,7 +974,7 @@ class Core(CorePluginBase):
     return path
 
 
-  def _get_labeled_torrents_status(self, label_id, filters=None):
+  def _get_labeled_torrents_status(self, label_id, filters, fields):
 
     filtered_torrents = {}
 
@@ -965,8 +983,12 @@ class Core(CorePluginBase):
     else:
       torrents = self._index[label_id]["torrents"]
 
+    for filter in filters:
+      if filter not in fields:
+        fields.append(filter)
+
     for torrent_id in torrents:
-      status_values = self._torrents[torrent_id].get_status(())
+      status_values = self._torrents[torrent_id].get_status(fields)
 
       if not filters:
         filtered_torrents[torrent_id] = status_values
@@ -982,6 +1004,19 @@ class Core(CorePluginBase):
           filtered_torrents[torrent_id] = status_values
 
     return filtered_torrents
+
+
+  def _get_bandwidth_usage(self, torrents):
+
+    download_rate_sum = 0.0
+    upload_rate_sum = 0.0
+
+    for torrent in torrents:
+      status = torrents[torrent]
+      download_rate_sum += status["download_payload_rate"]
+      upload_rate_sum += status["upload_payload_rate"]
+
+    return (download_rate_sum, upload_rate_sum)
 
 
   def _rpc_deregister(self, name):
