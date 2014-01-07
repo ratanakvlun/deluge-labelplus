@@ -65,7 +65,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkNotebook" id="notebook1">
+              <widget class="GtkNotebook" id="nb_tabs">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="tab_border">3</property>

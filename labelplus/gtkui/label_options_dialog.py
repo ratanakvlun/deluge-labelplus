@@ -66,7 +66,7 @@ OP_MAP = {
 class LabelOptionsDialog(object):
 
 
-  def __init__(self, label_id, label_name):
+  def __init__(self, label_id, label_name, page=0):
 
     self.config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
@@ -94,6 +94,8 @@ class LabelOptionsDialog(object):
     self.we.lbl_header.set_markup("<b>%s</b>" % self.we.lbl_header.get_text())
     self.we.lbl_selected_label.set_text(label_name)
     self.we.lbl_selected_label.set_tooltip_text(label_name)
+
+    self.we.nb_tabs.set_current_page(page)
 
     self.option_widgets = (
       self.we.chk_download_settings,
