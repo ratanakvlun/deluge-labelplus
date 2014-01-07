@@ -67,9 +67,9 @@ OPTION_DEFAULTS = {
   "show_full_name": False,
   "move_on_changes": False,
   "autolabel_uses_regex": False,
-  "shared_limit_update_interval": 10,
-  "shared_limit_download_margin": 10.0,
-  "shared_limit_upload_margin": 10.0,
+  "shared_limit_update_interval": 5,
+  "shared_limit_download_margin": 5.0,
+  "shared_limit_upload_margin": 5.0,
 }
 
 LABEL_DEFAULTS = {
