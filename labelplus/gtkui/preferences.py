@@ -38,6 +38,8 @@
 import os.path
 import gtk
 
+from twisted.internet import reactor
+
 from deluge import component
 from deluge.ui.client import client
 import deluge.configmanager
@@ -74,6 +76,7 @@ class Preferences(object):
     self.we = WidgetEncapsulator(get_resource("wnd_preferences.glade"))
     self.daemon_is_local = client.is_localhost()
     self.last_prefs = None
+    self._saving = False
 
     self.header_widgets = (
       self.we.lbl_general,
@@ -183,12 +186,17 @@ class Preferences(object):
 
   def _load_settings(self, widget=None, data=None):
 
-    self.last_prefs = None
-    client.labelplus.get_preferences().addCallback(self._do_load)
+    if not self._saving:
+      self.last_prefs = None
+      client.labelplus.get_preferences().addCallback(self._do_load)
+    else:
+      reactor.callLater(1, self._load_settings)
 
 
   @debug()
   def _save_settings(self):
+
+    self._saving = True
 
     general = self._get_general()
     defaults = self._get_defaults()
@@ -215,7 +223,8 @@ class Preferences(object):
         "defaults": defaults,
       }
 
-      client.labelplus.set_preferences(prefs)
+      client.labelplus.set_preferences(prefs).addCallbacks(
+        self._on_save_done, self._on_save_done)
       self.last_prefs = prefs
 
     expanded = []
@@ -228,6 +237,9 @@ class Preferences(object):
 
     self.config["prefs_state"] = expanded
     self.config.save()
+
+    if not need_save:
+      self._saving = False
 
 
   @debug()
@@ -243,6 +255,11 @@ class Preferences(object):
 
     self.we.chk_show_label_bandwidth.set_active(
       self.config["show_label_bandwidth"])
+
+
+  def _on_save_done(self, result):
+
+    self._saving = False
 
 
   def _load_general(self, general):
