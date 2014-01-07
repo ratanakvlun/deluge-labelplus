@@ -956,24 +956,30 @@ class Core(CorePluginBase):
     return path
 
 
-  def _get_labeled_torrents_status(self, label_id, filters, status_fields):
+  def _get_labeled_torrents_status(self, label_id, filters=None):
 
-    filtered_torrents = []
+    filtered_torrents = {}
 
-    for torrent_id in self._index[label_id]["torrents"]:
-      torrent = self._torrents[torrent_id]
+    if label_id == ID_NONE:
+      torrents = self._filter_by_label(self._torrents.keys(), [label_id])
+    else:
+      torrents = self._index[label_id]["torrents"]
 
-      filter_values = torrent.get_status(filters.keys())
-      filter_passed = True
+    for torrent_id in torrents:
+      status_values = self._torrents[torrent_id].get_status(())
 
-      for filter in filters:
-        if filter_values[filter] not in filters[filter]:
-          filter_passed = False
-          break
+      if not filters:
+        filtered_torrents[torrent_id] = status_values
+      else:
+        filter_passed = True
 
-      if filter_passed:
-        status_values = torrent.get_status(status_fields)
-        filtered_torrents.append((torrent, status_values))
+        for filter in filters:
+          if status_values[filter] not in filters[filter]:
+            filter_passed = False
+            break
+
+        if filter_passed:
+          filtered_torrents[torrent_id] = status_values
 
     return filtered_torrents
 
