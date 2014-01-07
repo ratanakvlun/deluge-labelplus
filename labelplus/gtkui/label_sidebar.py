@@ -296,6 +296,21 @@ class LabelSidebar(object):
       self.label_tree.set_cursor(path)
 
 
+  def get_selected_label(self):
+
+    return self.state["selected"]
+
+
+  def page_selected(self):
+
+    notebook = component.get("FilterTreeView").sidebar.notebook
+
+    cur_page = notebook.get_current_page()
+    page = notebook.page_num(self.label_tree.parent)
+
+    return cur_page == page
+
+
   def on_button_pressed(self, widget, event):
 
     x, y = event.get_coords()
