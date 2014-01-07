@@ -74,6 +74,8 @@ class LabelOptionsDialog(object):
     self.label_name = label_name
     self.daemon_is_local = client.is_localhost()
 
+    self.close_func = None
+
     self.we = WidgetEncapsulator(get_resource("wnd_label_options.glade"))
     self.we.wnd_label_options.set_transient_for(
         component.get("MainWindow").window)
@@ -188,6 +190,11 @@ class LabelOptionsDialog(object):
     self.we.wnd_label_options.show()
 
 
+  def register_close_func(self, func):
+
+    self.close_func = func
+
+
   @debug()
   def cb_do_close(self, widget, event=None):
 
@@ -196,6 +203,9 @@ class LabelOptionsDialog(object):
     self.config["label_options_size"] = \
         list(self.we.wnd_label_options.get_size())
     self.config.save()
+
+    if self.close_func:
+      self.close_func(self)
 
     self.we.wnd_label_options.destroy()
 

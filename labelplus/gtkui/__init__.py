@@ -90,6 +90,7 @@ class GtkUI(GtkPluginBase):
 
     self.timestamp = None
     self.label_data = None
+    self.dialog = None
 
     client.labelplus.is_initialized().addCallback(self.cb_check)
 
@@ -373,13 +374,20 @@ class GtkUI(GtkPluginBase):
 
   def _do_open_label_options(self, widget, event):
 
-    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
+
+    def on_close(widget):
+
+      self.dialog = None
+
+
+    if event.button == 1 and self.dialog == None:
       if self.label_sidebar.page_selected():
         id = self.label_sidebar.get_selected_label()
 
         if id not in RESERVED_IDS and id in self.label_data:
           name = self.label_data[id]["name"]
-          LabelOptionsDialog(id, name, 1)
+          self.dialog = LabelOptionsDialog(id, name, 1)
+          self.dialog.register_close_func(on_close)
 
 
   def _status_bar_update(self):
