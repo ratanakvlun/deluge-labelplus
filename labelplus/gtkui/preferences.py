@@ -316,8 +316,17 @@ class Preferences(object):
       self.we.rb_shared_limit_off.set_active(True)
 
     path = options["move_data_completed_path"]
+    if not path:
+      core_config = getattr(component.get("Preferences"), "core_config", None)
+      if core_config:
+        path = core_config.get("move_completed_path", "")
+
     if self.daemon_is_local:
-      self.we.fcb_move_data_completed_select.set_current_folder(path)
+      if not os.path.exists(path):
+        path = ""
+
+      self.we.fcb_move_data_completed_select.unselect_all()
+      self.we.fcb_move_data_completed_select.set_filename(path)
     else:
       self.we.txt_move_data_completed_entry.set_text(path)
 
@@ -344,16 +353,14 @@ class Preferences(object):
       if rb.get_active():
         prefix, sep, mode = rb.get_name().rpartition("_")
         options["move_data_completed_mode"] = mode
-
         break
 
-    if options["move_data_completed_mode"] == "folder":
-      if self.daemon_is_local:
-        options["move_data_completed_path"] = \
-            self.we.fcb_move_data_completed_select.get_filename()
-      else:
-        options["move_data_completed_path"] = \
-            self.we.txt_move_data_completed_entry.get_text().strip()
+    if self.daemon_is_local:
+      path = self.we.fcb_move_data_completed_select.get_filename()
+    else:
+      path = self.we.txt_move_data_completed_entry.get_text().strip()
+
+    options["move_data_completed_path"] = path
 
     lines = textview_get_text(self.we.tv_auto_queries).split("\n")
     options["auto_queries"] = tuple(x.strip() for x in lines if x.strip())
