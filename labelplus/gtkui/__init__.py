@@ -56,6 +56,8 @@ from labelplus.common.constant import GTKUI_CONFIG
 from labelplus.common.constant import GTKUI_DEFAULTS
 from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
 
+from labelplus.common.file import get_resource
+
 from label_options_dialog import LabelOptionsDialog
 from label_selection_menu import LabelSelectionMenu
 from label_sidebar import LabelSidebar
@@ -357,7 +359,7 @@ class GtkUI(GtkPluginBase):
   def _add_status_bar_item(self):
 
     self.status_item = component.get("StatusBar").add_item(
-      stock=gtk.STOCK_JUSTIFY_FILL,
+      image=get_resource("labelplus_icon.png"),
       text="",
       callback=self._do_open_label_options,
       tooltip="Label Bandwidth Usage")
