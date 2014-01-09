@@ -44,6 +44,8 @@ import cPickle
 import datetime
 import re
 
+from twisted.internet import reactor
+
 import deluge.common
 import deluge.configmanager
 from deluge import component
@@ -503,6 +505,8 @@ class Core(CorePluginBase):
 
     self._last_modified = datetime.datetime.now()
     self.initialized = True
+
+    reactor.callLater(1, self._shared_limit_update)
 
     log.debug("[%s] Core initialized", PLUGIN_NAME)
 
@@ -1017,6 +1021,84 @@ class Core(CorePluginBase):
       upload_rate_sum += status["upload_payload_rate"]
 
     return (download_rate_sum, upload_rate_sum)
+
+
+  def _shared_limit_update(self):
+
+    if self.initialized:
+      for id in self._shared_limit_index:
+        self._do_update_shared_limit(id)
+
+      reactor.callLater(
+        self._prefs["options"]["shared_limit_update_interval"],
+        self._shared_limit_update)
+
+
+  def _do_update_shared_limit(self, label_id):
+
+    shared_download_limit = \
+      self._labels[label_id]["data"]["max_download_speed"]
+    shared_upload_limit = self._labels[label_id]["data"]["max_upload_speed"]
+
+    if shared_download_limit < 0.0 and shared_upload_limit < 0.0:
+      return
+
+    active_torrents = self._get_labeled_torrents_status(
+      label_id, {"state": ["Seeding", "Downloading"]},
+      ["download_payload_rate", "upload_payload_rate"])
+
+    (download_rate_sum, upload_rate_sum) = self._get_bandwidth_usage(active_torrents)
+    download_rate_sum /= 1024.0
+    upload_rate_sum /= 1024.0
+
+    download_diff = download_rate_sum - shared_download_limit
+    upload_diff = upload_rate_sum - shared_upload_limit
+
+    num_active_download = sum(
+      1 for id in active_torrents \
+      if active_torrents[id]["download_payload_rate"] > 0.0)
+    num_active_upload = sum(
+      1 for id in active_torrents \
+      if active_torrents[id]["upload_payload_rate"] > 0.0)
+
+    # Modify individual bandwidth limits based on shared limit
+    for id in active_torrents:
+      torrent = self._torrents[id]
+      status = active_torrents[id]
+
+      if shared_download_limit < 0.0:
+        torrent.set_max_download_speed(-1.0)
+      else:
+        download_rate = status["download_payload_rate"] / 1024.0
+        limit = download_rate
+
+        if download_diff >= 0.0:
+          usage_ratio = download_rate / download_rate_sum
+          limit -= (usage_ratio * download_diff)
+        elif download_rate > 0.0:
+          limit += (-download_diff) / num_active_download
+        else:
+          limit = shared_download_limit
+
+        if limit < 0.1: limit = 0.1
+        torrent.set_max_download_speed(limit)
+
+      if shared_upload_limit < 0.0:
+        torrent.set_max_upload_speed(-1.0)
+      else:
+        upload_rate = status["upload_payload_rate"] / 1024.0
+        limit = upload_rate
+
+        if upload_diff >= 0.0:
+          usage_ratio = upload_rate / upload_rate_sum
+          limit -= (usage_ratio * upload_diff)
+        elif upload_rate > 0.0:
+          limit += (-upload_diff) / num_active_upload
+        else:
+          limit = shared_upload_limit
+
+        if limit < 0.1: limit = 0.1
+        torrent.set_max_upload_speed(limit)
 
 
   def _rpc_deregister(self, name):
