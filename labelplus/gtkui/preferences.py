@@ -192,7 +192,7 @@ class Preferences(object):
       self.last_prefs = None
       client.labelplus.get_preferences().addCallback(self._do_load)
     else:
-      reactor.callLater(1, self._load_settings)
+      reactor.callLater(0.1, self._load_settings)
 
 
   @debug()
