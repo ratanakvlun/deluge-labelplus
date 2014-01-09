@@ -270,6 +270,12 @@ class GtkUI(GtkPluginBase):
       return (pixbuf, 0, 0)
 
 
+    def on_drag_end(widget, context):
+
+      if self.label_sidebar.page_selected():
+        self.label_sidebar.label_tree.get_selection().emit("changed")
+
+
     def get_ids(widget, path, col, selection, *args):
 
       selection.set("TEXT", 8, "OK")
@@ -333,7 +339,8 @@ class GtkUI(GtkPluginBase):
     self.icon_multiple = \
         src_treeview.render_icon(gtk.STOCK_DND_MULTIPLE, gtk.ICON_SIZE_DND)
 
-    self.src_proxy = dnd.TreeViewDragSourceProxy(src_treeview, get_drag_icon)
+    self.src_proxy = dnd.TreeViewDragSourceProxy(src_treeview,
+      get_drag_icon, on_drag_end)
     self.src_proxy.add_target(src_target)
 
     dest_target = dnd.DragTarget(
