@@ -450,7 +450,8 @@ class LabelSidebar(object):
 
     def on_switch_page(widget, page, page_num, treeview):
 
-      if widget.has_focus():
+      # Update view when switching pages with tabs focused (e.g. keyboard)
+      if widget.is_focus():
         child = widget.get_nth_page(page_num)
         if treeview.is_ancestor(child):
           treeview.get_selection().emit("changed")
