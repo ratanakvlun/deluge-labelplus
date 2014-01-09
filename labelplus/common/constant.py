@@ -35,7 +35,7 @@
 
 PLUGIN_NAME = "LabelPlus"
 MODULE_NAME = "labelplus"
-DISPLAY_NAME = _("Label Plus")
+DISPLAY_NAME = _("LabelPlus")
 
 CORE_CONFIG = "%s.conf" % MODULE_NAME
 GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
