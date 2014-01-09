@@ -221,7 +221,7 @@
                                                           <widget class="GtkFileChooserButton" id="fcb_move_data_completed_select">
                                                             <property name="action">select-folder</property>
                                                             <property name="title" translatable="yes">Select A Folder</property>
-                                                            <signal name="current_folder_changed" handler="on_folder_changed"/>
+                                                            <signal name="selection_changed" handler="on_fcb_selection_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="position">1</property>

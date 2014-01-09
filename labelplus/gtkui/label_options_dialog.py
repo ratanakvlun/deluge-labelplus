@@ -37,6 +37,7 @@ import os.path
 import gtk
 
 from twisted.internet import defer
+from twisted.internet import reactor
 
 from deluge import common
 from deluge import component
@@ -177,8 +178,8 @@ class LabelOptionsDialog(object):
     options = result[2][1]
     self.defaults = result[3][1]["defaults"]
 
-    self._load_options(options)
     self._connect_signals()
+    self._load_options(options)
 
     if self.daemon_is_local:
       self.we.txt_move_data_completed_entry.hide()
@@ -254,30 +255,34 @@ class LabelOptionsDialog(object):
 
     name = widget.get_name()
     if name.endswith("parent"):
-      txt.set_text(path)
+      self._set_path_label(path)
     elif name.endswith("subfolder"):
       path = self.daemon_path_module.join(path, self.label_name)
-      txt.set_text(path)
+      self._set_path_label(path)
     elif name.endswith("folder"):
       if self.daemon_is_local:
         fcb.set_sensitive(True)
-        self.on_folder_changed(fcb)
+        self.on_fcb_selection_changed(fcb)
       else:
         txt.set_sensitive(True)
         self.on_txt_changed(txt)
 
 
-  def on_folder_changed(self, widget):
+  def on_fcb_selection_changed(self, widget):
 
-    folder = widget.get_filename()
-    self.we.txt_move_data_completed_entry.set_text(folder)
+    path = widget.get_filename() or ""
+    self._set_path_label(path)
 
 
   def on_txt_changed(self, widget):
 
-    folder = widget.get_text()
-    self.we.lbl_move_data_completed_path.set_text(folder)
-    self.we.lbl_move_data_completed_path.set_tooltip_text(folder)
+    self._set_path_label(widget.get_text())
+
+
+  def _set_path_label(self, path):
+
+    self.we.lbl_move_data_completed_path.set_text(path)
+    self.we.lbl_move_data_completed_path.set_tooltip_text(path)
 
 
   def _connect_signals(self):
@@ -288,8 +293,8 @@ class LabelOptionsDialog(object):
       "cb_set_defaults": self.cb_set_defaults,
       "cb_toggle_dependents": self.cb_toggle_dependents,
       "on_rb_toggled": self.on_rb_toggled,
-      "on_folder_changed": self.on_folder_changed,
       "on_txt_changed": self.on_txt_changed,
+      "on_fcb_selection_changed": self.on_fcb_selection_changed,
     })
 
 
@@ -320,16 +325,32 @@ class LabelOptionsDialog(object):
     else:
       self.we.rb_shared_limit_off.set_active(True)
 
-    self.we.lbl_move_data_completed_path.set_tooltip_text(
-        options["move_data_completed_path"])
+    # Set the current move data completed path
+    self._set_path_label(options["move_data_completed_path"])
 
-    self.we.txt_move_data_completed_entry.set_text(
-        options["move_data_completed_path"])
+    # Determine "folder" radio button's path
+    if options["move_data_completed_mode"] == "folder":
+      path = options["move_data_completed_path"]
+    else:
+      path = self.defaults["move_data_completed_path"]
+
+    txt = self.we.txt_move_data_completed_entry
+    txt.handler_block_by_func(self.on_txt_changed)
+    self.we.txt_move_data_completed_entry.set_text(path)
+    txt.handler_unblock_by_func(self.on_txt_changed)
 
     if self.daemon_is_local:
-      path = options["move_data_completed_path"]
-      if os.path.exists(path):
-        self.we.fcb_move_data_completed_select.set_current_folder(path)
+      if not os.path.exists(path):
+        path = ""
+
+      fcb = self.we.fcb_move_data_completed_select
+      fcb.handler_block_by_func(self.on_fcb_selection_changed)
+
+      fcb.unselect_all()
+      fcb.set_filename(path)
+
+      reactor.callLater(0.2, fcb.handler_unblock_by_func,
+        self.on_fcb_selection_changed)
 
     textview_set_text(self.we.tv_auto_queries,
         "\n".join(options["auto_queries"]))
