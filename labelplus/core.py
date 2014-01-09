@@ -819,7 +819,8 @@ class Core(CorePluginBase):
     data["move_data_completed_path"] = \
         data["move_data_completed_path"].strip()
     if not data["move_data_completed_path"]:
-      data["move_data_completed_path"] = self._get_default_save_path()
+      data["move_data_completed_path"] = \
+        self._core["move_completed_path"] or self._get_default_save_path()
 
     queries = [line for line in data["auto_queries"] if line.strip()]
     data["auto_queries"] = queries
