@@ -145,9 +145,9 @@ class NameInputDialog(object):
       Validation.validate_name(value)
 
       self.we.btn_ok.set_sensitive(True)
-      self.we.txt_name.set_icon_tooltip_text(gtk.ENTRY_ICON_SECONDARY, None)
       self.we.txt_name.set_icon_from_pixbuf(
           gtk.ENTRY_ICON_SECONDARY, self.icon)
+      self.we.txt_name.set_icon_tooltip_text(gtk.ENTRY_ICON_SECONDARY, None)
     except Validation.LabelPlusError as e:
       self._set_error_hints(e.args[0])
 
@@ -185,7 +185,7 @@ class NameInputDialog(object):
   def _set_error_hints(self, message):
 
     self.we.btn_ok.set_sensitive(False)
-    self.we.txt_name.set_icon_tooltip_text(
-        gtk.ENTRY_ICON_SECONDARY, _(message))
     self.we.txt_name.set_icon_from_stock(
         gtk.ENTRY_ICON_SECONDARY, gtk.STOCK_NO)
+    self.we.txt_name.set_icon_tooltip_text(
+        gtk.ENTRY_ICON_SECONDARY, _(message))
