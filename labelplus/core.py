@@ -805,12 +805,6 @@ class Core(CorePluginBase):
     if options["shared_limit_update_interval"] < 1:
       options["shared_limit_update_interval"] = 1
 
-    if options["shared_limit_download_margin"] < 1.0:
-      options["shared_limit_download_margin"] = 1.0
-
-    if options["shared_limit_upload_margin"] < 1.0:
-      options["shared_limit_upload_margin"] = 1.0
-
 
   def _normalize_label_data(self, data):
 
