@@ -91,8 +91,6 @@ class Preferences(object):
       self.we.chk_move_on_changes,
       self.we.chk_autolabel_uses_regex,
       self.we.spn_shared_limit_update_interval,
-      self.we.spn_shared_limit_download_margin,
-      self.we.spn_shared_limit_upload_margin,
     )
 
     self.defaults_widgets = (
