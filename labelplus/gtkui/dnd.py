@@ -1,7 +1,7 @@
 #
 # dnd.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
 # Deluge is free software.
 #
@@ -164,10 +164,11 @@ class TreeViewDragSourceProxy(object):
   )
 
 
-  def __init__(self, treeview, icon_func=None):
+  def __init__(self, treeview, icon_func=None, end_func=None):
 
     self.treeview = treeview
     self.icon_func = icon_func
+    self.end_func = end_func
 
     self._targets = {}
 
@@ -422,6 +423,16 @@ class TreeViewDragSourceProxy(object):
     if context.action == gtk.gdk.ACTION_MOVE:
       widget.get_selection().unselect_all()
       widget.queue_draw()
+
+    log.debug("%s End callback: %s", self, self.end_func)
+
+    if self.end_func:
+
+      try:
+        self.end_func(widget, context)
+
+      except:
+        log.exception("%s End callback failed", self)
 
     log.info("%s Do drag-end ended", self)
 
