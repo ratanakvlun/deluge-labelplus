@@ -46,7 +46,7 @@ def get_version(config):
 #
 # Map format:
 # {
-#   "version_in": version of input config data 
+#   "version_in": version of input config data
 #   "version_out": version of output config data
 #   "defaults": dict of defaults for the target output version
 #   "map": {
@@ -61,7 +61,7 @@ def convert(config, map):
   version_out = map["version_out"]
 
   require(get_version(config) == version_in,
-    "Convert: version mismatch")
+    "Unable to convert because version mismatch")
 
   output = copy.deepcopy(map["defaults"])
   output["version"] = version_out
@@ -73,7 +73,7 @@ def convert(config, map):
     parts = path.split("/")
     for name in parts:
       require(isinstance(iter, dict),
-        "Convert: malformed path in config data")
+        "Malformed path in config data during conversion")
 
       if name not in iter:
         name = None
