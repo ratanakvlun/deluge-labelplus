@@ -39,6 +39,7 @@
 #
 
 
+import copy
 import logging
 
 import gtk
@@ -229,19 +230,19 @@ class GtkUI(GtkPluginBase):
     target = get_version(GTKUI_DEFAULTS)
 
     if len(self._config.config) == 0:
-      self._config._Config__config = dict(GTKUI_DEFAULTS)
+      self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
     else:
       if source != target:
         map = GTKUI_MAPS.get((source, target), None)
         if map:
           self._config._Config__config = convert(self._config.config, map)
         else:
-          self._config._Config__config = dict(GTKUI_DEFAULTS)
+          self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
 
     if target >= 2:
       daemons = self._config["daemon"]
       if self._daemon not in daemons:
-        daemons[self._daemon] = dict(DAEMON_DEFAULTS)
+        daemons[self._daemon] = copy.deepcopy(DAEMON_DEFAULTS)
 
     return self._config
 

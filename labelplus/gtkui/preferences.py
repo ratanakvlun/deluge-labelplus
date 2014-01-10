@@ -35,6 +35,7 @@
 #
 
 
+import copy
 import os.path
 import gtk
 
@@ -267,7 +268,7 @@ class Preferences(object):
 
   def _load_general(self, general):
 
-    options = dict(OPTION_DEFAULTS)
+    options = copy.deepcopy(OPTION_DEFAULTS)
     options.update(general)
 
     for widget in self.general_widgets:
@@ -281,7 +282,7 @@ class Preferences(object):
 
   def _get_general(self):
 
-    options = dict(OPTION_DEFAULTS)
+    options = copy.deepcopy(OPTION_DEFAULTS)
 
     for widget in self.general_widgets:
       prefix, sep, name = widget.get_name().partition("_")
@@ -296,7 +297,7 @@ class Preferences(object):
 
   def _load_defaults(self, defaults):
 
-    options = dict(LABEL_DEFAULTS)
+    options = copy.deepcopy(LABEL_DEFAULTS)
     options.update(defaults)
 
     for widget in self.defaults_widgets:
@@ -337,7 +338,7 @@ class Preferences(object):
 
   def _get_defaults(self):
 
-    options = dict(LABEL_DEFAULTS)
+    options = copy.deepcopy(LABEL_DEFAULTS)
 
     for widget in self.defaults_widgets:
       prefix, sep, name = widget.get_name().partition("_")

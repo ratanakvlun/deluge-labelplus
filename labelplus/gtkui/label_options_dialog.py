@@ -33,6 +33,7 @@
 #
 
 
+import copy
 import os.path
 import gtk
 
@@ -221,7 +222,7 @@ class LabelOptionsDialog(object):
 
   def cb_set_defaults(self, widget):
 
-    options = dict(self.defaults)
+    options = copy.deepcopy(self.defaults)
     mode = options["move_data_completed_mode"]
     if mode != "folder":
       path = self.parent_move_data_path
@@ -302,7 +303,7 @@ class LabelOptionsDialog(object):
   @debug()
   def _load_options(self, opts):
 
-    options = dict(LABEL_DEFAULTS)
+    options = copy.deepcopy(LABEL_DEFAULTS)
     options.update(opts)
 
     if not options["move_data_completed_path"]:
@@ -363,7 +364,7 @@ class LabelOptionsDialog(object):
   @debug()
   def _save_options(self):
 
-    options = dict(LABEL_DEFAULTS)
+    options = copy.deepcopy(LABEL_DEFAULTS)
 
     for widget in self.option_widgets:
       prefix, sep, name = widget.get_name().partition("_")

@@ -39,6 +39,7 @@
 #
 
 
+import copy
 import os.path
 import cPickle
 import datetime
@@ -67,8 +68,8 @@ from common.constant import RESERVED_IDS
 
 CONFIG_DEFAULTS = {
   "prefs": {
-    "options": dict(OPTION_DEFAULTS),
-    "defaults": dict(LABEL_DEFAULTS),
+    "options": copy.deepcopy(OPTION_DEFAULTS),
+    "defaults": copy.deepcopy(LABEL_DEFAULTS),
   },
 
   "labels": {},   # "label_id": {"name": str, "data": dict}
@@ -171,7 +172,7 @@ class Core(CorePluginBase):
 
     self._labels[id] = {
       "name": label_name,
-      "data": dict(self._prefs["defaults"]),
+      "data": copy.deepcopy(self._prefs["defaults"]),
     }
 
     self._index[id] = {

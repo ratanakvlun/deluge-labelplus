@@ -33,6 +33,8 @@
 #
 
 
+import copy
+
 from validation import require
 
 
@@ -61,7 +63,7 @@ def convert(config, map):
   require(get_version(config) == version_in,
     "Convert: version mismatch")
 
-  output = dict(map["defaults"])
+  output = copy.deepcopy(map["defaults"])
   output["version"] = version_out
 
   for path in map["map"]:
