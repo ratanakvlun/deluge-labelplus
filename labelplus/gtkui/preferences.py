@@ -45,12 +45,12 @@ from deluge import component
 from deluge.ui.client import client
 import deluge.configmanager
 
+from labelplus.common.constant import PLUGIN_NAME
 from labelplus.common.constant import DISPLAY_NAME
 from labelplus.common.constant import OPTION_DEFAULTS
 from labelplus.common.constant import LABEL_DEFAULTS
 
 from common.constant import GTKUI_DEFAULTS
-from common.constant import GTKUI_CONFIG
 
 from labelplus.common.file import get_resource
 from labelplus.common.debug import debug
@@ -73,7 +73,7 @@ class Preferences(object):
 
   def __init__(self):
 
-    self.config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+    self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
 
     self.plugin = component.get("PluginManager")
     self.we = WidgetEncapsulator(get_resource("wnd_preferences.glade"))
@@ -131,7 +131,7 @@ class Preferences(object):
       self.we.exp_autolabel,
     )
 
-    expanded = self.config["prefs_state"]
+    expanded = self.config["common"]["prefs_state"]
     for exp in expanded:
       widget = getattr(self.we, exp, None)
       if widget:
@@ -173,7 +173,7 @@ class Preferences(object):
     self._load_defaults(LABEL_DEFAULTS)
 
     self.we.chk_show_label_bandwidth.set_active(
-      GTKUI_DEFAULTS["show_label_bandwidth"])
+      GTKUI_DEFAULTS["common"]["show_label_bandwidth"])
 
 
   def _do_set_unavailable(self, widget, event):
@@ -236,10 +236,10 @@ class Preferences(object):
       if exp.get_expanded():
         expanded.append(exp.get_name())
 
-    self.config["show_label_bandwidth"] = \
+    self.config["common"]["show_label_bandwidth"] = \
       self.we.chk_show_label_bandwidth.get_active()
 
-    self.config["prefs_state"] = expanded
+    self.config["common"]["prefs_state"] = expanded
     self.config.save()
 
     if not need_save:
@@ -258,7 +258,7 @@ class Preferences(object):
     self._load_defaults(defaults)
 
     self.we.chk_show_label_bandwidth.set_active(
-      self.config["show_label_bandwidth"])
+      self.config["common"]["show_label_bandwidth"])
 
 
   def _on_save_done(self, result):

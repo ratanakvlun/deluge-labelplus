@@ -47,8 +47,6 @@ from labelplus.common.constant import RESERVED_IDS
 from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from labelplus.common.constant import STATUS_ID
 
-from common.constant import GTKUI_CONFIG
-
 import labelplus.common.label as Label
 from labelplus.common.debug import debug
 from labelplus.common.validation import require
@@ -178,8 +176,10 @@ class LabelSidebar(object):
 
     self.plugin = component.get("GtkPlugin.%s" % PLUGIN_NAME)
 
-    self.config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
-    self.state = self.config["sidebar_state"]
+    self.config = self.plugin._config
+    self.daemon = self.plugin._daemon
+
+    self.state = self.config["daemon"][self.daemon]["sidebar_state"]
 
     self.label_tree = self._build_label_tree()
     self.menu = LabelSidebarMenu(self)

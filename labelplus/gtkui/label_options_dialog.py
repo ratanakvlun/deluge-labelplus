@@ -45,9 +45,8 @@ from deluge import component
 from deluge.ui.client import client
 import deluge.configmanager
 
+from labelplus.common.constant import PLUGIN_NAME
 from labelplus.common.constant import LABEL_DEFAULTS
-
-from common.constant import GTKUI_CONFIG
 
 from labelplus.common.file import get_resource
 from labelplus.common.debug import debug
@@ -71,7 +70,7 @@ class LabelOptionsDialog(object):
 
   def __init__(self, label_id, label_name, page=0):
 
-    self.config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+    self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
 
     self.label_id = label_id
     self.label_name = label_name
@@ -88,11 +87,11 @@ class LabelOptionsDialog(object):
         gtk.ICON_SIZE_SMALL_TOOLBAR)
     self.we.wnd_label_options.set_icon(icon)
 
-    pos = self.config["label_options_pos"]
+    pos = self.config["common"]["label_options_pos"]
     if pos:
       self.we.wnd_label_options.move(*pos)
 
-    size = self.config["label_options_size"]
+    size = self.config["common"]["label_options_size"]
     if size:
       self.we.wnd_label_options.resize(*size)
 
@@ -201,9 +200,9 @@ class LabelOptionsDialog(object):
   @debug()
   def cb_do_close(self, widget, event=None):
 
-    self.config["label_options_pos"] = \
+    self.config["common"]["label_options_pos"] = \
         list(self.we.wnd_label_options.get_position())
-    self.config["label_options_size"] = \
+    self.config["common"]["label_options_size"] = \
         list(self.we.wnd_label_options.get_size())
     self.config.save()
 

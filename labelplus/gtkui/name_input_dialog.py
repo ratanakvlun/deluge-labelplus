@@ -43,9 +43,8 @@ import labelplus.common.validation as Validation
 from labelplus.common.file import get_resource
 from labelplus.common.debug import debug
 
+from labelplus.common.constant import PLUGIN_NAME
 from labelplus.common.constant import NULL_PARENT
-
-from common.constant import GTKUI_CONFIG
 
 from widget_encapsulator import WidgetEncapsulator
 
@@ -65,7 +64,7 @@ class NameInputDialog(object):
 
   def __init__(self, method, label_id="", label_name=""):
 
-    self.config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+    self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
 
     self.method = method
     self.label_id = label_id
@@ -88,11 +87,11 @@ class NameInputDialog(object):
         gtk.ICON_SIZE_SMALL_TOOLBAR)
     self.we.wnd_name_input.set_icon(icon)
 
-    pos = self.config["name_input_pos"]
+    pos = self.config["common"]["name_input_pos"]
     if pos:
       self.we.wnd_name_input.move(*pos)
 
-    size = self.config["name_input_size"]
+    size = self.config["common"]["name_input_size"]
     if size:
       size[1] = 1
       self.we.wnd_name_input.resize(*size)
@@ -127,9 +126,9 @@ class NameInputDialog(object):
 
   def cb_do_close(self, widget, event=None):
 
-    self.config["name_input_pos"] = \
+    self.config["common"]["name_input_pos"] = \
         list(self.we.wnd_name_input.get_position())
-    self.config["name_input_size"] = \
+    self.config["common"]["name_input_size"] = \
         list(self.we.wnd_name_input.get_size())
     self.config.save()
 

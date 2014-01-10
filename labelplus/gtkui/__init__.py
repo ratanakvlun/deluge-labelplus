@@ -253,7 +253,7 @@ class GtkUI(GtkPluginBase):
       client.labelplus.get_label_data(self.timestamp).addCallback(
         self.cb_update_data)
 
-      if self._config["show_label_bandwidth"]:
+      if self._config["common"]["show_label_bandwidth"]:
         if not self.status_item:
           self._add_status_bar_item()
           reactor.callLater(1, self._status_bar_update)
