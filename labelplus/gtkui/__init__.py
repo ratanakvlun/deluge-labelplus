@@ -56,8 +56,11 @@ from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
 
 from common.constant import GTKUI_CONFIG
 from common.constant import GTKUI_DEFAULTS
+from common.constant import DAEMON_DEFAULTS
+from common.constant import GTKUI_MAPS
 
 from labelplus.common.file import get_resource
+from labelplus.common.config import get_version, convert
 
 from label_options_dialog import LabelOptionsDialog
 from label_selection_menu import LabelSelectionMenu
@@ -95,6 +98,11 @@ class GtkUI(GtkPluginBase):
     self.label_data = None
     self.dialog = None
 
+    self._config = None
+
+    info = client.connection_info()
+    self._daemon = "%s@%s:%s" % (info[2], info[0], info[1])
+
     client.labelplus.is_initialized().addCallback(self.cb_check)
 
 
@@ -121,8 +129,7 @@ class GtkUI(GtkPluginBase):
 
   def _do_load(self):
 
-    self._config = deluge.configmanager.ConfigManager(
-        GTKUI_CONFIG, defaults=GTKUI_DEFAULTS)
+    self.load_config()
 
     component.get("TorrentView").add_text_column(DISPLAY_NAME,
         status_field=[STATUS_NAME])
@@ -212,6 +219,31 @@ class GtkUI(GtkPluginBase):
 
     id = component.get("TorrentView").get_selected_torrent()
     client.labelplus.get_torrent_label(id).addCallback(self.label_sidebar.select_label)
+
+
+  def load_config(self):
+
+    self._config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+
+    source = get_version(self._config.config)
+    target = get_version(GTKUI_DEFAULTS)
+
+    if len(self._config.config) == 0:
+      self._config._Config__config = dict(GTKUI_DEFAULTS)
+    else:
+      if source != target:
+        map = GTKUI_MAPS.get((source, target), None)
+        if map:
+          self._config._Config__config = convert(self._config.config, map)
+        else:
+          self._config._Config__config = dict(GTKUI_DEFAULTS)
+
+    if target >= 2:
+      daemons = self._config["daemon"]
+      if self._daemon not in daemons:
+        daemons[self._daemon] = dict(DAEMON_DEFAULTS)
+
+    return self._config
 
 
   def update(self):

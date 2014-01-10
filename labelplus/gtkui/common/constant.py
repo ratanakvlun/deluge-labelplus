@@ -69,9 +69,7 @@ GTKUI_DEFAULTS_V2 = {
     "prefs_state": [],
     "show_label_bandwidth": False,
   },
-  "daemon": {
-    "127.0.0.1:58846": dict(DAEMON_DEFAULTS_V1),
-  },
+  "daemon": {},
 }
 
 GTKUI_DEFAULTS = GTKUI_DEFAULTS_V1
@@ -89,4 +87,8 @@ GTKUI_MAP_V1_V2 = {
     "prefs_state": "common/prefs_state",
     "show_label_bandwidth": "common/show_label_bandwidth",
   },
+}
+
+GTKUI_MAPS = {
+  (1, 2): GTKUI_MAP_V1_V2,
 }
