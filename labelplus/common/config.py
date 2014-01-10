@@ -50,7 +50,7 @@ def get_version(config):
 #   "version_out": version of output config data
 #   "defaults": dict of defaults for the target output version
 #   "map": {
-#     (path_segments, ..., variable): (path_segments, ..., variable),
+#     "path/variable": "path/variable",
 #   }
 # }
 #
