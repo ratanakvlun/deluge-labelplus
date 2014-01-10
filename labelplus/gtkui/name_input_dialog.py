@@ -44,7 +44,8 @@ from labelplus.common.file import get_resource
 from labelplus.common.debug import debug
 
 from labelplus.common.constant import NULL_PARENT
-from labelplus.common.constant import GTKUI_CONFIG
+
+from common.constant import GTKUI_CONFIG
 
 from widget_encapsulator import WidgetEncapsulator
 

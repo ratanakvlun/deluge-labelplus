@@ -47,8 +47,9 @@ import deluge.configmanager
 from labelplus.common.constant import DISPLAY_NAME
 from labelplus.common.constant import OPTION_DEFAULTS
 from labelplus.common.constant import LABEL_DEFAULTS
-from labelplus.common.constant import GTKUI_DEFAULTS
-from labelplus.common.constant import GTKUI_CONFIG
+
+from common.constant import GTKUI_DEFAULTS
+from common.constant import GTKUI_CONFIG
 
 from labelplus.common.file import get_resource
 from labelplus.common.debug import debug

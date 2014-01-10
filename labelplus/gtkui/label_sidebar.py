@@ -46,7 +46,8 @@ from labelplus.common.constant import PLUGIN_NAME, DISPLAY_NAME, MODULE_NAME
 from labelplus.common.constant import RESERVED_IDS
 from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from labelplus.common.constant import STATUS_ID
-from labelplus.common.constant import GTKUI_CONFIG
+
+from common.constant import GTKUI_CONFIG
 
 import labelplus.common.label as Label
 from labelplus.common.debug import debug

@@ -1,5 +1,5 @@
 #
-# constant.py
+# __init__.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
@@ -31,53 +31,3 @@
 #    this exception statement from your version. If you delete this exception
 #    statement from all source files in the program, then also delete it here.
 #
-
-
-PLUGIN_NAME = "LabelPlus"
-MODULE_NAME = "labelplus"
-DISPLAY_NAME = _("LabelPlus")
-
-CORE_CONFIG = "%s.conf" % MODULE_NAME
-WEBUI_SCRIPT = "%s.js" % MODULE_NAME
-
-STATUS_ID = "%s_id" % MODULE_NAME
-STATUS_NAME = "%s_name" % MODULE_NAME
-
-NULL_PARENT = "-"
-ID_ALL = "All"
-ID_NONE = "None"
-RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
-
-OPTION_DEFAULTS = {
-  "include_children": False,
-  "show_full_name": False,
-  "move_on_changes": False,
-  "autolabel_uses_regex": False,
-  "shared_limit_update_interval": 5,
-}
-
-LABEL_DEFAULTS = {
-  "download_settings": False,
-  "move_data_completed": False,
-  "move_data_completed_path": "",
-  "move_data_completed_mode": "folder",
-  "prioritize_first_last": False,
-
-  "bandwidth_settings": False,
-  "max_download_speed": -1.0,
-  "max_upload_speed": -1.0,
-  "max_connections": -1,
-  "max_upload_slots": -1,
-  "shared_limit_on": False,
-
-  "queue_settings": False,
-  "auto_managed": False,
-  "stop_at_ratio": False,
-  "stop_ratio": 1.0,
-  "remove_at_ratio": False,
-
-  "auto_settings": False,
-  "auto_name": True,
-  "auto_tracker": False,
-  "auto_queries": [],
-}

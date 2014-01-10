@@ -52,9 +52,10 @@ import deluge.configmanager
 
 from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
 from labelplus.common.constant import STATUS_NAME
-from labelplus.common.constant import GTKUI_CONFIG
-from labelplus.common.constant import GTKUI_DEFAULTS
 from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
+
+from common.constant import GTKUI_CONFIG
+from common.constant import GTKUI_DEFAULTS
 
 from labelplus.common.file import get_resource
 

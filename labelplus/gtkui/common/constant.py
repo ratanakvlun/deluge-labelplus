@@ -33,51 +33,21 @@
 #
 
 
-PLUGIN_NAME = "LabelPlus"
-MODULE_NAME = "labelplus"
-DISPLAY_NAME = _("LabelPlus")
+from labelplus.common.constant import MODULE_NAME
+from labelplus.common.constant import ID_ALL
 
-CORE_CONFIG = "%s.conf" % MODULE_NAME
-WEBUI_SCRIPT = "%s.js" % MODULE_NAME
 
-STATUS_ID = "%s_id" % MODULE_NAME
-STATUS_NAME = "%s_name" % MODULE_NAME
+GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
 
-NULL_PARENT = "-"
-ID_ALL = "All"
-ID_NONE = "None"
-RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
-
-OPTION_DEFAULTS = {
-  "include_children": False,
-  "show_full_name": False,
-  "move_on_changes": False,
-  "autolabel_uses_regex": False,
-  "shared_limit_update_interval": 5,
-}
-
-LABEL_DEFAULTS = {
-  "download_settings": False,
-  "move_data_completed": False,
-  "move_data_completed_path": "",
-  "move_data_completed_mode": "folder",
-  "prioritize_first_last": False,
-
-  "bandwidth_settings": False,
-  "max_download_speed": -1.0,
-  "max_upload_speed": -1.0,
-  "max_connections": -1,
-  "max_upload_slots": -1,
-  "shared_limit_on": False,
-
-  "queue_settings": False,
-  "auto_managed": False,
-  "stop_at_ratio": False,
-  "stop_ratio": 1.0,
-  "remove_at_ratio": False,
-
-  "auto_settings": False,
-  "auto_name": True,
-  "auto_tracker": False,
-  "auto_queries": [],
+GTKUI_DEFAULTS = {
+  "name_input_size": None,
+  "name_input_pos": None,
+  "label_options_size": None,
+  "label_options_pos": None,
+  "prefs_state": [],
+  "sidebar_state": {
+    "selected": ID_ALL,
+    "expanded": [],
+  },
+  "show_label_bandwidth": False,
 }
