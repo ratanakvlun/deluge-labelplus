@@ -136,6 +136,9 @@ class GtkUI(GtkPluginBase):
     component.get("TorrentView").add_text_column(DISPLAY_NAME,
         col_type=[str, str], status_field=[STATUS_NAME, STATUS_ID])
 
+    component.get("TorrentView").treeview.connect(
+      "button-press-event", self.on_tv_button_press)
+
     self.menu = self._create_menu()
     self.sep = component.get("MenuBar").add_torrentmenu_separator()
     component.get("MenuBar").torrentmenu.append(self.menu)
@@ -151,6 +154,17 @@ class GtkUI(GtkPluginBase):
     self.status_item = None
 
     self.initialized = True
+
+
+  def on_tv_button_press(self, widget, event):
+
+    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
+      x, y = event.get_coords()
+      path_info = widget.get_path_at_pos(int(x), int(y))
+      if not path_info: return
+
+      if path_info[1] and path_info[1].get_title() == DISPLAY_NAME:
+        self._do_go_to_label(widget)
 
 
   def disable(self):
@@ -219,8 +233,9 @@ class GtkUI(GtkPluginBase):
 
   def _do_go_to_label(self, widget):
 
-    id = component.get("TorrentView").get_selected_torrent()
-    client.labelplus.get_torrent_label(id).addCallback(self.label_sidebar.select_label)
+    id = self.get_selected_torrent_label()
+    if id is not None:
+      self.label_sidebar.select_label(id)
 
 
   def load_config(self):
