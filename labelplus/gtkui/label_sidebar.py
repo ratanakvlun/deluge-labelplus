@@ -282,6 +282,11 @@ class LabelSidebar(object):
     self.label_tree.thaw_child_notify()
     self.sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
 
+    selected = self.get_selected_label()
+    if selected not in RESERVED_IDS and selected not in self.row_map:
+      if self.page_selected():
+        self.select_label(ID_ALL)
+
 
   def select_label(self, label_id):
 
@@ -404,10 +409,13 @@ class LabelSidebar(object):
     path, column = widget.get_cursor()
     if path:
       model, row = widget.get_selection().get_selected()
-      log.debug("[%s] Cursor: %s '%s'", PLUGIN_NAME,
+      if not row:
+        log.debug("[%s] No selection. Selecting first row.", PLUGIN_NAME)
+        widget.get_selection().select_path("0")
+      else:
+        log.debug("[%s] Cursor: %s '%s'", PLUGIN_NAME,
           *model.get(row, 0, 1))
-
-      widget.get_selection().emit("changed")
+        widget.get_selection().emit("changed")
 
 
   def on_selection_changed(self, widget):
