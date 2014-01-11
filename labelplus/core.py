@@ -838,7 +838,7 @@ class Core(CorePluginBase):
     if data["max_upload_slots"] == 0:
       data["max_upload_slots"] = LABEL_DEFAULTS["max_upload_slots"]
 
-    if data["stop_ratio"] < 0.5:
+    if data["stop_ratio"] < 0.0:
       data["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
