@@ -35,6 +35,7 @@
 #
 
 
+import gobject
 import gtk
 
 from deluge import component
@@ -180,6 +181,8 @@ class LabelSidebar(object):
     self.daemon = self.plugin._daemon
 
     self.state = self.config["daemon"][self.daemon]["sidebar_state"]
+
+    self.orig_update_view = component.get("TorrentView").update_view
 
     self.label_tree = self._build_label_tree()
     self.menu = LabelSidebarMenu(self)
@@ -419,7 +422,17 @@ class LabelSidebar(object):
       else:
         filter_data = {STATUS_ID: [id]}
 
-      component.get("TorrentView").set_filter(filter_data)
+      def update_view_wrapper(columns=None):
+
+        self.orig_update_view(columns)
+        tv.update_view = self.orig_update_view
+
+        gobject.idle_add(tv.treeview.scroll_to_point, -1, 0)
+
+      tv = component.get("TorrentView")
+      tv.update_view = update_view_wrapper
+
+      tv.set_filter(filter_data)
       self.filter_path = model.get_path(row)
 
       self.state["selected"] = id
