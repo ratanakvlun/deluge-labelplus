@@ -93,6 +93,7 @@ class Preferences(object):
       self.we.chk_move_on_changes,
       self.we.chk_autolabel_uses_regex,
       self.we.spn_shared_limit_update_interval,
+      self.we.chk_move_after_recheck,
     )
 
     self.defaults_widgets = (
@@ -180,12 +181,15 @@ class Preferences(object):
 
     flag = "MoveTools" in self.plugin.get_enabled_plugins()
     self.we.chk_move_on_changes.set_sensitive(flag)
+    self.we.chk_move_after_recheck.set_sensitive(flag)
 
     if flag:
       self.we.chk_move_on_changes.set_tooltip_text(None)
+      self.we.chk_move_after_recheck.set_tooltip_text(None)
     else:
-      self.we.chk_move_on_changes.set_tooltip_text(
-          _("Requires Move Tools plugin"))
+      require_message = _("Requires Move Tools plugin")
+      self.we.chk_move_on_changes.set_tooltip_text(require_message)
+      self.we.chk_move_after_recheck.set_tooltip_text(require_message)
 
 
   def _load_settings(self, widget=None, data=None):

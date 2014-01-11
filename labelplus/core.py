@@ -387,7 +387,8 @@ class Core(CorePluginBase):
     self._last_modified = datetime.datetime.now()
     self._config.save()
 
-    self._do_move_completed(label_id, torrents)
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed(label_id, torrents)
 
 
   @export
@@ -479,7 +480,10 @@ class Core(CorePluginBase):
 
       path = torrent.get_status(["save_path"])["save_path"]
       if path != self._labels[label_id]["data"]["move_data_completed_path"]:
-        self._do_move_completed(label_id, [torrent_id])
+        if self._prefs["options"]["move_after_recheck"]:
+          # Just finished recheck or move by Deluge hasn't completed.
+          # Move Tools will deal with either of these situations.
+          self._do_move_completed(label_id, [torrent_id])
 
 
   def _initialize(self):
@@ -951,7 +955,8 @@ class Core(CorePluginBase):
 
   def _subtree_move_completed(self, parent_id):
 
-    self._do_move_completed(parent_id, self._index[parent_id]["torrents"])
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed(parent_id, self._index[parent_id]["torrents"])
 
     for id in self._index[parent_id]["children"]:
       self._subtree_move_completed(id)
@@ -959,11 +964,13 @@ class Core(CorePluginBase):
 
   def _do_move_completed(self, label_id, torrent_list):
 
-    if label_id:
+    if label_id in self._labels:
       options = self._labels[label_id]["data"]
+    else:
+      label_id = None
 
-    if self._prefs["options"]["move_on_changes"] and (not label_id or (
-        options["download_settings"] and options["move_data_completed"])):
+    if not label_id or (
+        options["download_settings"] and options["move_data_completed"]):
       try:
         component.get("CorePlugin.MoveTools").move_completed(torrent_list)
       except KeyError:

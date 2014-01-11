@@ -97,7 +97,7 @@
                             </child>
                             <child>
                               <widget class="GtkCheckButton" id="chk_move_on_changes">
-                                <property name="label" translatable="yes">Move completed when label path changes</property>
+                                <property name="label" translatable="yes">Move completed when label is updated</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
@@ -105,6 +105,18 @@
                               </widget>
                               <packing>
                                 <property name="position">5</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckButton" id="chk_move_after_recheck">
+                                <property name="label" translatable="yes">Move completed after recheck</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="position">6</property>
                               </packing>
                             </child>
                           </widget>

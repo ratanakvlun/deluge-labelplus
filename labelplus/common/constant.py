@@ -54,6 +54,7 @@ OPTION_DEFAULTS = {
   "move_on_changes": False,
   "autolabel_uses_regex": False,
   "shared_limit_update_interval": 5,
+  "move_after_recheck": False,
 }
 
 LABEL_DEFAULTS = {
