@@ -152,6 +152,8 @@ class Preferences(object):
       self.we.txt_move_data_completed_entry.show()
 
     self.we.blk_preferences.connect("expose-event", self._do_set_unavailable)
+    self.we.chk_show_label_bandwidth.connect(
+      "toggled", self._do_set_unavailable, None)
 
     self.plugin.add_preferences_page(DISPLAY_NAME, self.we.blk_preferences)
     self.plugin.register_hook("on_show_prefs", self._load_settings)
@@ -175,6 +177,8 @@ class Preferences(object):
 
     self.we.chk_show_label_bandwidth.set_active(
       GTKUI_DEFAULTS["common"]["show_label_bandwidth"])
+    self.we.chk_status_include_sublabel.set_active(
+      GTKUI_DEFAULTS["common"]["status_include_sublabel"])
 
 
   def _do_set_unavailable(self, widget, event):
@@ -190,6 +194,9 @@ class Preferences(object):
       require_message = _("Requires Move Tools plugin")
       self.we.chk_move_on_changes.set_tooltip_text(require_message)
       self.we.chk_move_after_recheck.set_tooltip_text(require_message)
+
+    self.we.chk_status_include_sublabel.set_sensitive(
+      self.we.chk_show_label_bandwidth.get_active())
 
 
   def _load_settings(self, widget=None, data=None):
@@ -242,6 +249,8 @@ class Preferences(object):
 
     self.config["common"]["show_label_bandwidth"] = \
       self.we.chk_show_label_bandwidth.get_active()
+    self.config["common"]["status_include_sublabel"] = \
+      self.we.chk_status_include_sublabel.get_active()
 
     self.config["common"]["prefs_state"] = expanded
     self.config.save()
@@ -263,6 +272,8 @@ class Preferences(object):
 
     self.we.chk_show_label_bandwidth.set_active(
       self.config["common"]["show_label_bandwidth"])
+    self.we.chk_status_include_sublabel.set_active(
+      self.config["common"]["status_include_sublabel"])
 
 
   def _on_save_done(self, result):

@@ -401,7 +401,7 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_label_bandwidth_usage(self, label_id):
+  def get_label_bandwidth_usage(self, label_id, sublabels=False):
 
     Validation.require((label_id not in RESERVED_IDS and
         label_id in self._labels) or (not label_id or label_id == ID_NONE),
@@ -412,7 +412,7 @@ class Core(CorePluginBase):
 
     labels = [label_id]
 
-    if label_id != ID_NONE and self._prefs["options"]["include_children"]:
+    if label_id != ID_NONE and sublabels:
       labels += self._get_descendent_labels(label_id)
 
     active_torrents = self._get_labeled_torrents_status(

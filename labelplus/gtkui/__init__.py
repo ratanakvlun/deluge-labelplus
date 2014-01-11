@@ -254,13 +254,20 @@ class GtkUI(GtkPluginBase):
           self._config._Config__config = convert(self._config.config, map)
         else:
           self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
+      else:
+        self.normalize_config()
 
     if target >= 2:
       daemons = self._config["daemon"]
       if self._daemon not in daemons:
         daemons[self._daemon] = copy.deepcopy(DAEMON_DEFAULTS)
 
-    return self._config
+
+  def normalize_config(self):
+
+    commons = dict(GTKUI_DEFAULTS["common"])
+    commons.update(self._config.config["common"])
+    self._config.config["common"] = commons
 
 
   def update(self):
@@ -482,10 +489,12 @@ class GtkUI(GtkPluginBase):
       if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
         self.status_item._ebox.show_all()
         self.status_item.set_tooltip(
-          "Bandwidth Usage Of: %s" % self.label_data[id]["name"])
+          "Bandwidth Used By: %s" % self.label_data[id]["name"])
 
-        client.labelplus.get_label_bandwidth_usage(id).addCallback(
-          self._do_status_bar_update)
+        include_sublabels = self._config["common"]["status_include_sublabel"]
+
+        client.labelplus.get_label_bandwidth_usage(
+          id, include_sublabels).addCallback(self._do_status_bar_update)
       else:
         self.status_item._ebox.hide_all()
         reactor.callLater(1, self._status_bar_update)

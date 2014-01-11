@@ -68,6 +68,7 @@ GTKUI_DEFAULTS_V2 = {
     "label_options_pos": None,
     "prefs_state": [],
     "show_label_bandwidth": False,
+    "status_include_sublabel": False,
   },
   "daemon": {},
 }
