@@ -419,7 +419,7 @@ class GtkUI(GtkPluginBase):
       image=get_resource("labelplus_icon.png"),
       text="",
       callback=self._do_open_label_options,
-      tooltip="Label Bandwidth Usage")
+      tooltip="")
 
     self.status_item._ebox.hide_all()
 
@@ -459,6 +459,9 @@ class GtkUI(GtkPluginBase):
       if self.label_sidebar.page_selected():
         id = self.label_sidebar.get_selected_label()
 
+        if id == ID_ALL:
+          id = self.get_selected_torrent_label()
+
         if id not in RESERVED_IDS and id in self.label_data:
           name = self.label_data[id]["name"]
           self.dialog = LabelOptionsDialog(id, name, 1)
@@ -473,8 +476,14 @@ class GtkUI(GtkPluginBase):
       if self.label_sidebar.page_selected():
         id = self.label_sidebar.get_selected_label()
 
+        if id == ID_ALL:
+          id = self.get_selected_torrent_label()
+
       if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
         self.status_item._ebox.show_all()
+        self.status_item.set_tooltip(
+          "Bandwidth Usage Of: %s" % self.label_data[id]["name"])
+
         client.labelplus.get_label_bandwidth_usage(id).addCallback(
           self._do_status_bar_update)
       else:
