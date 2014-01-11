@@ -409,8 +409,13 @@ class Core(CorePluginBase):
     if not label_id:
       label_id = ID_NONE
 
+    labels = [label_id]
+
+    if label_id != ID_NONE and self._prefs["options"]["include_children"]:
+      labels += self._get_descendent_labels(label_id)
+
     active_torrents = self._get_labeled_torrents_status(
-      label_id, {"state": ["Seeding", "Downloading"]},
+      labels, {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
 
     return self._get_bandwidth_usage(active_torrents)
@@ -974,14 +979,33 @@ class Core(CorePluginBase):
     return path
 
 
-  def _get_labeled_torrents_status(self, label_id, filters, fields):
+  def _get_descendent_labels(self, label_id):
+
+    descendents = []
+
+    if label_id in self._index:
+      for child in self._index[label_id]["children"]:
+        descendents.append(child)
+        descendents += self._get_descendent_labels(child)
+
+    return descendents
+
+
+  def _get_labeled_torrents_status(self, label_ids, filters, fields):
 
     filtered_torrents = {}
+    torrents = []
 
-    if label_id == ID_NONE:
-      torrents = self._filter_by_label(self._torrents.keys(), [label_id])
+    if ID_ALL in label_ids:
+      torrents = self._torrents.keys()
+    elif ID_NONE in label_ids:
+      torrents = self._filter_by_label(self._torrents.keys(), label_ids)
     else:
-      torrents = self._index[label_id]["torrents"]
+      for label_id in label_ids:
+        if label_id in self._index:
+          for id in self._index[label_id]["torrents"]:
+            if id not in torrents:
+              torrents.append(id)
 
     for filter in filters:
       if filter not in fields:
@@ -1040,7 +1064,7 @@ class Core(CorePluginBase):
       return
 
     active_torrents = self._get_labeled_torrents_status(
-      label_id, {"state": ["Seeding", "Downloading"]},
+      [label_id], {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
 
     (download_rate_sum, upload_rate_sum) = self._get_bandwidth_usage(active_torrents)
