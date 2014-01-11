@@ -73,7 +73,7 @@
                             </child>
                             <child>
                               <widget class="GtkCheckButton" id="chk_include_children">
-                                <property name="label" translatable="yes">Label filter includes children</property>
+                                <property name="label" translatable="yes">Label filter includes sublabels</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
