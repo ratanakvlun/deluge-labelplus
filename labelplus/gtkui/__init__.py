@@ -53,6 +53,7 @@ import deluge.configmanager
 
 from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
 from labelplus.common.constant import STATUS_NAME
+from labelplus.common.constant import STATUS_ID
 from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
 
 from common.constant import GTKUI_CONFIG
@@ -133,7 +134,7 @@ class GtkUI(GtkPluginBase):
     self.load_config()
 
     component.get("TorrentView").add_text_column(DISPLAY_NAME,
-        status_field=[STATUS_NAME])
+        col_type=[str, str], status_field=[STATUS_NAME, STATUS_ID])
 
     self.menu = self._create_menu()
     self.sep = component.get("MenuBar").add_torrentmenu_separator()
@@ -413,6 +414,22 @@ class GtkUI(GtkPluginBase):
     if self.status_item:
       component.get("StatusBar").remove_item(self.status_item)
       self.status_item = None
+
+
+  def get_selected_torrent_label(self):
+
+    label_id = None
+    tv = component.get("TorrentView")
+    torrents = tv.get_selected_torrents()
+
+    if len(torrents) == 1:
+      id = torrents[0]
+      status = tv.get_torrent_status(id)
+
+      if STATUS_ID in status:
+        label_id = status[STATUS_ID] or ID_NONE
+
+    return label_id
 
 
   def _do_open_label_options(self, widget, event):
