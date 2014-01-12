@@ -377,8 +377,11 @@ class Core(CorePluginBase):
   @debug()
   def set_torrent_labels(self, label_id, torrent_list):
 
-    Validation.require((label_id not in RESERVED_IDS and
-        label_id in self._labels) or (not label_id), "Unknown Label")
+    if not label_id:
+      label_id = ID_NONE
+
+    Validation.require(label_id == ID_NONE or (label_id not in RESERVED_IDS and
+        label_id in self._labels), "Unknown Label")
 
     torrents = [t for t in torrent_list if t in self._torrents]
     for id in torrents:
@@ -679,7 +682,7 @@ class Core(CorePluginBase):
       del self._mappings[torrent_id]
       log.debug("[%s] Torrent removed from index and mappings", PLUGIN_NAME)
 
-    if label_id:
+    if label_id and label_id not in RESERVED_IDS:
       self._mappings[torrent_id] = label_id
       self._index[label_id]["torrents"].append(torrent_id)
       self._apply_torrent_options(torrent_id)
