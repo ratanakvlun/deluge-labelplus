@@ -561,7 +561,7 @@ class LabelSidebar(object):
 
   def _get_label_name(self, id):
 
-    return self.store.get_value(self.row_map[id], 1)
+    return self.plugin.label_data[id]["full_name"]
 
 
   def _remove_invalid_labels(self, counts):
