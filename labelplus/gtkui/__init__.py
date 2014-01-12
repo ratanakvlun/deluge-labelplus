@@ -260,6 +260,16 @@ class GtkUI(GtkPluginBase):
     commons.update(self._config.config["common"])
     self._config.config["common"] = commons
 
+    saved_daemons = component.get("ConnectionManager").config["hosts"]
+    if not saved_daemons:
+      self._config["daemon"] = {}
+    else:
+      daemons = ["%s@%s:%s" % (x[3], x[1], x[2]) for x in saved_daemons]
+
+      for daemon in self._config["daemon"].keys():
+        if daemon != self._daemon and daemon not in daemons:
+          del self._config["daemon"][daemon]
+
 
   def update(self):
 
