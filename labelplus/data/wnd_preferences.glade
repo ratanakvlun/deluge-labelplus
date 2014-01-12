@@ -79,7 +79,7 @@
                             </child>
                             <child>
                               <widget class="GtkCheckButton" id="chk_show_full_name">
-                                <property name="label" translatable="yes">Show full label names</property>
+                                <property name="label" translatable="yes">Show full label names in column</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
