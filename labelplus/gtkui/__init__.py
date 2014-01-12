@@ -364,6 +364,9 @@ class GtkUI(GtkPluginBase):
       daemons = ["%s@%s:%s" % (x[3], x[1], x[2]) for x in saved_daemons]
 
       for daemon in self._config["daemon"].keys():
+        if "@localhost:" in daemon or "@127.0.0.1:" in daemon:
+          continue
+
         if daemon != self._daemon and daemon not in daemons:
           del self._config["daemon"][daemon]
 
