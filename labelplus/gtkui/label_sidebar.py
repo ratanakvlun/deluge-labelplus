@@ -115,10 +115,16 @@ class LabelSidebarMenu(gtk.Menu):
     self.append(item)
 
 
+  def close_func(self, widget):
+
+    self.dialog = None
+
+
   @debug()
   def on_add(self, widget):
 
     self.dialog = NameInputDialog("add")
+    self.dialog.register_close_func(self.close_func)
 
 
   @debug()
@@ -134,6 +140,7 @@ class LabelSidebarMenu(gtk.Menu):
     if self.target_id not in RESERVED_IDS:
       name = self._owner._get_label_name(self.target_id)
       self.dialog = LabelOptionsDialog(self.target_id, name)
+      self.dialog.register_close_func(self.close_func)
 
 
   @debug()
@@ -142,6 +149,7 @@ class LabelSidebarMenu(gtk.Menu):
     if self.target_id not in RESERVED_IDS:
       name = self._owner._get_label_name(self.target_id)
       self.dialog = NameInputDialog("sublabel", self.target_id, name)
+      self.dialog.register_close_func(self.close_func)
 
 
   @debug()
@@ -150,6 +158,7 @@ class LabelSidebarMenu(gtk.Menu):
     if self.target_id not in RESERVED_IDS:
       name = self._owner._get_label_name(self.target_id)
       self.dialog = NameInputDialog("rename", self.target_id, name)
+      self.dialog.register_close_func(self.close_func)
 
 
   @debug()
