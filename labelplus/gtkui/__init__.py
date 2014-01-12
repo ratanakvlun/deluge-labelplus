@@ -63,6 +63,7 @@ from common.constant import GTKUI_MAPS
 
 from labelplus.common.file import get_resource
 from labelplus.common.config import get_version, convert
+from labelplus.common.label import get_parent
 
 from label_options_dialog import LabelOptionsDialog
 from label_selection_menu import LabelSelectionMenu
@@ -151,11 +152,15 @@ class GtkUI(GtkPluginBase):
 
   def on_tv_button_press(self, widget, event):
 
-    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-      x, y = event.get_coords()
-      path_info = widget.get_path_at_pos(int(x), int(y))
-      if not path_info: return
+    x, y = event.get_coords()
+    path_info = widget.get_path_at_pos(int(x), int(y))
+    if not path_info:
+      if event.button == 3:
+        self._popup_jump_menu(widget, event)
+      else:
+        return
 
+    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
       if path_info[1] and path_info[1].get_title() == DISPLAY_NAME:
         id = self.get_selected_torrent_label()
         if (self.label_sidebar.page_selected() and
@@ -194,20 +199,65 @@ class GtkUI(GtkPluginBase):
   def _create_menu(self):
 
     menu = gtk.MenuItem(DISPLAY_NAME)
-    menu.connect("activate", self._on_activate)
     submenu = gtk.Menu()
 
     self.label_selection_menu = LabelSelectionMenu(_("Set Label"))
     submenu.append(self.label_selection_menu)
 
-    self.menu_jump_item = gtk.MenuItem(_("Go to Label"))
-    self.menu_jump_item.connect("activate", self._do_go_to_label)
-    submenu.append(self.menu_jump_item)
+    jump_menu_item = self._create_jump_menu_item()
+
+    submenu.append(jump_menu_item)
 
     menu.set_submenu(submenu)
     menu.show_all()
 
     return menu
+
+
+  def _create_jump_menu_item(self):
+
+    def set_unavailable(widget):
+
+      menu_item.hide()
+      id = self.get_selected_torrent_label()
+      if id:
+        parent = get_parent(id)
+        if parent and parent not in RESERVED_IDS:
+          menu_item.connect("activate", self._do_go_to_label, parent)
+          menu_item.show()
+
+    submenu_item = gtk.MenuItem(_("Jump To"))
+    submenu_item.connect("activate", set_unavailable)
+    jump_menu = gtk.Menu()
+
+    menu_item = gtk.MenuItem(_(ID_ALL))
+    menu_item.connect("activate", self._do_go_to_label, ID_ALL)
+    jump_menu.append(menu_item)
+
+    menu_item = gtk.MenuItem(_("Parent"))
+    jump_menu.append(menu_item)
+
+    menu_item = gtk.MenuItem(_(ID_NONE))
+    menu_item.connect("activate", self._do_go_to_label, ID_NONE)
+    jump_menu.append(menu_item)
+
+    submenu_item.set_submenu(jump_menu)
+
+    return submenu_item
+
+
+  def _popup_jump_menu(self, widget, event):
+
+    top = gtk.Menu()
+    menu = gtk.MenuItem(DISPLAY_NAME)
+    submenu = gtk.Menu()
+
+    submenu.append(self._create_jump_menu_item())
+    menu.set_submenu(submenu)
+    top.append(menu)
+
+    top.show_all()
+    top.popup(None, None, None, event.button, event.time)
 
 
   def _destroy_menu(self):
@@ -219,17 +269,11 @@ class GtkUI(GtkPluginBase):
     del self.menu
 
 
-  def _on_activate(self, widget):
+  def _do_go_to_label(self, widget, id=None):
 
-    if len(component.get("TorrentView").get_selected_torrents()) == 1:
-      self.menu_jump_item.set_sensitive(True)
-    else:
-      self.menu_jump_item.set_sensitive(False)
+    if not id:
+      id = self.get_selected_torrent_label()
 
-
-  def _do_go_to_label(self, widget):
-
-    id = self.get_selected_torrent_label()
     if id is not None:
       self.label_sidebar.select_label(id)
 
