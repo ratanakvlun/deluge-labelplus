@@ -1,7 +1,7 @@
 #
 # label_selection_menu.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
 #
 # Deluge is free software.
@@ -37,14 +37,10 @@
 import gtk
 
 from deluge import component
-from deluge.ui.client import client
 
-from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
-from labelplus.common.constant import ID_NONE
-from labelplus.common.constant import NULL_PARENT
+from labelplus.common.constant import PLUGIN_NAME
 
 import labelplus.common.label as Label
-from labelplus.common.debug import debug
 
 
 MENU_ITEM = 0
@@ -54,52 +50,39 @@ HANDLER = 1
 class LabelSelectionMenu(gtk.MenuItem):
 
 
-  def __init__(self, label=DISPLAY_NAME):
+  def __init__(self, label, on_select_label, base_items=[]):
 
     gtk.MenuItem.__init__(self, label)
 
     self.plugin = component.get("GtkPlugin.%s" % PLUGIN_NAME)
 
+    self.on_select_label = on_select_label
+    self.base_items = base_items
+
     self.submenu = gtk.Menu()
     self.set_submenu(self.submenu)
 
     self.connect("activate", self.on_activate)
-    self.on_activate(self)
-
-    self.show_all()
 
 
-  @debug()
-  def on_activate(self, widget):
-
-    self.handler_block_by_func(self.on_activate)
+  def _build_menu(self):
 
     for child in self.submenu.get_children():
       self.submenu.remove(child)
-      child.destroy()
 
-    if widget.get_parent():
-      id = self.plugin.get_selected_torrent_label()
-      if id:
-        parent = Label.get_parent(id)
-        if parent and parent != NULL_PARENT:
-          item = gtk.MenuItem(_("Parent"))
-          item.connect("activate", self.on_select_label, parent)
-          self.submenu.append(item)
+      if child not in self.base_items:
+        child.destroy()
 
-    item = gtk.MenuItem(_(ID_NONE))
-    item.connect("activate", self.on_select_label, None)
-    self.submenu.append(item)
+    for item in self.base_items:
+      self.submenu.append(item)
 
     labels = self.plugin.get_labels()
     self._load_labels(labels)
 
 
-  @debug()
   def _load_labels(self, labels):
 
     if labels:
-      self.submenu.append(gtk.SeparatorMenuItem())
       labels = sorted(labels, key=lambda x: (Label.get_parent(x[0]), x[1]))
 
     items = {}
@@ -125,13 +108,8 @@ class LabelSelectionMenu(gtk.MenuItem):
       else:
         self.submenu.append(item)
 
+
+  def on_activate(self, widget):
+
+    self._build_menu()
     self.show_all()
-
-    self.handler_unblock_by_func(self.on_activate)
-
-
-  @debug()
-  def on_select_label(self, widget, label_id):
-
-    torrents = component.get("TorrentView").get_selected_torrents()
-    client.labelplus.set_torrent_labels(label_id, torrents)

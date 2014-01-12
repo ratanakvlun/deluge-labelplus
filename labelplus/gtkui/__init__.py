@@ -133,7 +133,7 @@ class GtkUI(GtkPluginBase):
     component.get("TorrentView").treeview.connect(
       "button-press-event", self.on_tv_button_press)
 
-    self.menu = self._create_menu()
+    self.menu = self._create_context_menu()
     self.sep = component.get("MenuBar").add_torrentmenu_separator()
     component.get("MenuBar").torrentmenu.append(self.menu)
 
@@ -196,17 +196,16 @@ class GtkUI(GtkPluginBase):
       component.get("TorrentView").remove_column(DISPLAY_NAME)
 
 
-  def _create_menu(self):
+  def _create_context_menu(self):
 
     menu = gtk.MenuItem(DISPLAY_NAME)
     submenu = gtk.Menu()
 
-    self.label_selection_menu = LabelSelectionMenu(_("Set Label"))
-    submenu.append(self.label_selection_menu)
+    set_label_menu = self._create_set_label_menu()
+    submenu.append(set_label_menu)
 
-    jump_menu_item = self._create_jump_menu_item()
-
-    submenu.append(jump_menu_item)
+    jump_menu = self._create_jump_menu()
+    submenu.append(jump_menu)
 
     menu.set_submenu(submenu)
     menu.show_all()
@@ -214,9 +213,54 @@ class GtkUI(GtkPluginBase):
     return menu
 
 
-  def _create_jump_menu_item(self):
+  def _create_set_label_menu(self):
 
-    def set_unavailable(widget):
+
+    def on_select_label(widget, label_id):
+
+      torrents = component.get("TorrentView").get_selected_torrents()
+      client.labelplus.set_torrent_labels(label_id, torrents)
+
+
+    def hide_unavailable(widget):
+
+      parent_item.hide()
+
+      id = self.get_selected_torrent_label()
+      if id:
+        parent = get_parent(id)
+        if parent and parent not in RESERVED_IDS:
+          parent_item.connect("activate", on_select_label, parent)
+          parent_item.show()
+
+
+    items = []
+
+    parent_item = gtk.MenuItem(_("Parent"))
+    items.append(parent_item)
+
+    menu_item = gtk.MenuItem(_(ID_NONE))
+    menu_item.connect("activate", on_select_label, ID_NONE)
+    items.append(menu_item)
+
+    menu_item = gtk.SeparatorMenuItem()
+    items.append(menu_item)
+
+    menu = LabelSelectionMenu(_("Set Label"), on_select_label, items)
+    menu.connect("activate", hide_unavailable)
+
+    return menu
+
+
+  def _create_jump_menu(self):
+
+
+    def on_select_label(widget, label_id):
+
+      self._do_go_to_label(widget, label_id)
+
+
+    def hide_unavailable(widget):
 
       parent_item.hide()
 
@@ -227,27 +271,30 @@ class GtkUI(GtkPluginBase):
       if id:
         parent = get_parent(id)
         if parent and parent not in RESERVED_IDS:
-          parent_item.connect("activate", self._do_go_to_label, parent)
+          parent_item.connect("activate", on_select_label, parent)
           parent_item.show()
 
-    submenu_item = gtk.MenuItem(_("Jump To"))
-    submenu_item.connect("activate", set_unavailable)
-    jump_menu = gtk.Menu()
 
-    menu_item = gtk.MenuItem(_(ID_ALL))
-    menu_item.connect("activate", self._do_go_to_label, ID_ALL)
-    jump_menu.append(menu_item)
+    items = []
 
     parent_item = gtk.MenuItem(_("Parent"))
-    jump_menu.append(parent_item)
+    items.append(parent_item)
+
+    menu_item = gtk.MenuItem(_(ID_ALL))
+    menu_item.connect("activate", on_select_label, ID_ALL)
+    items.append(menu_item)
 
     menu_item = gtk.MenuItem(_(ID_NONE))
-    menu_item.connect("activate", self._do_go_to_label, ID_NONE)
-    jump_menu.append(menu_item)
+    menu_item.connect("activate", on_select_label, ID_NONE)
+    items.append(menu_item)
 
-    submenu_item.set_submenu(jump_menu)
+    menu_item = gtk.SeparatorMenuItem()
+    items.append(menu_item)
 
-    return submenu_item
+    menu = LabelSelectionMenu(_("Jump To"), on_select_label, items)
+    menu.connect("activate", hide_unavailable)
+
+    return menu
 
 
   def _popup_jump_menu(self, widget, event):
@@ -256,7 +303,7 @@ class GtkUI(GtkPluginBase):
     menu = gtk.MenuItem(DISPLAY_NAME)
     submenu = gtk.Menu()
 
-    submenu.append(self._create_jump_menu_item())
+    submenu.append(self._create_jump_menu())
     menu.set_submenu(submenu)
     top.append(menu)
 
@@ -265,9 +312,6 @@ class GtkUI(GtkPluginBase):
 
 
   def _destroy_menu(self):
-
-    self.label_selection_menu.destroy()
-    del self.label_selection_menu
 
     self.menu.destroy()
     del self.menu

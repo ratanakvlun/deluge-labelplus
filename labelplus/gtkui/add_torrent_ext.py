@@ -64,9 +64,7 @@ class AddTorrentExt(object):
     self._build_ext_block()
     self.blk_ext.show_all()
 
-    self.menu = LabelSelectionMenu()
-    self.menu.on_select_label = self._do_set_mapping
-
+    self.menu = self._create_selection_menu()
     self.submenu = self.menu.get_submenu()
 
     self.handlers.append((
@@ -86,6 +84,20 @@ class AddTorrentExt(object):
     self.menu.destroy()
     self._uninstall_ext_block()
     self.blk_ext.destroy()
+
+
+  def _create_selection_menu(self):
+
+    items = []
+
+    menu_item = gtk.MenuItem(_(ID_NONE))
+    menu_item.connect("activate", self._do_set_mapping, ID_NONE)
+    items.append(menu_item)
+
+    menu_item = gtk.SeparatorMenuItem()
+    items.append(menu_item)
+
+    return LabelSelectionMenu("AddTorrentDialog", self._do_set_mapping, items)
 
 
   def _build_ext_block(self):
