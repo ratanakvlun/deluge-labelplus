@@ -157,7 +157,12 @@ class GtkUI(GtkPluginBase):
       if not path_info: return
 
       if path_info[1] and path_info[1].get_title() == DISPLAY_NAME:
-        self._do_go_to_label(widget)
+        id = self.get_selected_torrent_label()
+        if (self.label_sidebar.page_selected() and
+           id == self.label_sidebar.get_selected_label()):
+          self._do_open_label_options(widget, event)
+        else:
+          self._do_go_to_label(widget)
 
 
   def disable(self):
