@@ -41,6 +41,7 @@ from deluge.ui.client import client
 
 from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
 from labelplus.common.constant import ID_NONE
+from labelplus.common.constant import NULL_PARENT
 
 import labelplus.common.label as Label
 from labelplus.common.debug import debug
@@ -76,6 +77,15 @@ class LabelSelectionMenu(gtk.MenuItem):
     for child in self.submenu.get_children():
       self.submenu.remove(child)
       child.destroy()
+
+    if widget.get_parent():
+      id = self.plugin.get_selected_torrent_label()
+      if id:
+        parent = Label.get_parent(id)
+        if parent and parent != NULL_PARENT:
+          item = gtk.MenuItem(_("Parent"))
+          item.connect("activate", self.on_select_label, parent)
+          self.submenu.append(item)
 
     item = gtk.MenuItem(_(ID_NONE))
     item.connect("activate", self.on_select_label, None)
