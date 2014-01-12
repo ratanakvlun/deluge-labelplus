@@ -436,7 +436,15 @@ class Core(CorePluginBase):
   @debug(show_args=True)
   def on_torrent_added(self, torrent_id):
 
-    for label_id in self._labels:
+    def cmp_len_then_value(x, y):
+
+      if len(x) > len(y): return -1
+      if len(x) < len(y): return 1
+      return cmp(x, y)
+
+    labels = sorted(self._labels, cmp=cmp_len_then_value)
+
+    for label_id in labels:
       if label_id == NULL_PARENT: continue
 
       if self._labels[label_id]["data"]["auto_settings"]:
