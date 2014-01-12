@@ -40,6 +40,7 @@ from deluge import component
 from deluge.ui.client import client
 
 from labelplus.common.constant import DISPLAY_NAME
+from labelplus.common.constant import RESERVED_IDS
 from labelplus.common.constant import ID_NONE
 
 from labelplus.common.debug import debug
@@ -77,6 +78,8 @@ class AddTorrentExt(object):
     self._install_ext_block()
     self._register_button_handlers()
 
+    self._update_sensitivity()
+
 
   def unload(self):
 
@@ -84,6 +87,13 @@ class AddTorrentExt(object):
     self.menu.destroy()
     self._uninstall_ext_block()
     self.blk_ext.destroy()
+
+
+  def _update_sensitivity(self):
+
+    model, row = self.lv.get_selection().get_selected()
+    sensitive = row is not None
+    self.btn_select.set_sensitive(sensitive)
 
 
   def _create_selection_menu(self):
@@ -166,7 +176,7 @@ class AddTorrentExt(object):
     model, row = self.lv.get_selection().get_selected()
     if row:
       id = model.get_value(row, 0)
-      if label_id is None:
+      if not label_id or label_id in RESERVED_IDS:
         if id in self.mappings:
           del self.mappings[id]
       else:
@@ -204,10 +214,11 @@ class AddTorrentExt(object):
     self.lbl_name.set_text(_(ID_NONE))
     self.lbl_name.set_tooltip_text(None)
 
+    self._update_sensitivity()
+
 
   def _do_show_menu(self, widget, event):
 
-    self._do_set_mapping(None, None)
     self.menu.on_activate(self.menu)
     self.submenu.popup(None, None, None, event.button, event.time)
 
