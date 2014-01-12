@@ -73,8 +73,6 @@ from add_torrent_ext import AddTorrentExt
 import dnd
 
 
-MAX_RETRIES = 10
-WAIT_TIME = 1.0
 
 UNITS = [
   ("TiB", 1024.0**4),
@@ -91,19 +89,9 @@ class GtkUI(GtkPluginBase):
 
     super(GtkUI, self).__init__(plugin_name)
     self.initialized = False
-    self.retries = 0
 
 
   def enable(self):
-
-    self.timestamp = None
-    self.label_data = None
-    self.dialog = None
-
-    self._config = None
-
-    info = client.connection_info()
-    self._daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
     client.labelplus.is_initialized().addCallback(self.cb_check)
 
@@ -111,14 +99,18 @@ class GtkUI(GtkPluginBase):
   def cb_check(self, result):
 
     if result == True:
-      client.labelplus.get_label_data(self.timestamp).addCallback(
-        self.cb_data_init)
-    elif self.retries < MAX_RETRIES:
-      reactor.callLater(WAIT_TIME, self.enable)
-      self.retries += 1
+      client.labelplus.get_label_data(None).addCallback(self.cb_data_init)
+    else:
+      reactor.callLater(1, self.enable)
 
 
   def cb_data_init(self, data):
+
+    self.dialog = None
+    self._config = None
+
+    info = client.connection_info()
+    self._daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
     self.timestamp = data[0]
     self.label_data = data[1]
@@ -168,8 +160,6 @@ class GtkUI(GtkPluginBase):
 
 
   def disable(self):
-
-    self.retries = MAX_RETRIES
 
     if self.initialized:
       self.initialized = False
