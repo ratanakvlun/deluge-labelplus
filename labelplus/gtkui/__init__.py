@@ -219,7 +219,11 @@ class GtkUI(GtkPluginBase):
     def set_unavailable(widget):
 
       parent_item.hide()
+
       id = self.get_selected_torrent_label()
+      if not id and self.label_sidebar.page_selected():
+        id = self.label_sidebar.get_selected_label()
+
       if id:
         parent = get_parent(id)
         if parent and parent not in RESERVED_IDS:
