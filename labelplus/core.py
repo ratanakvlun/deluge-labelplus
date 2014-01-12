@@ -701,20 +701,25 @@ class Core(CorePluginBase):
         for child in self._index[id]["children"]:
           count += counts[child]["count"]
 
+      full_name = self._get_label_ancestry(id)
+
       counts[id] = {
         "name": self._labels[id]["name"],
         "count": count,
+        "full_name": full_name,
       }
 
     total = len(self._torrents)
     counts[ID_ALL] = {
       "name": ID_ALL,
       "count": total,
+      "full_name": ID_ALL,
     }
 
     counts[ID_NONE] = {
       "name": ID_NONE,
       "count": total-label_count,
+      "full_name": ID_NONE,
     }
 
     return counts
