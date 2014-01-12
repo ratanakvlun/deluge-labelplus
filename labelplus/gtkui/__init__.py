@@ -218,13 +218,13 @@ class GtkUI(GtkPluginBase):
 
     def set_unavailable(widget):
 
-      menu_item.hide()
+      parent_item.hide()
       id = self.get_selected_torrent_label()
       if id:
         parent = get_parent(id)
         if parent and parent not in RESERVED_IDS:
-          menu_item.connect("activate", self._do_go_to_label, parent)
-          menu_item.show()
+          parent_item.connect("activate", self._do_go_to_label, parent)
+          parent_item.show()
 
     submenu_item = gtk.MenuItem(_("Jump To"))
     submenu_item.connect("activate", set_unavailable)
@@ -234,8 +234,8 @@ class GtkUI(GtkPluginBase):
     menu_item.connect("activate", self._do_go_to_label, ID_ALL)
     jump_menu.append(menu_item)
 
-    menu_item = gtk.MenuItem(_("Parent"))
-    jump_menu.append(menu_item)
+    parent_item = gtk.MenuItem(_("Parent"))
+    jump_menu.append(parent_item)
 
     menu_item = gtk.MenuItem(_(ID_NONE))
     menu_item.connect("activate", self._do_go_to_label, ID_NONE)
