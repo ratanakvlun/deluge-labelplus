@@ -426,7 +426,7 @@ class GtkUI(GtkPluginBase):
     self.status_item = component.get("StatusBar").add_item(
       image=get_resource("labelplus_icon.png"),
       text="",
-      callback=self._do_open_label_options,
+      callback=self._do_open_label_options_bandwidth,
       tooltip="")
 
     self.status_item._ebox.hide_all()
@@ -455,7 +455,12 @@ class GtkUI(GtkPluginBase):
     return label_id
 
 
-  def _do_open_label_options(self, widget, event):
+  def _do_open_label_options_bandwidth(self, widget, event):
+
+    self._do_open_label_options(widget, event, 1)
+
+
+  def _do_open_label_options(self, widget, event, page=0):
 
 
     def on_close(widget):
@@ -463,29 +468,25 @@ class GtkUI(GtkPluginBase):
       self.dialog = None
 
 
-    if event.button == 1 and self.dialog == None:
-      if self.label_sidebar.page_selected():
-        id = self.label_sidebar.get_selected_label()
+    if self.dialog == None:
+      id = self.label_sidebar.get_selected_label()
 
-        if id == ID_ALL:
-          id = self.get_selected_torrent_label()
+      if id == ID_ALL or not self.label_sidebar.page_selected():
+        id = self.get_selected_torrent_label()
 
-        if id not in RESERVED_IDS and id in self.label_data:
-          name = self.label_data[id]["name"]
-          self.dialog = LabelOptionsDialog(id, name, 1)
-          self.dialog.register_close_func(on_close)
+      if id not in RESERVED_IDS and id in self.label_data:
+        name = self.label_data[id]["full_name"]
+        self.dialog = LabelOptionsDialog(id, name, page)
+        self.dialog.register_close_func(on_close)
 
 
   def _status_bar_update(self):
 
     if self.status_item:
-      id = None
+      id = self.label_sidebar.get_selected_label()
 
-      if self.label_sidebar.page_selected():
-        id = self.label_sidebar.get_selected_label()
-
-        if id == ID_ALL:
-          id = self.get_selected_torrent_label()
+      if id == ID_ALL or not self.label_sidebar.page_selected():
+        id = self.get_selected_torrent_label()
 
       if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
         self.status_item._ebox.show_all()
