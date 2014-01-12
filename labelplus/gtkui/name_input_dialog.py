@@ -69,6 +69,7 @@ class NameInputDialog(object):
     self.method = method
     self.label_id = label_id
     self.label_name = label_name
+    self.base_name = label_name.rpartition("/")[2]
 
     self.close_func = None
 
@@ -105,7 +106,7 @@ class NameInputDialog(object):
       self.we.lbl_selected_label.set_tooltip_text(self.label_name)
 
       if self.method == "rename":
-        self.we.txt_name.set_text(self.label_name)
+        self.we.txt_name.set_text(self.base_name)
         self.we.txt_name.select_region(0, -1)
 
     self.we.model.signal_autoconnect({
