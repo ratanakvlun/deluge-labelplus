@@ -73,6 +73,7 @@ from add_torrent_ext import AddTorrentExt
 import dnd
 
 
+STATUS_UPDATE_INTERVAL = 2.0
 
 UNITS = [
   ("TiB", 1024.0**4),
@@ -487,7 +488,7 @@ class GtkUI(GtkPluginBase):
           id, include_sublabels).addCallback(self._do_status_bar_update)
       else:
         self.status_item._ebox.hide_all()
-        reactor.callLater(1, self._status_bar_update)
+        reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
 
 
   def _do_status_bar_update(self, result):
@@ -515,4 +516,4 @@ class GtkUI(GtkPluginBase):
         "%.1f %s/s | %.1f %s/s" % (
           download_rate, download_unit, upload_rate, upload_unit))
 
-      reactor.callLater(1, self._status_bar_update)
+      reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
