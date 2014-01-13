@@ -590,10 +590,13 @@ class GtkUI(GtkPluginBase):
 
       if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
         self.status_item._ebox.show_all()
-        self.status_item.set_tooltip(
-          "Bandwidth Used By: %s" % self.label_data[id]["full_name"])
 
+        tooltip = "Bandwidth Used By: %s" % self.label_data[id]["full_name"]
         include_sublabels = self._config["common"]["status_include_sublabel"]
+        if include_sublabels and id != ID_NONE:
+          tooltip += "/*"
+
+        self.status_item.set_tooltip(tooltip)
 
         client.labelplus.get_label_bandwidth_usage(
           id, include_sublabels).addCallback(self._do_status_bar_update)
