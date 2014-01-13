@@ -31,6 +31,8 @@ Compatibility
     settings
   - Modify add torrent dialog: LabelPlus adds its own field at the end
     of the add torrent dialog options
+  - Use button events in torrent view: LabelPlus uses button events to
+    implement double-click features and creates context menu on empty views
 - If any move preference is set, there may be issues with plugins that:
   - Use `TorrentAddedEvent`: LabelPlus uses this event to automatically set
     labels on added torrents and may move the data as a result

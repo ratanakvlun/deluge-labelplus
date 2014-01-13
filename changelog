@@ -1,3 +1,12 @@
+Version 0.2.19
+- Set bandwidth limits per label
+- Add label bandwidth usage to status bar
+- Context menu navigation for less reliance on sidebar
+- Some shortcuts to make navigating labels quicker
+- Update config format to save sidebar state per daemon
+- Increase compatibility with older versions of Gtk
+- Various behavioral and cosmetic modifications
+
 Version 0.2.18
 - Add auto-label regex support
 
