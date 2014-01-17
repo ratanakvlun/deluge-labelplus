@@ -73,7 +73,7 @@ class LabelOptionsDialog(object):
     self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
 
     self.label_id = label_id
-    self.label_name = label_name
+    self.label_name = label_name.rpartition("/")[2]
     self.daemon_is_local = client.is_localhost()
 
     self.close_func = None
