@@ -1,3 +1,6 @@
+Version 0.2.19.1
+- Fix label based subfolder appending full name when selected
+
 Version 0.2.19
 - Set bandwidth limits per label
 - Add label bandwidth usage to status bar
