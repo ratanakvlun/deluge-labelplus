@@ -266,10 +266,19 @@ class GtkUI(GtkPluginBase):
 
     def hide_unavailable(widget):
 
+      selected_item.hide()
       parent_item.hide()
 
       id = self.get_selected_torrent_label()
-      if not id and self.label_sidebar.page_selected():
+      if id:
+        if getattr(selected_item, "handler", None):
+          selected_item.disconnect(selected_item.handler)
+
+        handler = selected_item.connect("activate", on_select_label, id)
+        selected_item.handler = handler
+        selected_item.show()
+
+      elif self.label_sidebar.page_selected():
         id = self.label_sidebar.get_selected_label()
 
       if id:
@@ -284,6 +293,9 @@ class GtkUI(GtkPluginBase):
 
 
     items = []
+
+    selected_item = gtk.MenuItem(_("Selected"))
+    items.append(selected_item)
 
     parent_item = gtk.MenuItem(_("Parent"))
     items.append(parent_item)
