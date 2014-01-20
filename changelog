@@ -1,3 +1,9 @@
+Version 0.2.19.2
+- Fix context menu using the wrong label when using "Parent"
+- Allow "Parent" to be used by multiple selected torrents with the same label
+- Re-add ability to jump to selected torrent's label
+- Display base name in dialogs and full name in tooltips
+
 Version 0.2.19.1
 - Fix label based subfolder appending full name when selected
 
