@@ -102,7 +102,7 @@ class NameInputDialog(object):
     else:
       self.we.lbl_header.set_markup(
           "<b>%s</b>" % self.we.lbl_header.get_text())
-      self.we.lbl_selected_label.set_text(self.label_name)
+      self.we.lbl_selected_label.set_text(self.base_name)
       self.we.lbl_selected_label.set_tooltip_text(self.label_name)
 
       if self.method == "rename":

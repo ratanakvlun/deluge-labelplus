@@ -96,7 +96,7 @@ class LabelOptionsDialog(object):
       self.we.wnd_label_options.resize(*size)
 
     self.we.lbl_header.set_markup("<b>%s</b>" % self.we.lbl_header.get_text())
-    self.we.lbl_selected_label.set_text(label_name)
+    self.we.lbl_selected_label.set_text(self.label_name)
     self.we.lbl_selected_label.set_tooltip_text(label_name)
 
     self.we.nb_tabs.set_current_page(page)
