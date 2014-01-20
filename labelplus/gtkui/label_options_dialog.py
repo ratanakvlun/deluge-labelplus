@@ -73,7 +73,8 @@ class LabelOptionsDialog(object):
     self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
 
     self.label_id = label_id
-    self.label_name = label_name.rpartition("/")[2]
+    self.label_name = label_name
+    self.base_name = label_name.rpartition("/")[2]
     self.daemon_is_local = client.is_localhost()
 
     self.close_func = None
@@ -96,8 +97,8 @@ class LabelOptionsDialog(object):
       self.we.wnd_label_options.resize(*size)
 
     self.we.lbl_header.set_markup("<b>%s</b>" % self.we.lbl_header.get_text())
-    self.we.lbl_selected_label.set_text(self.label_name)
-    self.we.lbl_selected_label.set_tooltip_text(label_name)
+    self.we.lbl_selected_label.set_text(self.base_name)
+    self.we.lbl_selected_label.set_tooltip_text(self.label_name)
 
     self.we.nb_tabs.set_current_page(page)
 
@@ -227,7 +228,7 @@ class LabelOptionsDialog(object):
       path = self.parent_move_data_path
 
       if mode == "subfolder":
-        path = self.daemon_path_module.join(path, self.label_name)
+        path = self.daemon_path_module.join(path, self.base_name)
 
       options["move_data_completed_path"] = path
 
@@ -258,7 +259,7 @@ class LabelOptionsDialog(object):
     if name.endswith("parent"):
       self._set_path_label(path)
     elif name.endswith("subfolder"):
-      path = self.daemon_path_module.join(path, self.label_name)
+      path = self.daemon_path_module.join(path, self.base_name)
       self._set_path_label(path)
     elif name.endswith("folder"):
       if self.daemon_is_local:
