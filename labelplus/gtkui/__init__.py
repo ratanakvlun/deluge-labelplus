@@ -553,12 +553,20 @@ class GtkUI(GtkPluginBase):
     tv = component.get("TorrentView")
     torrents = tv.get_selected_torrents()
 
-    if len(torrents) == 1:
+    if len(torrents) > 0:
       id = torrents[0]
       status = tv.get_torrent_status(id)
 
       if STATUS_ID in status:
         label_id = status[STATUS_ID] or ID_NONE
+
+        for t in torrents:
+          status = tv.get_torrent_status(t)
+          t_label_id = status[STATUS_ID] or ID_NONE
+
+          if t_label_id != label_id:
+            label_id = None
+            break
 
     return label_id
 
