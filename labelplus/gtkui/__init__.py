@@ -230,7 +230,11 @@ class GtkUI(GtkPluginBase):
       if id:
         parent = get_parent(id)
         if parent and parent not in RESERVED_IDS:
-          parent_item.connect("activate", on_select_label, parent)
+          if getattr(parent_item, "handler", None):
+            parent_item.disconnect(parent_item.handler)
+
+          handler = parent_item.connect("activate", on_select_label, parent)
+          parent_item.handler = handler
           parent_item.show()
 
 
@@ -271,7 +275,11 @@ class GtkUI(GtkPluginBase):
       if id:
         parent = get_parent(id)
         if parent and parent not in RESERVED_IDS:
-          parent_item.connect("activate", on_select_label, parent)
+          if getattr(parent_item, "handler", None):
+            parent_item.disconnect(parent_item.handler)
+
+          handler = parent_item.connect("activate", on_select_label, parent)
+          parent_item.handler = handler
           parent_item.show()
 
 
