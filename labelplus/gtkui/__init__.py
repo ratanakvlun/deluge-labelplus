@@ -591,10 +591,9 @@ class GtkUI(GtkPluginBase):
   def _status_bar_update(self):
 
     if self.status_item:
-      id = self.label_sidebar.get_selected_label()
-
-      if id == ID_ALL or not self.label_sidebar.page_selected():
-        id = self.get_selected_torrent_label()
+      id = self.get_selected_torrent_label()
+      if not id and self.label_sidebar.page_selected():
+        id = self.label_sidebar.get_selected_label()
 
       if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
         self.status_item._ebox.show_all()
