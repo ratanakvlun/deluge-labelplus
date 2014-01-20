@@ -52,7 +52,7 @@ from widget_encapsulator import WidgetEncapsulator
 DIALOG_TYPES = {
   "add": (_("Add Label"), gtk.STOCK_ADD),
   "rename": (_("Rename Label"), gtk.STOCK_EDIT),
-  "sublabel": (_("Add SubLabel"), gtk.STOCK_ADD),
+  "sublabel": (_("Add Sublabel"), gtk.STOCK_ADD),
 }
 
 DIALOG_NAME = 0
@@ -100,14 +100,18 @@ class NameInputDialog(object):
     if self.method == "add":
       self.we.blk_header.hide()
     else:
-      self.we.lbl_header.set_markup(
-          "<b>%s</b>" % self.we.lbl_header.get_text())
       self.we.lbl_selected_label.set_text(self.base_name)
       self.we.lbl_selected_label.set_tooltip_text(self.label_name)
 
       if self.method == "rename":
+        self.we.lbl_header.set_markup("<b>%s: </b>" % _("Current"))
         self.we.txt_name.set_text(self.base_name)
         self.we.txt_name.select_region(0, -1)
+      elif self.method == "sublabel":
+        self.we.lbl_header.set_markup("<b>%s: </b>" % _("Parent"))
+      else:
+        self.we.lbl_header.set_markup(
+          "<b>%s</b>" % self.we.lbl_header.get_text())
 
     self.we.model.signal_autoconnect({
       "cb_do_submit" : self.cb_do_submit,
