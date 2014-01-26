@@ -626,10 +626,16 @@ class GtkUI(GtkPluginBase):
         self.status_item.set_tooltip(tooltip)
 
         client.labelplus.get_label_bandwidth_usage(
-          id, include_sublabels).addCallback(self._do_status_bar_update)
+          id, include_sublabels).addCallbacks(
+            self._do_status_bar_update, self._err_status_bar_update)
       else:
         self.status_item._ebox.hide_all()
         reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
+
+
+  def _err_status_bar_update(self, result):
+
+    reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
 
 
   def _do_status_bar_update(self, result):
