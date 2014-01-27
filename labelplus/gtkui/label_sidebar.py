@@ -615,7 +615,6 @@ class LabelSidebar(object):
       log.debug("[%s] Removing: %s", PLUGIN_NAME, id)
       model.remove(row)
       del self.row_map[id]
-      client.labelplus.remove_label(id)
 
 
     self.label_tree.freeze_notify()
@@ -624,6 +623,8 @@ class LabelSidebar(object):
     self.label_tree.thaw_notify()
 
     self._load_tree_state()
+
+    client.labelplus.remove_label(label_id)
 
 
   def _label_sort_asc(self, store, iter1, iter2):
