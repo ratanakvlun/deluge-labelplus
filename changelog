@@ -1,3 +1,8 @@
+Version 0.2.19.3
+- Fix status bar not updating when label removed
+- Improve performance when removing label with many sublabels
+- Check for same path before attemping to move completed torrents
+
 Version 0.2.19.2
 - Fix context menu using the wrong label when using "Parent"
 - Allow "Parent" to be used by multiple selected torrents with the same label
