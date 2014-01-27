@@ -486,15 +486,11 @@ class Core(CorePluginBase):
 
     if torrent_id in self._mappings:
       log.debug("[%s] Labeled torrent %s finished", PLUGIN_NAME, torrent_id)
-      label_id = self._mappings[torrent_id]
-      torrent = self._torrents[torrent_id]
 
-      path = torrent.get_status(["save_path"])["save_path"]
-      if path != self._labels[label_id]["data"]["move_data_completed_path"]:
-        if self._prefs["options"]["move_after_recheck"]:
-          # Just finished recheck or move by Deluge hasn't completed.
-          # Move Tools will deal with either of these situations.
-          self._do_move_completed(label_id, [torrent_id])
+      if self._prefs["options"]["move_after_recheck"]:
+        # Try to move in case this alert was from a recheck
+        label_id = self._mappings[torrent_id]
+        self._do_move_completed(label_id, [torrent_id])
 
 
   def _initialize(self):
@@ -982,15 +978,27 @@ class Core(CorePluginBase):
 
     if label_id in self._labels:
       options = self._labels[label_id]["data"]
-    else:
-      label_id = None
 
-    if not label_id or (
-        options["download_settings"] and options["move_data_completed"]):
-      try:
-        component.get("CorePlugin.MoveTools").move_completed(torrent_list)
-      except KeyError:
-        pass
+      if not options["download_settings"] or \
+          not options["move_data_completed"]:
+        return
+
+      dest_path = options["move_data_completed_path"]
+    else:
+      dest_path = self._get_default_save_path()
+
+    move_list = []
+    for tid in torrent_list:
+      torrent = self._torrents.get(tid)
+      if torrent:
+        path = torrent.get_status(["save_path"])["save_path"]
+        if path != dest_path:
+          move_list.append(tid)
+
+    try:
+      component.get("CorePlugin.MoveTools").move_completed(move_list)
+    except KeyError:
+      pass
 
 
   def _get_default_save_path(self):
