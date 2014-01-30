@@ -613,13 +613,13 @@ class LabelSidebar(object):
     def remove(model, path, row):
       id = model.get_value(row, 0)
       log.debug("[%s] Removing: %s", PLUGIN_NAME, id)
-      model.remove(row)
       del self.row_map[id]
 
 
     self.label_tree.freeze_notify()
     row = self.row_map[label_id]
     treemodel_subtree_op(self.store, row, post_func=remove)
+    self.store.remove(row)
     self.label_tree.thaw_notify()
 
     self._load_tree_state()
