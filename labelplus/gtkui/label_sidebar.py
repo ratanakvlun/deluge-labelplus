@@ -262,7 +262,6 @@ class LabelSidebar(object):
   def update_counts(self, counts):
 
     self.sorted_store.set_sort_column_id(-1, gtk.SORT_ASCENDING)
-    self.label_tree.freeze_child_notify()
 
     self._remove_invalid_labels(counts)
 
@@ -288,7 +287,6 @@ class LabelSidebar(object):
           log.debug("[%s] Label counts contained orphan: %s",
               PLUGIN_NAME, id)
 
-    self.label_tree.thaw_child_notify()
     self.sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
 
     selected = self.get_selected_label()
@@ -616,12 +614,9 @@ class LabelSidebar(object):
       del self.row_map[id]
 
 
-    self.label_tree.freeze_notify()
     row = self.row_map[label_id]
     treemodel_subtree_op(self.store, row, post_func=remove)
     self.store.remove(row)
-    self.label_tree.thaw_notify()
-
     self._load_tree_state()
 
     client.labelplus.remove_label(label_id)
