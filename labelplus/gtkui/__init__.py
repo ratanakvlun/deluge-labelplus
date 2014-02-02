@@ -207,10 +207,44 @@ class GtkUI(GtkPluginBase):
     set_label_menu = self._create_set_label_menu()
     submenu.append(set_label_menu)
 
+    label_options_item = self._create_label_options_item()
+    submenu.append(label_options_item)
+
+
+    def on_activate(widget):
+
+      id = self.get_selected_torrent_label()
+      if id not in RESERVED_IDS and id in self.label_data:
+        label_options_item.show()
+      else:
+        label_options_item.hide()
+
+
+    menu.connect("activate", on_activate)
+
     menu.set_submenu(submenu)
     menu.show_all()
 
     return menu
+
+
+  def _create_label_options_item(self):
+
+
+    def on_activate(widget):
+
+      id = self.get_selected_torrent_label()
+      if id not in RESERVED_IDS and id in self.label_data:
+        name = self.label_data[id]["name"]
+        self.label_sidebar.menu.dialog = LabelOptionsDialog(id, name)
+        self.label_sidebar.menu.dialog.register_close_func(
+          self.label_sidebar.menu.close_func)
+
+
+    item = gtk.MenuItem(_("Label Options"))
+    item.connect("activate", on_activate)
+
+    return item
 
 
   def _create_set_label_menu(self):
