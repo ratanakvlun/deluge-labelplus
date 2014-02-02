@@ -201,11 +201,11 @@ class GtkUI(GtkPluginBase):
     menu = gtk.MenuItem(DISPLAY_NAME)
     submenu = gtk.Menu()
 
-    set_label_menu = self._create_set_label_menu()
-    submenu.append(set_label_menu)
-
     jump_menu = self._create_jump_menu()
     submenu.append(jump_menu)
+
+    set_label_menu = self._create_set_label_menu()
+    submenu.append(set_label_menu)
 
     menu.set_submenu(submenu)
     menu.show_all()
@@ -240,12 +240,12 @@ class GtkUI(GtkPluginBase):
 
     items = []
 
-    parent_item = gtk.MenuItem(_("Parent"))
-    items.append(parent_item)
-
     menu_item = gtk.MenuItem(_(ID_NONE))
     menu_item.connect("activate", on_select_label, ID_NONE)
     items.append(menu_item)
+
+    parent_item = gtk.MenuItem(_("Parent"))
+    items.append(parent_item)
 
     menu_item = gtk.SeparatorMenuItem()
     items.append(menu_item)
@@ -294,12 +294,6 @@ class GtkUI(GtkPluginBase):
 
     items = []
 
-    selected_item = gtk.MenuItem(_("Selected"))
-    items.append(selected_item)
-
-    parent_item = gtk.MenuItem(_("Parent"))
-    items.append(parent_item)
-
     menu_item = gtk.MenuItem(_(ID_ALL))
     menu_item.connect("activate", on_select_label, ID_ALL)
     items.append(menu_item)
@@ -307,6 +301,12 @@ class GtkUI(GtkPluginBase):
     menu_item = gtk.MenuItem(_(ID_NONE))
     menu_item.connect("activate", on_select_label, ID_NONE)
     items.append(menu_item)
+
+    selected_item = gtk.MenuItem(_("Selected"))
+    items.append(selected_item)
+
+    parent_item = gtk.MenuItem(_("Parent"))
+    items.append(parent_item)
 
     menu_item = gtk.SeparatorMenuItem()
     items.append(menu_item)
