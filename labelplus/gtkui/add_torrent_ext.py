@@ -63,7 +63,6 @@ class AddTorrentExt(object):
     self.btn_select = None
 
     self._build_ext_block()
-    self.blk_ext.show_all()
 
     self.menu = self._create_selection_menu()
     self.submenu = self.menu.get_submenu()
@@ -79,6 +78,7 @@ class AddTorrentExt(object):
     self._register_button_handlers()
 
     self._update_sensitivity()
+    self.blk_ext.show_all()
 
 
   def unload(self):
