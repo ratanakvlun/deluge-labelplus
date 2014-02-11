@@ -43,7 +43,6 @@ from deluge.plugins.init import PluginInitBase
 
 class CorePlugin(PluginInitBase):
 
-
   def __init__(self, plugin_name):
 
     from core import Core as _plugin_cls
@@ -53,7 +52,6 @@ class CorePlugin(PluginInitBase):
 
 class GtkUIPlugin(PluginInitBase):
 
-
   def __init__(self, plugin_name):
 
     from gtkui import GtkUI as _plugin_cls
@@ -62,7 +60,6 @@ class GtkUIPlugin(PluginInitBase):
 
 
 class WebUIPlugin(PluginInitBase):
-
 
   def __init__(self, plugin_name):
 
