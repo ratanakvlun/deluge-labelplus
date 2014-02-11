@@ -65,6 +65,8 @@ from common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from common.constant import RESERVED_IDS
 from common.config import CONFIG_DEFAULTS, OPTION_DEFAULTS, LABEL_DEFAULTS
 
+import common.config
+import common.configconverter
 
 
 def init_check(func):
@@ -481,6 +483,27 @@ class Core(CorePluginBase):
         # Try to move in case this alert was from a recheck
         label_id = self._mappings[torrent_id]
         self._do_move_completed(label_id, [torrent_id])
+
+
+  def _load_config(self):
+
+    config = deluge.configmanager.ConfigManager(CORE_CONFIG,
+      defaults=copy.deepcopy(CONFIG_DEFAULTS))
+
+    ver = common.config.get_version(config)
+    if ver != common.config.CONFIG_VERSION:
+      key = (ver, common.config.CONFIG_VERSION)
+      map = common.config.CONFIG_MAPS.get(key)
+      if not map:
+        raise ValueError("Config file conversion v%s -> v%s unsupported" % key)
+      else:
+        common.configconverter.convert(map, config)
+
+    for key in config.config.keys():
+      if key not in CONFIG_DEFAULTS:
+        del config.config[key]
+
+    return config
 
 
   def _initialize(self):
