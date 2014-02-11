@@ -54,19 +54,19 @@ from deluge.log import LOG as log
 from deluge.core.rpcserver import export
 from deluge.plugins.pluginbase import CorePluginBase
 
-import common.validation as Validation
-import common.label as Label
-from common.debug import debug
+import labelplus.common.validation as Validation
+import labelplus.common.label as Label
+from labelplus.common.debug import debug
 
-from common.constant import PLUGIN_NAME, MODULE_NAME
-from common.constant import CORE_CONFIG
-from common.constant import STATUS_ID, STATUS_NAME
-from common.constant import NULL_PARENT, ID_ALL, ID_NONE
-from common.constant import RESERVED_IDS
-from common.config import CONFIG_DEFAULTS, OPTION_DEFAULTS, LABEL_DEFAULTS
+from labelplus.common.constant import PLUGIN_NAME, MODULE_NAME
+from labelplus.common.constant import CORE_CONFIG
+from labelplus.common.constant import STATUS_ID, STATUS_NAME
+from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
+from labelplus.common.constant import RESERVED_IDS
+from labelplus.common.config import CONFIG_DEFAULTS, OPTION_DEFAULTS, LABEL_DEFAULTS
 
-import common.config
-import common.configconverter
+import labelplus.common.config
+import labelplus.common.configconverter
 
 
 def init_check(func):
@@ -490,14 +490,14 @@ class Core(CorePluginBase):
     config = deluge.configmanager.ConfigManager(CORE_CONFIG,
       defaults=copy.deepcopy(CONFIG_DEFAULTS))
 
-    ver = common.config.get_version(config)
-    if ver != common.config.CONFIG_VERSION:
-      key = (ver, common.config.CONFIG_VERSION)
-      map = common.config.CONFIG_MAPS.get(key)
+    ver = labelplus.common.config.get_version(config)
+    if ver != labelplus.common.config.CONFIG_VERSION:
+      key = (ver, labelplus.common.config.CONFIG_VERSION)
+      map = labelplus.common.config.CONFIG_MAPS.get(key)
       if not map:
         raise ValueError("Config file conversion v%s -> v%s unsupported" % key)
       else:
-        common.configconverter.convert(map, config)
+        labelplus.common.configconverter.convert(map, config)
 
     for key in config.config.keys():
       if key not in CONFIG_DEFAULTS:
