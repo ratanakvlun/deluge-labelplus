@@ -56,7 +56,6 @@ from deluge.plugins.pluginbase import CorePluginBase
 
 import labelplus.common.validation as Validation
 import labelplus.common.label as Label
-from labelplus.common.debug import debug
 
 from labelplus.common.constant import PLUGIN_NAME, MODULE_NAME
 from labelplus.common.constant import STATUS_ID, STATUS_NAME
@@ -155,7 +154,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def add_label(self, parent_id, label_name):
 
     Validation.require(parent_id in self._labels, "Unknown Label")
@@ -196,7 +194,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def remove_label(self, label_id):
 
     Validation.require(label_id not in RESERVED_IDS and
@@ -213,7 +210,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def rename_label(self, label_id, label_name):
 
     Validation.require(label_id not in RESERVED_IDS and
@@ -259,7 +255,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def set_options(self, label_id, options_in):
 
     Validation.require(label_id not in RESERVED_IDS and
@@ -320,7 +315,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def get_options(self, label_id):
 
     Validation.require(label_id not in RESERVED_IDS and
@@ -331,7 +325,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def set_preferences(self, prefs):
 
     self._normalize_options(prefs["options"])
@@ -346,7 +339,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def get_preferences(self):
 
     return self._prefs
@@ -370,7 +362,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def set_torrent_labels(self, label_id, torrent_list):
 
     if not label_id:
@@ -392,7 +383,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @debug()
   def get_torrent_label(self, torrent_id):
 
     return self._get_torrent_label(torrent_id)
@@ -432,7 +422,6 @@ class Core(CorePluginBase):
     return vars
 
 
-  @debug(show_args=True)
   def on_torrent_added(self, torrent_id):
 
     def cmp_len_then_value(x, y):
@@ -459,7 +448,6 @@ class Core(CorePluginBase):
     self._last_modified = datetime.datetime.now()
 
 
-  @debug(show_args=True)
   def on_torrent_removed(self, torrent_id):
 
     if torrent_id in self._mappings:
@@ -475,7 +463,6 @@ class Core(CorePluginBase):
     self._last_modified = datetime.datetime.now()
 
 
-  @debug()
   def on_torrent_finished(self, alert):
 
     torrent_id = str(alert.handle.info_hash())
@@ -681,7 +668,6 @@ class Core(CorePluginBase):
     del self._labels[label_id]
 
 
-  @debug(show_args=True)
   def _set_torrent_label(self, torrent_id, label_id):
 
     log.debug("[%s] Setting label %s on %s", PLUGIN_NAME,
