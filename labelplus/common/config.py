@@ -35,6 +35,10 @@
 
 import copy
 
+
+# DEPRECATED START
+
+
 from validation import require
 
 
@@ -95,6 +99,9 @@ def convert(config, map):
     iter[name] = value_in
 
   return output
+
+
+# DEPRECATED END
 
 
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
@@ -245,3 +252,39 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
   recurse(dict_in, buffer_out, 0, 0)
 
   return buffer_out
+
+
+#
+# map format:
+# {
+#   "version_in": version of input config data,
+#   "version_out": version of output config data,
+#   "defaults": dict of defaults for the target output version,
+#   "map": {
+#     "path/variable": "path/variable",
+#   },
+#   "post_func": func to run after mapping, func(map, dict_in, dict_out),
+# }
+#
+
+def convert_new(config, map):
+
+  version_in = map["version_in"]
+  version_out = map["version_out"]
+
+  if config._Config__version["file"] != version_in:
+    raise ValueError("Unable to convert because version mismatch")
+
+  input = config.config
+  output = copy.deepcopy(map["defaults"])
+
+  for path in map["map"]:
+    mapped = get_path_mapped_dict(input, path, map["map"][path])
+    output.update(mapped)
+
+  post_func = map.get("post_func")
+  if post_func:
+    post_func(map, input, output)
+
+  config._Config__version["file"] = version_out
+  config._Config__config = output
