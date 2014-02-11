@@ -72,6 +72,7 @@ from labelplus.core.config import (
 CORE_CONFIG = "%s.conf" % MODULE_NAME
 
 log = logging.getLogger(__name__)
+log.addFilter(labelplus.common.LOG_FILTER)
 
 
 def init_check(func):
@@ -98,7 +99,7 @@ class Core(CorePluginBase):
 
   def enable(self):
 
-    log.debug("[%s] Initializing Core", PLUGIN_NAME)
+    log.debug("Initializing Core...")
 
     self._core = deluge.configmanager.ConfigManager("core.conf")
     self._config = deluge.configmanager.ConfigManager(
@@ -112,14 +113,14 @@ class Core(CorePluginBase):
     if not component.get("TorrentManager").session_started:
       component.get("EventManager").register_event_handler(
           "SessionStartedEvent", self._initialize)
-      log.debug("[%s] Waiting for session to start...", PLUGIN_NAME)
+      log.debug("Waiting for session to start...")
     else:
       self._initialize()
 
 
   def disable(self):
 
-    log.debug("[%s] Deinitializing Core", PLUGIN_NAME)
+    log.debug("Deinitializing Core...")
 
     component.get("EventManager").deregister_event_handler(
         "SessionStartedEvent", self._initialize)
@@ -144,7 +145,7 @@ class Core(CorePluginBase):
 
     self._rpc_deregister(PLUGIN_NAME)
 
-    log.debug("[%s] Core deinitialized", PLUGIN_NAME)
+    log.debug("Core deinitialized")
 
 
   @export
@@ -441,8 +442,7 @@ class Core(CorePluginBase):
       if self._labels[label_id]["data"]["auto_settings"]:
         if self._has_auto_apply_match(label_id, torrent_id):
           self._set_torrent_label(torrent_id, label_id)
-          log.debug("[%s] Torrent %s is labeled %s", PLUGIN_NAME,
-              torrent_id, label_id)
+          log.debug("Torrent %r is labeled %r", torrent_id, label_id)
 
           self._config.save()
 
@@ -455,11 +455,9 @@ class Core(CorePluginBase):
 
     if torrent_id in self._mappings:
       label_id = self._mappings[torrent_id]
-      log.debug("[%s] Torrent %s is mapped to %s", PLUGIN_NAME,
-          torrent_id, label_id)
       self._index[label_id]["torrents"].remove(torrent_id)
       del self._mappings[torrent_id]
-      log.debug("[%s] Torrent removed from index and mappings", PLUGIN_NAME)
+      log.debug("Torrent %r removed from label %r", torrent_id, label_id)
 
       self._config.save()
 
@@ -471,7 +469,7 @@ class Core(CorePluginBase):
     torrent_id = str(alert.handle.info_hash())
 
     if torrent_id in self._mappings:
-      log.debug("[%s] Labeled torrent %s finished", PLUGIN_NAME, torrent_id)
+      log.debug("Labeled torrent %r has finished", torrent_id)
 
       if self._prefs["options"]["move_after_recheck"]:
         # Try to move in case this alert was from a recheck
@@ -532,7 +530,7 @@ class Core(CorePluginBase):
 
     reactor.callLater(1, self._shared_limit_update)
 
-    log.debug("[%s] Core initialized", PLUGIN_NAME)
+    log.debug("Core initialized")
 
 
   def _initialize_data(self):
@@ -675,23 +673,20 @@ class Core(CorePluginBase):
 
   def _set_torrent_label(self, torrent_id, label_id):
 
-    log.debug("[%s] Setting label %s on %s", PLUGIN_NAME,
-        label_id, torrent_id)
+    log.debug("Setting label %r on %r", label_id, torrent_id)
 
     id = self._mappings.get(torrent_id)
     if id is not None:
-      log.debug("[%s] Torrent current mapping: %s", PLUGIN_NAME, id)
       self._reset_torrent_options(torrent_id)
       self._index[id]["torrents"].remove(torrent_id)
       del self._mappings[torrent_id]
-      log.debug("[%s] Torrent removed from index and mappings", PLUGIN_NAME)
+      log.debug("Torrent %r removed from label %r", torrent_id, id)
 
     if label_id and label_id not in RESERVED_IDS:
       self._mappings[torrent_id] = label_id
       self._index[label_id]["torrents"].append(torrent_id)
       self._apply_torrent_options(torrent_id)
-      log.debug("[%s] Torrent labeled %s and options applied",
-          PLUGIN_NAME, label_id)
+      log.debug("Torrent %r is labeled %r", torrent_id, label_id)
 
 
   def _get_label_counts(self):
