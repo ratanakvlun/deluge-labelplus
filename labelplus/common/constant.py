@@ -37,9 +37,6 @@ PLUGIN_NAME = "LabelPlus"
 MODULE_NAME = "labelplus"
 DISPLAY_NAME = _("LabelPlus")
 
-CORE_CONFIG = "%s.conf" % MODULE_NAME
-WEBUI_SCRIPT = "%s.js" % MODULE_NAME
-
 STATUS_ID = "%s_id" % MODULE_NAME
 STATUS_NAME = "%s_name" % MODULE_NAME
 

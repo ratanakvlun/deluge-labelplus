@@ -59,7 +59,6 @@ import labelplus.common.label as Label
 from labelplus.common.debug import debug
 
 from labelplus.common.constant import PLUGIN_NAME, MODULE_NAME
-from labelplus.common.constant import CORE_CONFIG
 from labelplus.common.constant import STATUS_ID, STATUS_NAME
 from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from labelplus.common.constant import RESERVED_IDS
@@ -67,6 +66,9 @@ from labelplus.common.config import CONFIG_DEFAULTS, OPTION_DEFAULTS, LABEL_DEFA
 
 import labelplus.common.config
 import labelplus.common.configconverter
+
+
+CORE_CONFIG = "%s.conf" % MODULE_NAME
 
 
 def init_check(func):
