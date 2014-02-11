@@ -1,33 +1,105 @@
 #
 # __init__.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
-# Deluge is free software.
+# This module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# You may redistribute it and/or modify it under the terms of the
-# GNU General Public License, as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option)
-# any later version.
-#
-# deluge is distributed in the hope that it will be useful,
+# This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with deluge.    If not, write to:
-# 	The Free Software Foundation, Inc.,
-# 	51 Franklin Street, Fifth Floor
-# 	Boston, MA  02110-1301, USA.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-#    In addition, as a special exception, the copyright holders give
-#    permission to link the code of portions of this program with the OpenSSL
-#    library.
-#    You must obey the GNU General Public License in all respects for all of
-#    the code used other than OpenSSL. If you modify file(s) with this
-#    exception, you may extend this exception to your version of the file(s),
-#    but you are not obligated to do so. If you do not wish to do so, delete
-#    this exception statement from your version. If you delete this exception
-#    statement from all source files in the program, then also delete it here.
+# Linking this software with other modules is making a combined work
+# based on this software. Thus, the terms and conditions of the GNU
+# General Public License cover the whole combination.
 #
+# As a special exception, the copyright holders of this software give
+# you permission to link this software with independent modules to
+# produce a combined work, regardless of the license terms of these
+# independent modules, and to copy and distribute the resulting work
+# under terms of your choice, provided that you also meet, for each
+# linked module in the combined work, the terms and conditions of the
+# license of that module. An independent module is a module which is
+# not derived from or based on this software. If you modify this
+# software, you may extend this exception to your version of the
+# software, but you are not obligated to do so. If you do not wish to
+# do so, delete this exception statement from your version.
+#
+
+
+import os
+import pkg_resources
+import re
+
+
+# General
+
+PLUGIN_NAME = "LabelPlus"
+MODULE_NAME = "labelplus"
+DISPLAY_NAME = _("LabelPlus")
+
+STATUS_ID = "%s_id" % MODULE_NAME
+STATUS_NAME = "%s_name" % MODULE_NAME
+
+NULL_PARENT = "-"
+ID_ALL = "All"
+ID_NONE = "None"
+RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
+
+
+# Config
+
+def get_config_version(config):
+
+  return config._Config__version["file"]
+
+
+# Resource
+
+def get_resource(filename):
+
+  return pkg_resources.resource_filename(
+      MODULE_NAME, os.path.join("data", filename))
+
+
+# Label
+
+def get_parent(label_id):
+
+  return label_id.rpartition(":")[0]
+
+
+def is_ancestor(ancestor_id, label_id):
+
+  prefix = "%s:" % ancestor_id
+
+  return ancestor_id != label_id and label_id.startswith(prefix)
+
+
+# Validation
+
+RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
+
+
+class LabelPlusError(Exception):
+
+  pass
+
+
+def require(cond, message=""):
+
+  if not cond:
+    raise LabelPlusError(message)
+
+
+def validate_name(label_name):
+
+  require(label_name, "Empty Label")
+  require(not RE_INVALID_CHARS.search(label_name), "Invalid characters")
