@@ -88,18 +88,10 @@ def is_ancestor(ancestor_id, label_id):
 RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
 
 
-class LabelPlusError(Exception):
-
-  pass
-
-
-def require(cond, message=""):
-
-  if not cond:
-    raise LabelPlusError(message)
-
-
 def validate_name(label_name):
 
-  require(label_name, "Empty Label")
-  require(not RE_INVALID_CHARS.search(label_name), "Invalid characters")
+  if not label_name:
+    raise ValueError("Empty Label")
+
+  if RE_INVALID_CHARS.search(label_name):
+    raise ValueError("Invalid characters")
