@@ -34,7 +34,7 @@
 #
 
 
-import labelplus.common.constant
+import labelplus.common
 import labelplus.core.config
 
 
@@ -69,7 +69,7 @@ def convert_v1_v2(map, dict_in, dict_out):
   convert_auto_queries(label_defaults, op)
 
   for label in labels:
-    if label in labelplus.common.constant.RESERVED_IDS:
+    if label in labelplus.common.RESERVED_IDS:
       continue
 
     convert_auto_queries(labels[label]["data"], op)
