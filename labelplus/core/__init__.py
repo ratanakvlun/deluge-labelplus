@@ -1,5 +1,5 @@
 #
-# core.py
+# __init__.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
@@ -54,17 +54,19 @@ from deluge import component
 from deluge.core.rpcserver import export
 from deluge.plugins.pluginbase import CorePluginBase
 
-import labelplus.common.validation as Validation
-import labelplus.common.label as Label
+import labelplus.common
 
-from labelplus.common.constant import PLUGIN_NAME, MODULE_NAME
-from labelplus.common.constant import STATUS_ID, STATUS_NAME
-from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
-from labelplus.common.constant import RESERVED_IDS
-from labelplus.common.config import CONFIG_DEFAULTS, OPTION_DEFAULTS, LABEL_DEFAULTS
+from labelplus.common import (
+  PLUGIN_NAME, MODULE_NAME,
+  STATUS_ID, STATUS_NAME,
+  NULL_PARENT, ID_ALL, ID_NONE, RESERVED_IDS,
+)
 
-import labelplus.common.config
-import labelplus.common.configconverter
+from labelplus.core.config import (
+  CONFIG_DEFAULTS,
+  OPTION_DEFAULTS,
+  LABEL_DEFAULTS,
+)
 
 
 CORE_CONFIG = "%s.conf" % MODULE_NAME
@@ -74,11 +76,11 @@ log = logging.getLogger(__name__)
 
 def init_check(func):
 
-
   def wrap(*args, **kwargs):
 
     if len(args) > 0 and isinstance(args[0], Core):
-      Validation.require(args[0].initialized, "Plugin not initialized")
+      if not args[0].initialized:
+        raise RuntimeError("Plugin %r not initialized" % PLUGIN_NAME)
 
     return func(*args, **kwargs)
 
@@ -87,7 +89,6 @@ def init_check(func):
 
 
 class Core(CorePluginBase):
-
 
   def __init__(self, plugin_name):
 
@@ -156,7 +157,8 @@ class Core(CorePluginBase):
   @init_check
   def add_label(self, parent_id, label_name):
 
-    Validation.require(parent_id in self._labels, "Unknown Label")
+    if parent_id != NULL_PARENT and parent_id not in self._labels:
+      raise ValueError("Unknown label: %r" % parent_id)
 
     label_name = label_name.strip()
     self._validate_name(parent_id, label_name)
@@ -196,12 +198,12 @@ class Core(CorePluginBase):
   @init_check
   def remove_label(self, label_id):
 
-    Validation.require(label_id not in RESERVED_IDS and
-        label_id in self._labels, "Unknown Label")
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
 
     self._remove_label(label_id)
 
-    parent_id = Label.get_parent(label_id)
+    parent_id = labelplus.common.get_parent(label_id)
     self._index[parent_id]["children"].remove(label_id)
 
     self._last_modified = datetime.datetime.now()
@@ -212,11 +214,11 @@ class Core(CorePluginBase):
   @init_check
   def rename_label(self, label_id, label_name):
 
-    Validation.require(label_id not in RESERVED_IDS and
-        label_id in self._labels, "Unknown Label")
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
 
     label_name = label_name.strip()
-    self._validate_name(Label.get_parent(label_id), label_name)
+    self._validate_name(labelplus.common.get_parent(label_id), label_name)
 
     obj = self._labels[label_id]
     obj["name"] = label_name
@@ -257,8 +259,8 @@ class Core(CorePluginBase):
   @init_check
   def set_options(self, label_id, options_in):
 
-    Validation.require(label_id not in RESERVED_IDS and
-        label_id in self._labels, "Unknown Label")
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
 
     retroactive = options_in.get("tmp_auto_retroactive", False)
     unlabeled_only = options_in.get("tmp_auto_unlabeled", True)
@@ -317,8 +319,8 @@ class Core(CorePluginBase):
   @init_check
   def get_options(self, label_id):
 
-    Validation.require(label_id not in RESERVED_IDS and
-        label_id in self._labels, "Unknown Label")
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
 
     return self._labels[label_id]["data"]
 
@@ -348,10 +350,10 @@ class Core(CorePluginBase):
   @init_check
   def get_parent_path(self, label_id):
 
-    Validation.require(label_id not in RESERVED_IDS and
-        label_id in self._labels, "Unknown Label")
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
 
-    parent_id = Label.get_parent(label_id)
+    parent_id = labelplus.common.get_parent(label_id)
     if parent_id == NULL_PARENT:
       path = self._get_default_save_path()
     else:
@@ -367,8 +369,9 @@ class Core(CorePluginBase):
     if not label_id:
       label_id = ID_NONE
 
-    Validation.require(label_id == ID_NONE or (label_id not in RESERVED_IDS and
-        label_id in self._labels), "Unknown Label")
+    if (label_id != ID_NONE and label_id in RESERVED_IDS or
+        label_id not in self._labels):
+      raise ValueError("Unknown label: %r" % label_id)
 
     torrents = [t for t in torrent_list if t in self._torrents]
     for id in torrents:
@@ -392,9 +395,9 @@ class Core(CorePluginBase):
   @init_check
   def get_label_bandwidth_usage(self, label_id, sublabels=False):
 
-    Validation.require((label_id not in RESERVED_IDS and
-        label_id in self._labels) or (not label_id or label_id == ID_NONE),
-        "Unknown Label")
+    if (label_id != ID_NONE and label_id in RESERVED_IDS or
+        label_id not in self._labels):
+      raise ValueError("Unknown label: %r" % label_id)
 
     if not label_id:
       label_id = ID_NONE
@@ -573,7 +576,7 @@ class Core(CorePluginBase):
       for child_id in self._labels:
         if child_id == id: continue
 
-        if Label.get_parent(child_id) == id:
+        if labelplus.common.get_parent(child_id) == id:
           children.append(child_id)
 
       for torrent_id in self._mappings:
@@ -598,7 +601,7 @@ class Core(CorePluginBase):
     for id in self._labels:
       if id == NULL_PARENT: continue
 
-      parent_id = Label.get_parent(id)
+      parent_id = labelplus.common.get_parent(id)
       if not self._labels.get(parent_id):
         removals.append(id)
 
@@ -619,7 +622,8 @@ class Core(CorePluginBase):
       elif label_id in label_ids:
         filtered.append(id)
       elif self._prefs["options"]["include_children"]:
-        if any(x for x in label_ids if Label.is_ancestor(x, label_id)):
+        if any(x for x in label_ids if
+            labelplus.common.is_ancestor(x, label_id)):
           filtered.append(id)
 
     return filtered
@@ -648,10 +652,11 @@ class Core(CorePluginBase):
 
   def _validate_name(self, parent_id, label_name):
 
-    Validation.validate_name(label_name)
+    labelplus.common.validate_name(label_name)
 
     names = self._get_children_names(parent_id)
-    Validation.require(label_name not in names, "Label already exists")
+    if label_name in names:
+      raise ValueError("Label already exists: %r" % label_name)
 
 
   def _remove_label(self, label_id):
@@ -767,7 +772,7 @@ class Core(CorePluginBase):
         break
 
       members.append(self._labels[member]["name"])
-      member = Label.get_parent(member)
+      member = labelplus.common.get_parent(member)
 
     ancestry_str = "/".join(reversed(members))
     self._index[label_id]["ancestry"] = ancestry_str
