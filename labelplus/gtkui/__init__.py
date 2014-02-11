@@ -101,12 +101,12 @@ class GtkUI(GtkPluginBase):
   def cb_check(self, result):
 
     if result == True:
-      client.labelplus.get_label_data(None).addCallback(self.cb_data_init)
+      client.labelplus.get_label_data(None).addCallback(self.cb_finish_init)
     else:
       reactor.callLater(1, self.enable)
 
 
-  def cb_data_init(self, data):
+  def cb_finish_init(self, data):
 
     self.dialog = None
     self._config = None
@@ -119,11 +119,6 @@ class GtkUI(GtkPluginBase):
 
     self.label_data[ID_ALL]["name"] = _(ID_ALL)
     self.label_data[ID_NONE]["name"] = _(ID_NONE)
-
-    self._do_load()
-
-
-  def _do_load(self):
 
     self.load_config()
 
@@ -138,14 +133,11 @@ class GtkUI(GtkPluginBase):
     component.get("MenuBar").torrentmenu.append(self.menu)
 
     self.label_sidebar = LabelSidebar()
-
     self.preferences = Preferences()
-
     self.add_torrent_ext = AddTorrentExt()
+    self.status_item = None
 
     self.enable_dnd()
-
-    self.status_item = None
 
     self.initialized = True
 
