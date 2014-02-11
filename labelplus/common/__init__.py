@@ -54,19 +54,28 @@ ID_NONE = "None"
 RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
 
 
-# Config
-
 def get_config_version(config):
 
   return config._Config__version["file"]
 
 
-# Resource
-
 def get_resource(filename):
 
   return pkg_resources.resource_filename(
       MODULE_NAME, os.path.join("data", filename))
+
+
+# Logging
+
+class PluginPrefixFilter(object):
+
+  def filter(self, record):
+
+    record.msg = "[%s] %s" % (PLUGIN_NAME, record.msg)
+    return True
+
+
+LOG_FILTER = PluginPrefixFilter()
 
 
 # Label
