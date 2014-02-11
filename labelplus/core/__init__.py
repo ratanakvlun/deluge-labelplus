@@ -39,6 +39,7 @@
 #
 
 
+import logging
 import copy
 import os.path
 import cPickle
@@ -50,7 +51,6 @@ from twisted.internet import reactor
 import deluge.common
 import deluge.configmanager
 from deluge import component
-from deluge.log import LOG as log
 from deluge.core.rpcserver import export
 from deluge.plugins.pluginbase import CorePluginBase
 
@@ -69,6 +69,8 @@ import labelplus.common.configconverter
 
 
 CORE_CONFIG = "%s.conf" % MODULE_NAME
+
+log = logging.getLogger(__name__)
 
 
 def init_check(func):
