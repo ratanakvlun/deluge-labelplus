@@ -47,38 +47,3 @@ NULL_PARENT = "-"
 ID_ALL = "All"
 ID_NONE = "None"
 RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
-
-OPTION_DEFAULTS = {
-  "include_children": False,
-  "show_full_name": False,
-  "move_on_changes": False,
-  "autolabel_uses_regex": False,
-  "shared_limit_update_interval": 5,
-  "move_after_recheck": False,
-}
-
-LABEL_DEFAULTS = {
-  "download_settings": False,
-  "move_data_completed": False,
-  "move_data_completed_path": "",
-  "move_data_completed_mode": "folder",
-  "prioritize_first_last": False,
-
-  "bandwidth_settings": False,
-  "max_download_speed": -1.0,
-  "max_upload_speed": -1.0,
-  "max_connections": -1,
-  "max_upload_slots": -1,
-  "shared_limit_on": False,
-
-  "queue_settings": False,
-  "auto_managed": False,
-  "stop_at_ratio": False,
-  "stop_ratio": 1.0,
-  "remove_at_ratio": False,
-
-  "auto_settings": False,
-  "auto_name": True,
-  "auto_tracker": False,
-  "auto_queries": [],
-}

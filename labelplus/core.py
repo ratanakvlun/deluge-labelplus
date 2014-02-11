@@ -61,20 +61,10 @@ from common.debug import debug
 from common.constant import PLUGIN_NAME, MODULE_NAME
 from common.constant import CORE_CONFIG
 from common.constant import STATUS_ID, STATUS_NAME
-from common.constant import OPTION_DEFAULTS, LABEL_DEFAULTS
 from common.constant import NULL_PARENT, ID_ALL, ID_NONE
 from common.constant import RESERVED_IDS
+from common.config import CONFIG_DEFAULTS, OPTION_DEFAULTS, LABEL_DEFAULTS
 
-
-CONFIG_DEFAULTS = {
-  "prefs": {
-    "options": copy.deepcopy(OPTION_DEFAULTS),
-    "defaults": copy.deepcopy(LABEL_DEFAULTS),
-  },
-
-  "labels": {},   # "label_id": {"name": str, "data": dict}
-  "mappings": {}, # "torrent_id": "label_id"
-}
 
 
 def init_check(func):
