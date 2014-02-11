@@ -40,14 +40,13 @@
 
 from deluge.plugins.pluginbase import WebPluginBase
 
-from common.file import get_resource
-import labelplus.common.constant
+import labelplus.common
 
 
-WEBUI_SCRIPT = "%s.js" % labelplus.common.constant.MODULE_NAME
+WEBUI_SCRIPT = "%s.js" % labelplus.common.MODULE_NAME
 
 
 class WebUI(WebPluginBase):
 
-  scripts = [get_resource(WEBUI_SCRIPT)]
+  scripts = [labelplus.common.get_resource(WEBUI_SCRIPT)]
   debug_scripts = scripts
