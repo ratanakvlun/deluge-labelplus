@@ -187,15 +187,30 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
   return buffer_out
 
 
-def map_dict(map, dict_in, dict_out):
+def process_spec(spec, dict_in, use_deepcopy=False, strict_paths=False):
 
-  for path in map:
-    mapped = get_path_mapped_dict(dict_in, path, map[path])
-    dict_out.update(mapped)
+  working_dict = {}
+
+  # Mapping meant for excluding unused keys or rearranging keys
+  for path in spec["map"]:
+    mapped = get_path_mapped_dict(dict_in, path, spec["map"][path],
+      use_deepcopy, strict_paths)
+    working_dict.update(mapped)
+
+  # Post function meant for altering values
+  post_func = spec.get("post_func")
+  if post_func:
+    working_dict = post_func(spec, working_dict)
+
+  # Make sure any missing defaults are in the final dict
+  dict_out = copy.deepcopy(spec["defaults"])
+  dict_out.update(working_dict)
+
+  return dict_out
 
 
 #
-# map format:
+# spec format:
 # {
 #   "version_in": version of input config data,
 #   "version_out": version of output config data,
@@ -203,26 +218,20 @@ def map_dict(map, dict_in, dict_out):
 #   "map": {
 #     "path/variable": "path/variable",
 #   },
-#   "post_func": func to run after mapping, func(map, dict_in, dict_out),
+#   "post_func": after mapping, call post_func(spec, dict_in),
 # }
 #
 
-def convert(map, config):
+def convert(spec, config, use_deepcopy=False, strict_paths=False):
 
-  version_in = map["version_in"]
-  version_out = map["version_out"]
+  version_in = spec["version_in"]
+  version_out = spec["version_out"]
 
   if config._Config__version["file"] != version_in:
     raise ValueError("Unable to convert because version mismatch")
 
   input = config.config
-  output = copy.deepcopy(map["defaults"])
-
-  map_dict(map["map"], input, output)
-
-  post_func = map.get("post_func")
-  if post_func:
-    post_func(map, input, output)
+  output = process_spec(spec, input, use_deepcopy, strict_paths)
 
   config._Config__version["file"] = version_out
   config._Config__config = output
