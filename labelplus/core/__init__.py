@@ -93,6 +93,8 @@ def init_check(func):
 
 class Core(CorePluginBase):
 
+  # Section: Initialization
+
   def __init__(self, plugin_name):
 
     super(Core, self).__init__(plugin_name)
@@ -117,6 +119,143 @@ class Core(CorePluginBase):
     else:
       self._initialize()
 
+
+  def _load_config(self):
+
+    config = deluge.configmanager.ConfigManager(CORE_CONFIG,
+      defaults=copy.deepcopy(CONFIG_DEFAULTS))
+
+    ver = labelplus.common.config.get_version(config)
+    while ver != labelplus.core.config.CONFIG_VERSION:
+      if ver < labelplus.core.config.CONFIG_VERSION:
+        key = (ver, ver+1)
+      else:
+        key = (ver, ver-1)
+
+      spec = labelplus.core.config.CONFIG_SPECS.get(key)
+      if spec:
+        labelplus.common.config.convert(spec, config)
+        ver = labelplus.common.config.get_version(config)
+      else:
+        raise ValueError("Config file conversion v%s->v%s unsupported" % key)
+
+    for key in config.config.keys():
+      if key not in CONFIG_DEFAULTS:
+        del config.config[key]
+
+    return config
+
+
+  def _initialize(self):
+
+    component.get("EventManager").deregister_event_handler(
+        "SessionStartedEvent", self._initialize)
+
+    self._torrents = component.get("TorrentManager").torrents
+
+    self._initialize_data()
+    self._build_index()
+    self._remove_orphans()
+
+    component.get("FilterManager").register_filter(
+        STATUS_ID, self._filter_by_label)
+
+    component.get("CorePluginManager").register_status_field(
+        STATUS_NAME, self._get_torrent_label_name)
+    component.get("CorePluginManager").register_status_field(
+        STATUS_ID, self._get_torrent_label)
+
+    component.get("EventManager").register_event_handler(
+        "TorrentAddedEvent", self.on_torrent_added)
+    component.get("EventManager").register_event_handler(
+        "PreTorrentRemovedEvent", self.on_torrent_removed)
+
+    component.get("AlertManager").register_handler(
+        "torrent_finished_alert", self.on_torrent_finished)
+
+    self._last_modified = datetime.datetime.now()
+    self._initialized = True
+
+    reactor.callLater(1, self._shared_limit_update)
+
+    log.debug("Core initialized")
+
+
+  def _initialize_data(self):
+
+    for id in self._mappings.keys():
+      if id not in self._torrents or self._mappings[id] not in self._labels:
+        del self._mappings[id]
+
+    for id in RESERVED_IDS:
+      if id in self._labels:
+        del self._labels[id]
+
+    for id in self._labels:
+      self._normalize_label_data(self._labels[id]["data"])
+
+    self._labels[NULL_PARENT] = {
+      "name": None,
+      "data": None,
+    }
+
+    self._normalize_options(self._prefs["options"])
+    self._normalize_label_data(self._prefs["defaults"])
+
+    self._config.save()
+
+
+  def _build_index(self):
+
+    index = {}
+    shared_limit_index = []
+
+    for id in self._labels:
+      if id not in RESERVED_IDS and (
+          self._labels[id]["data"]["bandwidth_settings"] and
+          self._labels[id]["data"]["shared_limit_on"]):
+        shared_limit_index.append(id)
+
+      children = []
+      torrents = []
+
+      for child_id in self._labels:
+        if child_id == id: continue
+
+        if labelplus.common.get_parent(child_id) == id:
+          children.append(child_id)
+
+      for torrent_id in self._mappings:
+        if self._mappings[torrent_id] == id:
+          torrents.append(torrent_id)
+
+      index[id] = {
+        "children": children,
+        "torrents": torrents,
+      }
+
+    self._index = index
+    self._shared_limit_index = shared_limit_index
+
+    for id in self._labels:
+      self._build_label_ancestry(id)
+
+
+  def _remove_orphans(self):
+
+    removals = []
+    for id in self._labels:
+      if id == NULL_PARENT: continue
+
+      parent_id = labelplus.common.get_parent(id)
+      if not self._labels.get(parent_id):
+        removals.append(id)
+
+    for id in removals:
+      self._remove_label(id)
+
+
+  # Section: Deinitialization
 
   def disable(self):
 
@@ -147,6 +286,23 @@ class Core(CorePluginBase):
 
     log.debug("Core deinitialized")
 
+
+  def _rpc_deregister(self, name):
+
+    server = component.get("RPCServer")
+    name = name.lower()
+
+    for d in dir(self):
+      if d[0] == "_": continue
+
+      if getattr(getattr(self, d), '_rpcserver_export', False):
+        method = "%s.%s" % (name, d)
+        log.debug("Deregistering method: %s", method)
+        if method in server.factory.methods:
+          del server.factory.methods[method]
+
+
+  # Section: Public API
 
   @export
   def is_initialized(self):
@@ -426,6 +582,8 @@ class Core(CorePluginBase):
     return vars
 
 
+  # Section: Event Handlers
+
   def on_torrent_added(self, torrent_id):
 
     def cmp_len_then_value(x, y):
@@ -477,350 +635,18 @@ class Core(CorePluginBase):
         self._do_move_completed(label_id, [torrent_id])
 
 
-  def _load_config(self):
+  # Section: General
 
-    config = deluge.configmanager.ConfigManager(CORE_CONFIG,
-      defaults=copy.deepcopy(CONFIG_DEFAULTS))
+  def _get_default_save_path(self):
 
-    ver = labelplus.common.config.get_version(config)
-    while ver != labelplus.core.config.CONFIG_VERSION:
-      if ver < labelplus.core.config.CONFIG_VERSION:
-        key = (ver, ver+1)
-      else:
-        key = (ver, ver-1)
+    path = self._core["download_location"]
+    if not path:
+      path = deluge.common.get_default_download_dir()
 
-      spec = labelplus.core.config.CONFIG_SPECS.get(key)
-      if spec:
-        labelplus.common.config.convert(spec, config)
-        ver = labelplus.common.config.get_version(config)
-      else:
-        raise ValueError("Config file conversion v%s->v%s unsupported" % key)
+    return path
 
-    for key in config.config.keys():
-      if key not in CONFIG_DEFAULTS:
-        del config.config[key]
 
-    return config
-
-
-  def _initialize(self):
-
-    component.get("EventManager").deregister_event_handler(
-        "SessionStartedEvent", self._initialize)
-
-    self._torrents = component.get("TorrentManager").torrents
-
-    self._initialize_data()
-    self._build_index()
-    self._remove_orphans()
-
-    component.get("FilterManager").register_filter(
-        STATUS_ID, self._filter_by_label)
-
-    component.get("CorePluginManager").register_status_field(
-        STATUS_NAME, self._get_torrent_label_name)
-    component.get("CorePluginManager").register_status_field(
-        STATUS_ID, self._get_torrent_label)
-
-    component.get("EventManager").register_event_handler(
-        "TorrentAddedEvent", self.on_torrent_added)
-    component.get("EventManager").register_event_handler(
-        "PreTorrentRemovedEvent", self.on_torrent_removed)
-
-    component.get("AlertManager").register_handler(
-        "torrent_finished_alert", self.on_torrent_finished)
-
-    self._last_modified = datetime.datetime.now()
-    self._initialized = True
-
-    reactor.callLater(1, self._shared_limit_update)
-
-    log.debug("Core initialized")
-
-
-  def _initialize_data(self):
-
-    for id in self._mappings.keys():
-      if id not in self._torrents or self._mappings[id] not in self._labels:
-        del self._mappings[id]
-
-    for id in RESERVED_IDS:
-      if id in self._labels:
-        del self._labels[id]
-
-    for id in self._labels:
-      self._normalize_label_data(self._labels[id]["data"])
-
-    self._labels[NULL_PARENT] = {
-      "name": None,
-      "data": None,
-    }
-
-    self._normalize_options(self._prefs["options"])
-    self._normalize_label_data(self._prefs["defaults"])
-
-    self._config.save()
-
-
-  def _build_index(self):
-
-    index = {}
-    shared_limit_index = []
-
-    for id in self._labels:
-      if id not in RESERVED_IDS and (
-          self._labels[id]["data"]["bandwidth_settings"] and
-          self._labels[id]["data"]["shared_limit_on"]):
-        shared_limit_index.append(id)
-
-      children = []
-      torrents = []
-
-      for child_id in self._labels:
-        if child_id == id: continue
-
-        if labelplus.common.get_parent(child_id) == id:
-          children.append(child_id)
-
-      for torrent_id in self._mappings:
-        if self._mappings[torrent_id] == id:
-          torrents.append(torrent_id)
-
-      index[id] = {
-        "children": children,
-        "torrents": torrents,
-      }
-
-    self._index = index
-    self._shared_limit_index = shared_limit_index
-
-    for id in self._labels:
-      self._build_label_ancestry(id)
-
-
-  def _remove_orphans(self):
-
-    removals = []
-    for id in self._labels:
-      if id == NULL_PARENT: continue
-
-      parent_id = labelplus.common.get_parent(id)
-      if not self._labels.get(parent_id):
-        removals.append(id)
-
-    for id in removals:
-      self._remove_label(id)
-
-
-  def _filter_by_label(self, torrent_ids, label_ids):
-
-    filtered = []
-
-    for id in torrent_ids:
-      label_id = self._mappings.get(id)
-
-      if not label_id:
-        if ID_NONE in label_ids:
-          filtered.append(id)
-      elif label_id in label_ids:
-        filtered.append(id)
-      elif self._prefs["options"]["include_children"]:
-        if any(x for x in label_ids if
-            labelplus.common.is_ancestor(x, label_id)):
-          filtered.append(id)
-
-    return filtered
-
-
-  def _get_unused_id(self, parent_id):
-
-    i = 0
-    label_obj = {}
-    while label_obj is not None:
-      id = "%s:%s" % (parent_id, i)
-      label_obj = self._labels.get(id)
-      i += 1
-
-    return id
-
-
-  def _get_children_names(self, parent_id):
-
-    names = []
-    for id in self._index[parent_id]["children"]:
-      names.append(self._labels[id]["name"])
-
-    return names
-
-
-  def _validate_name(self, parent_id, label_name):
-
-    labelplus.common.validate_name(label_name)
-
-    names = self._get_children_names(parent_id)
-    if label_name in names:
-      raise ValueError("Label already exists: %r" % label_name)
-
-
-  def _remove_label(self, label_id):
-
-    for id in self._index[label_id]["children"]:
-      self._remove_label(id)
-
-    for id in self._index[label_id]["torrents"]:
-      self._reset_torrent_options(id)
-
-      del self._mappings[id]
-
-    del self._index[label_id]
-    del self._labels[label_id]
-
-
-  def _set_torrent_label(self, torrent_id, label_id):
-
-    log.debug("Setting label %r on %r", label_id, torrent_id)
-
-    id = self._mappings.get(torrent_id)
-    if id is not None:
-      self._reset_torrent_options(torrent_id)
-      self._index[id]["torrents"].remove(torrent_id)
-      del self._mappings[torrent_id]
-      log.debug("Torrent %r removed from label %r", torrent_id, id)
-
-    if label_id and label_id not in RESERVED_IDS:
-      self._mappings[torrent_id] = label_id
-      self._index[label_id]["torrents"].append(torrent_id)
-      self._apply_torrent_options(torrent_id)
-      log.debug("Torrent %r is labeled %r", torrent_id, label_id)
-
-
-  def _get_label_counts(self):
-
-    label_count = 0
-    counts = {}
-    for id in sorted(self._labels, reverse=True):
-      if id == NULL_PARENT: continue
-
-      count = len(self._index[id]["torrents"])
-      label_count += count
-
-      if self._prefs["options"]["include_children"]:
-        for child in self._index[id]["children"]:
-          count += counts[child]["count"]
-
-      full_name = self._get_label_ancestry(id)
-
-      counts[id] = {
-        "name": self._labels[id]["name"],
-        "count": count,
-        "full_name": full_name,
-      }
-
-    total = len(self._torrents)
-    counts[ID_ALL] = {
-      "name": ID_ALL,
-      "count": total,
-      "full_name": ID_ALL,
-    }
-
-    counts[ID_NONE] = {
-      "name": ID_NONE,
-      "count": total-label_count,
-      "full_name": ID_NONE,
-    }
-
-    return counts
-
-
-  def _get_torrent_label(self, torrent_id):
-
-    return self._mappings.get(torrent_id) or ""
-
-
-  def _get_torrent_label_name(self, torrent_id):
-
-    label_id = self._mappings.get(torrent_id)
-    if not label_id:
-      return ""
-
-    if self._prefs["options"]["show_full_name"]:
-      name = self._get_label_ancestry(label_id)
-    else:
-      name = self._labels[label_id]["name"]
-
-    return name
-
-
-  def _get_label_ancestry(self, label_id):
-
-    ancestry_str = self._index[label_id].get("ancestry")
-    if ancestry_str:
-      return ancestry_str
-
-    return self._build_label_ancestry(label_id)
-
-
-  def _build_label_ancestry(self, label_id):
-
-    members = []
-    member = label_id
-    while member and member != NULL_PARENT:
-      ancestry_str = self._index[member].get("ancestry")
-      if ancestry_str:
-        members.append(ancestry_str)
-
-        break
-
-      members.append(self._labels[member]["name"])
-      member = labelplus.common.get_parent(member)
-
-    ancestry_str = "/".join(reversed(members))
-    self._index[label_id]["ancestry"] = ancestry_str
-
-    return ancestry_str
-
-
-  def _clear_subtree_ancestry(self, parent_id):
-
-    if self._index[parent_id].get("ancestry") is not None:
-      del self._index[parent_id]["ancestry"]
-
-    for id in self._index[parent_id]["children"]:
-      self._clear_subtree_ancestry(id)
-
-
-  def _has_auto_apply_match(self, label_id, torrent_id):
-
-    uses_regex = self._prefs["options"]["autolabel_uses_regex"]
-
-    name = self._torrents[torrent_id].get_status(["name"])["name"]
-    trackers = tuple(t["url"] for t in self._torrents[torrent_id].trackers)
-
-    options = self._labels[label_id]["data"]
-    for line in options["auto_queries"]:
-      if uses_regex:
-        re_line = re.compile(line)
-      else:
-        terms = line.split()
-
-      if options["auto_name"]:
-        if uses_regex:
-          match = re_line.search(name)
-          if match:
-            return True
-        elif all(t in name for t in terms):
-          return True
-      elif options["auto_tracker"]:
-        for tracker in trackers:
-          if uses_regex:
-            match = re_line.search(tracker)
-            if match:
-              return True
-          elif all(t in tracker for t in terms):
-            return True
-
-    return False
-
+  # Section: Maintenance
 
   def _normalize_options(self, options):
 
@@ -871,151 +697,27 @@ class Core(CorePluginBase):
       data["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
-  def _reset_torrent_options(self, torrent_id):
+  # Section: Label: Queries
 
-    label_id = self._mappings.get(torrent_id)
+  def _get_unused_id(self, parent_id):
 
-    options = self._labels[label_id]["data"]
-    torrent = self._torrents[torrent_id]
+    i = 0
+    label_obj = {}
+    while label_obj is not None:
+      id = "%s:%s" % (parent_id, i)
+      label_obj = self._labels.get(id)
+      i += 1
 
-    # Download settings
-    torrent.set_move_completed(self._core["move_completed"])
-    torrent.set_move_completed_path(self._core["move_completed_path"])
-    torrent.set_options({
-      "prioritize_first_last_pieces":
-        self._core["prioritize_first_last_pieces"],
-    })
-
-    # Bandwidth settings
-    torrent.set_max_download_speed(
-      self._core["max_download_speed_per_torrent"])
-    torrent.set_max_upload_speed(self._core["max_upload_speed_per_torrent"])
-    torrent.set_max_connections(self._core["max_connections_per_torrent"])
-    torrent.set_max_upload_slots(self._core["max_upload_slots_per_torrent"])
-
-    # Queue settings
-    torrent.set_auto_managed(self._core["auto_managed"])
-    torrent.set_stop_at_ratio(self._core["stop_seed_at_ratio"])
-    torrent.set_stop_ratio(self._core["stop_seed_ratio"])
-    torrent.set_remove_at_ratio(self._core["remove_seed_at_ratio"])
+    return id
 
 
-  def _apply_torrent_options(self, torrent_id):
+  def _validate_name(self, parent_id, label_name):
 
-    label_id = self._mappings.get(torrent_id)
+    labelplus.common.validate_name(label_name)
 
-    options = self._labels[label_id]["data"]
-    torrent = self._torrents[torrent_id]
-
-    if options["download_settings"]:
-      torrent.set_move_completed(options["move_data_completed"])
-
-      if options["move_data_completed"]:
-        torrent.set_move_completed_path(options["move_data_completed_path"])
-
-      torrent.set_options({
-        "prioritize_first_last_pieces": options["prioritize_first_last"],
-      })
-
-    if options["bandwidth_settings"]:
-      torrent.set_max_download_speed(options["max_download_speed"])
-      torrent.set_max_upload_speed(options["max_upload_speed"])
-      torrent.set_max_connections(options["max_connections"])
-      torrent.set_max_upload_slots(options["max_upload_slots"])
-
-    if options["queue_settings"]:
-      torrent.set_auto_managed(options["auto_managed"])
-      torrent.set_stop_at_ratio(options["stop_at_ratio"])
-
-      if options["stop_at_ratio"]:
-        torrent.set_stop_ratio(options["stop_ratio"])
-        torrent.set_remove_at_ratio(options["remove_at_ratio"])
-
-
-  def _apply_data_completed_path(self, label_id):
-
-    for id in self._index[label_id]["torrents"]:
-      self._torrents[id].set_move_completed_path(
-          self._labels[label_id]["data"]["move_data_completed_path"])
-
-
-  def _propagate_path_to_descendents(self, parent_id):
-
-
-    def descend(parent_id):
-      name = self._labels[parent_id]["name"]
-      options = self._labels[parent_id]["data"]
-
-      mode = options["move_data_completed_mode"]
-      if mode == "folder": return
-
-      if mode == "subfolder":
-        move_path.append(name)
-
-      options["move_data_completed_path"] = os.path.join(*move_path)
-
-      if options["download_settings"] and options["move_data_completed"]:
-        self._apply_data_completed_path(parent_id)
-
-      for id in self._index[parent_id]["children"]:
-        descend(id)
-
-      if mode == "subfolder":
-        move_path.pop()
-
-
-    options = self._labels[parent_id]["data"]
-    path = options["move_data_completed_path"]
-
-    move_path = [path]
-
-    for id in self._index[parent_id]["children"]:
-      descend(id)
-
-
-  def _subtree_move_completed(self, parent_id):
-
-    if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed(parent_id, self._index[parent_id]["torrents"])
-
-    for id in self._index[parent_id]["children"]:
-      self._subtree_move_completed(id)
-
-
-  def _do_move_completed(self, label_id, torrent_list):
-
-    if label_id in self._labels:
-      options = self._labels[label_id]["data"]
-
-      if not options["download_settings"] or \
-          not options["move_data_completed"]:
-        return
-
-      dest_path = options["move_data_completed_path"]
-    else:
-      dest_path = self._get_default_save_path()
-
-    move_list = []
-    for tid in torrent_list:
-      torrent = self._torrents.get(tid)
-      if torrent:
-        path = torrent.get_status(["save_path"])["save_path"]
-        if path != dest_path:
-          move_list.append(tid)
-
-    try:
-      component.get("CorePlugin.MoveTools").move_completed(move_list)
-    except KeyError:
-      pass
-
-
-  def _get_default_save_path(self):
-
-    path = self._core["download_location"]
-    if not path:
-      path = deluge.common.get_default_download_dir()
-
-    return path
+    names = self._get_children_names(parent_id)
+    if label_name in names:
+      raise ValueError("Label already exists: %r" % label_name)
 
 
   def _get_descendent_labels(self, label_id):
@@ -1030,57 +732,110 @@ class Core(CorePluginBase):
     return descendents
 
 
-  def _get_labeled_torrents_status(self, label_ids, filters, fields):
+  def _get_children_names(self, parent_id):
 
-    filtered_torrents = {}
-    torrents = []
+    names = []
+    for id in self._index[parent_id]["children"]:
+      names.append(self._labels[id]["name"])
 
-    if ID_ALL in label_ids:
-      torrents = self._torrents.keys()
-    elif ID_NONE in label_ids:
-      torrents = self._filter_by_label(self._torrents.keys(), label_ids)
-    else:
-      for label_id in label_ids:
-        if label_id in self._index:
-          for id in self._index[label_id]["torrents"]:
-            if id not in torrents:
-              torrents.append(id)
-
-    for filter in filters:
-      if filter not in fields:
-        fields.append(filter)
-
-    for torrent_id in torrents:
-      status_values = self._torrents[torrent_id].get_status(fields)
-
-      if not filters:
-        filtered_torrents[torrent_id] = status_values
-      else:
-        filter_passed = True
-
-        for filter in filters:
-          if status_values[filter] not in filters[filter]:
-            filter_passed = False
-            break
-
-        if filter_passed:
-          filtered_torrents[torrent_id] = status_values
-
-    return filtered_torrents
+    return names
 
 
-  def _get_bandwidth_usage(self, torrents):
+  def _get_label_counts(self):
 
-    download_rate_sum = 0.0
-    upload_rate_sum = 0.0
+    label_count = 0
+    counts = {}
+    for id in sorted(self._labels, reverse=True):
+      if id == NULL_PARENT: continue
 
-    for torrent in torrents:
-      status = torrents[torrent]
-      download_rate_sum += status["download_payload_rate"]
-      upload_rate_sum += status["upload_payload_rate"]
+      count = len(self._index[id]["torrents"])
+      label_count += count
 
-    return (download_rate_sum, upload_rate_sum)
+      if self._prefs["options"]["include_children"]:
+        for child in self._index[id]["children"]:
+          count += counts[child]["count"]
 
+      full_name = self._get_label_ancestry(id)
+
+      counts[id] = {
+        "name": self._labels[id]["name"],
+        "count": count,
+        "full_name": full_name,
+      }
+
+    total = len(self._torrents)
+    counts[ID_ALL] = {
+      "name": ID_ALL,
+      "count": total,
+      "full_name": ID_ALL,
+    }
+
+    counts[ID_NONE] = {
+      "name": ID_NONE,
+      "count": total-label_count,
+      "full_name": ID_NONE,
+    }
+
+    return counts
+
+
+  # Section: Label: Modifiers
+
+  def _remove_label(self, label_id):
+
+    for id in self._index[label_id]["children"]:
+      self._remove_label(id)
+
+    for id in self._index[label_id]["torrents"]:
+      self._reset_torrent_options(id)
+
+      del self._mappings[id]
+
+    del self._index[label_id]
+    del self._labels[label_id]
+
+
+  # Section: Label: Ancestry
+
+  def _build_label_ancestry(self, label_id):
+
+    members = []
+    member = label_id
+    while member and member != NULL_PARENT:
+      ancestry_str = self._index[member].get("ancestry")
+      if ancestry_str:
+        members.append(ancestry_str)
+
+        break
+
+      members.append(self._labels[member]["name"])
+      member = labelplus.common.get_parent(member)
+
+    ancestry_str = "/".join(reversed(members))
+    self._index[label_id]["ancestry"] = ancestry_str
+
+    return ancestry_str
+
+
+  def _get_label_ancestry(self, label_id):
+
+    ancestry_str = self._index[label_id].get("ancestry")
+    if ancestry_str:
+      return ancestry_str
+
+    return self._build_label_ancestry(label_id)
+
+
+  def _clear_subtree_ancestry(self, parent_id):
+
+    if self._index[parent_id].get("ancestry") is not None:
+      del self._index[parent_id]["ancestry"]
+
+    for id in self._index[parent_id]["children"]:
+      self._clear_subtree_ancestry(id)
+
+
+  # Section: Label: Shared Limit
 
   def _shared_limit_update(self):
 
@@ -1160,16 +915,293 @@ class Core(CorePluginBase):
         torrent.set_max_upload_speed(limit)
 
 
-  def _rpc_deregister(self, name):
+  # Section: Label-Torrent: Queries
 
-    server = component.get("RPCServer")
-    name = name.lower()
+  def _get_torrent_label(self, torrent_id):
 
-    for d in dir(self):
-      if d[0] == "_": continue
+    return self._mappings.get(torrent_id) or ""
 
-      if getattr(getattr(self, d), '_rpcserver_export', False):
-        method = "%s.%s" % (name, d)
-        log.debug("Deregistering method: %s", method)
-        if method in server.factory.methods:
-          del server.factory.methods[method]
+
+  def _get_torrent_label_name(self, torrent_id):
+
+    label_id = self._mappings.get(torrent_id)
+    if not label_id:
+      return ""
+
+    if self._prefs["options"]["show_full_name"]:
+      name = self._get_label_ancestry(label_id)
+    else:
+      name = self._labels[label_id]["name"]
+
+    return name
+
+
+  def _has_auto_apply_match(self, label_id, torrent_id):
+
+    uses_regex = self._prefs["options"]["autolabel_uses_regex"]
+
+    name = self._torrents[torrent_id].get_status(["name"])["name"]
+    trackers = tuple(t["url"] for t in self._torrents[torrent_id].trackers)
+
+    options = self._labels[label_id]["data"]
+    for line in options["auto_queries"]:
+      if uses_regex:
+        re_line = re.compile(line)
+      else:
+        terms = line.split()
+
+      if options["auto_name"]:
+        if uses_regex:
+          match = re_line.search(name)
+          if match:
+            return True
+        elif all(t in name for t in terms):
+          return True
+      elif options["auto_tracker"]:
+        for tracker in trackers:
+          if uses_regex:
+            match = re_line.search(tracker)
+            if match:
+              return True
+          elif all(t in tracker for t in terms):
+            return True
+
+    return False
+
+
+  def _filter_by_label(self, torrent_ids, label_ids):
+
+    filtered = []
+
+    for id in torrent_ids:
+      label_id = self._mappings.get(id)
+
+      if not label_id:
+        if ID_NONE in label_ids:
+          filtered.append(id)
+      elif label_id in label_ids:
+        filtered.append(id)
+      elif self._prefs["options"]["include_children"]:
+        if any(x for x in label_ids if
+            labelplus.common.is_ancestor(x, label_id)):
+          filtered.append(id)
+
+    return filtered
+
+
+  def _get_labeled_torrents_status(self, label_ids, filters, fields):
+
+    filtered_torrents = {}
+    torrents = []
+
+    if ID_ALL in label_ids:
+      torrents = self._torrents.keys()
+    elif ID_NONE in label_ids:
+      torrents = self._filter_by_label(self._torrents.keys(), label_ids)
+    else:
+      for label_id in label_ids:
+        if label_id in self._index:
+          for id in self._index[label_id]["torrents"]:
+            if id not in torrents:
+              torrents.append(id)
+
+    for filter in filters:
+      if filter not in fields:
+        fields.append(filter)
+
+    for torrent_id in torrents:
+      status_values = self._torrents[torrent_id].get_status(fields)
+
+      if not filters:
+        filtered_torrents[torrent_id] = status_values
+      else:
+        filter_passed = True
+
+        for filter in filters:
+          if status_values[filter] not in filters[filter]:
+            filter_passed = False
+            break
+
+        if filter_passed:
+          filtered_torrents[torrent_id] = status_values
+
+    return filtered_torrents
+
+
+  # Section: Label-Torrent: Modifiers
+
+  def _set_torrent_label(self, torrent_id, label_id):
+
+    log.debug("Setting label %r on %r", label_id, torrent_id)
+
+    id = self._mappings.get(torrent_id)
+    if id is not None:
+      self._reset_torrent_options(torrent_id)
+      self._index[id]["torrents"].remove(torrent_id)
+      del self._mappings[torrent_id]
+      log.debug("Torrent %r removed from label %r", torrent_id, id)
+
+    if label_id and label_id not in RESERVED_IDS:
+      self._mappings[torrent_id] = label_id
+      self._index[label_id]["torrents"].append(torrent_id)
+      self._apply_torrent_options(torrent_id)
+      log.debug("Torrent %r is labeled %r", torrent_id, label_id)
+
+
+  # Section: Torrent: Queries
+
+  def _get_bandwidth_usage(self, torrents):
+
+    download_rate_sum = 0.0
+    upload_rate_sum = 0.0
+
+    for torrent in torrents:
+      status = torrents[torrent]
+      download_rate_sum += status["download_payload_rate"]
+      upload_rate_sum += status["upload_payload_rate"]
+
+    return (download_rate_sum, upload_rate_sum)
+
+
+  # Section: Torrent: Modifiers
+
+  def _reset_torrent_options(self, torrent_id):
+
+    label_id = self._mappings.get(torrent_id)
+
+    options = self._labels[label_id]["data"]
+    torrent = self._torrents[torrent_id]
+
+    # Download settings
+    torrent.set_move_completed(self._core["move_completed"])
+    torrent.set_move_completed_path(self._core["move_completed_path"])
+    torrent.set_options({
+      "prioritize_first_last_pieces":
+        self._core["prioritize_first_last_pieces"],
+    })
+
+    # Bandwidth settings
+    torrent.set_max_download_speed(
+      self._core["max_download_speed_per_torrent"])
+    torrent.set_max_upload_speed(self._core["max_upload_speed_per_torrent"])
+    torrent.set_max_connections(self._core["max_connections_per_torrent"])
+    torrent.set_max_upload_slots(self._core["max_upload_slots_per_torrent"])
+
+    # Queue settings
+    torrent.set_auto_managed(self._core["auto_managed"])
+    torrent.set_stop_at_ratio(self._core["stop_seed_at_ratio"])
+    torrent.set_stop_ratio(self._core["stop_seed_ratio"])
+    torrent.set_remove_at_ratio(self._core["remove_seed_at_ratio"])
+
+
+  def _apply_torrent_options(self, torrent_id):
+
+    label_id = self._mappings.get(torrent_id)
+
+    options = self._labels[label_id]["data"]
+    torrent = self._torrents[torrent_id]
+
+    if options["download_settings"]:
+      torrent.set_move_completed(options["move_data_completed"])
+
+      if options["move_data_completed"]:
+        torrent.set_move_completed_path(options["move_data_completed_path"])
+
+      torrent.set_options({
+        "prioritize_first_last_pieces": options["prioritize_first_last"],
+      })
+
+    if options["bandwidth_settings"]:
+      torrent.set_max_download_speed(options["max_download_speed"])
+      torrent.set_max_upload_speed(options["max_upload_speed"])
+      torrent.set_max_connections(options["max_connections"])
+      torrent.set_max_upload_slots(options["max_upload_slots"])
+
+    if options["queue_settings"]:
+      torrent.set_auto_managed(options["auto_managed"])
+      torrent.set_stop_at_ratio(options["stop_at_ratio"])
+
+      if options["stop_at_ratio"]:
+        torrent.set_stop_ratio(options["stop_ratio"])
+        torrent.set_remove_at_ratio(options["remove_at_ratio"])
+
+
+  # Section: Torrent: Move Completed: Modifiers
+
+  def _apply_data_completed_path(self, label_id):
+
+    for id in self._index[label_id]["torrents"]:
+      self._torrents[id].set_move_completed_path(
+          self._labels[label_id]["data"]["move_data_completed_path"])
+
+
+  def _propagate_path_to_descendents(self, parent_id):
+
+
+    def descend(parent_id):
+      name = self._labels[parent_id]["name"]
+      options = self._labels[parent_id]["data"]
+
+      mode = options["move_data_completed_mode"]
+      if mode == "folder": return
+
+      if mode == "subfolder":
+        move_path.append(name)
+
+      options["move_data_completed_path"] = os.path.join(*move_path)
+
+      if options["download_settings"] and options["move_data_completed"]:
+        self._apply_data_completed_path(parent_id)
+
+      for id in self._index[parent_id]["children"]:
+        descend(id)
+
+      if mode == "subfolder":
+        move_path.pop()
+
+
+    options = self._labels[parent_id]["data"]
+    path = options["move_data_completed_path"]
+
+    move_path = [path]
+
+    for id in self._index[parent_id]["children"]:
+      descend(id)
+
+
+  # Section: Torrent: Move Completed: Execution
+
+  def _subtree_move_completed(self, parent_id):
+
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed(parent_id, self._index[parent_id]["torrents"])
+
+    for id in self._index[parent_id]["children"]:
+      self._subtree_move_completed(id)
+
+
+  def _do_move_completed(self, label_id, torrent_list):
+
+    if label_id in self._labels:
+      options = self._labels[label_id]["data"]
+
+      if not options["download_settings"] or \
+          not options["move_data_completed"]:
+        return
+
+      dest_path = options["move_data_completed_path"]
+    else:
+      dest_path = self._get_default_save_path()
+
+    move_list = []
+    for tid in torrent_list:
+      torrent = self._torrents.get(tid)
+      if torrent:
+        path = torrent.get_status(["save_path"])["save_path"]
+        if path != dest_path:
+          move_list.append(tid)
+
+    try:
+      component.get("CorePlugin.MoveTools").move_completed(move_list)
+    except KeyError:
+      pass
