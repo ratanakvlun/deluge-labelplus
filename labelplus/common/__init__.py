@@ -37,9 +37,12 @@
 import os
 import pkg_resources
 import re
+import gettext
 
 
 # General
+
+_ = gettext.gettext
 
 PLUGIN_NAME = "LabelPlus"
 MODULE_NAME = "labelplus"
