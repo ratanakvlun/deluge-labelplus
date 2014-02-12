@@ -38,29 +38,29 @@ import labelplus.common
 import labelplus.core.config
 
 
-def convert_v1_v2(map, dict_in, dict_out):
+def convert_v1_v2(spec, dict_in):
 
   def convert_auto_queries(dict_in, op):
 
     rules = []
     case = "match case"
 
-    if dict_in.get("auto_tracker"):
+    if dict_in["auto_tracker"]:
       prop = "Tracker"
     else:
       prop = "Name"
 
-    for line in dict_in.get("auto_queries") or ():
+    for line in dict_in["auto_queries"]:
       rules.append([prop, op, case, line])
 
     dict_in["autolabel_rules"] = rules
     dict_in["autolabel_match_all"] = False
 
 
-  label_defaults = dict_out["prefs"]["defaults"]
-  option_defaults = dict_out["prefs"]["options"]
+  label_defaults = dict_in["prefs"]["defaults"]
+  option_defaults = dict_in["prefs"]["options"]
 
-  labels = dict_out["labels"]
+  labels = dict_in["labels"]
 
   op = "contains words"
   if option_defaults.get("autolabel_uses_regex"):
@@ -74,8 +74,10 @@ def convert_v1_v2(map, dict_in, dict_out):
 
     convert_auto_queries(labels[label]["data"], op)
 
+  return dict_in
 
-CONFIG_MAP_V1_V2 = {
+
+CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
   "defaults": labelplus.core.config.CONFIG_DEFAULTS_V2,
@@ -85,6 +87,6 @@ CONFIG_MAP_V1_V2 = {
   "post_func": convert_v1_v2,
 }
 
-CONFIG_MAPS = {
-  (1, 2): CONFIG_MAP_V1_V2,
+CONFIG_SPECS = {
+  (1, 2): CONFIG_SPEC_V1_V2,
 }
