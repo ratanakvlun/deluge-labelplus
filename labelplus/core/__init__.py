@@ -637,6 +637,16 @@ class Core(CorePluginBase):
 
   # Section: General
 
+  @export
+  @init_check
+  def get_daemon_vars(self):
+
+    vars = {
+      "os_path_module": os.path.__name__,
+    }
+
+    return vars
+
   def _get_default_save_path(self):
 
     path = self._core["download_location"]
@@ -697,7 +707,117 @@ class Core(CorePluginBase):
       data["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
+  # Section: Preference: Queries
+
+  @export
+  @init_check
+  def get_options(self, label_id):
+
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    return self._labels[label_id]["data"]
+
+
+  @export
+  @init_check
+  def get_preferences(self):
+
+    return self._prefs
+
+
+  # Section: Preference: Modifiers
+
+  @export
+  @init_check
+  def set_options(self, label_id, options_in):
+
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    retroactive = options_in.get("tmp_auto_retroactive", False)
+    unlabeled_only = options_in.get("tmp_auto_unlabeled", True)
+
+    options = self._labels[label_id]["data"]
+
+    old_download = options["download_settings"]
+    old_move = options["move_data_completed"]
+    old_move_path = options["move_data_completed_path"]
+
+    self._normalize_label_data(options_in)
+    options.update(options_in)
+
+    self._config.save()
+
+    for id in self._index[label_id]["torrents"]:
+      self._apply_torrent_options(id)
+
+    if label_id in self._shared_limit_index:
+      self._shared_limit_index.remove(label_id)
+
+    if options["bandwidth_settings"] and options["shared_limit_on"]:
+      self._shared_limit_index.append(label_id)
+
+    # Make sure descendent labels are updated if path changed
+    if old_move_path != options["move_data_completed_path"]:
+      self._propagate_path_to_descendents(label_id)
+
+      self._config.save()
+
+      if self._prefs["options"]["move_on_changes"]:
+        self._subtree_move_completed(label_id)
+    else:
+      # If move completed was just turned on...
+      if (options["download_settings"] and
+          options["move_data_completed"] and
+          (not old_download or not old_move) and
+          self._prefs["options"]["move_on_changes"]):
+        self._do_move_completed(label_id, self._index[label_id]["torrents"])
+
+    if options["auto_settings"] and retroactive:
+      autolabel = []
+      for torrent_id in self._torrents:
+        if not unlabeled_only or torrent_id not in self._mappings:
+          if self._has_auto_apply_match(label_id, torrent_id):
+            autolabel.append(torrent_id)
+
+      if autolabel:
+        self.set_torrent_labels(label_id, autolabel)
+
+    self._last_modified = datetime.datetime.now()
+    self._config.save()
+
+
+  @export
+  @init_check
+  def set_preferences(self, prefs):
+
+    self._normalize_options(prefs["options"])
+    self._prefs["options"].update(prefs["options"])
+
+    self._normalize_label_data(prefs["defaults"])
+    self._prefs["defaults"].update(prefs["defaults"])
+
+    self._last_modified = datetime.datetime.now()
+    self._config.save()
+
+
   # Section: Label: Queries
+
+  @export
+  @init_check
+  def get_parent_path(self, label_id):
+
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    parent_id = labelplus.common.get_parent(label_id)
+    if parent_id == NULL_PARENT:
+      path = self._get_default_save_path()
+    else:
+      path = self._labels[parent_id]["data"]["move_data_completed_path"]
+
+    return path
 
   def _get_unused_id(self, parent_id):
 
@@ -741,6 +861,20 @@ class Core(CorePluginBase):
     return names
 
 
+  @export
+  @init_check
+  def get_label_data(self, timestamp):
+
+    if timestamp:
+      t = cPickle.loads(timestamp)
+    else:
+      t = datetime.datetime(1, 1, 1)
+
+    if t < self._last_modified:
+      return (cPickle.dumps(self._last_modified), self._get_label_counts())
+    else:
+      return None
+
   def _get_label_counts(self):
 
     label_count = 0
@@ -779,7 +913,117 @@ class Core(CorePluginBase):
     return counts
 
 
+  @export
+  @init_check
+  def get_label_bandwidth_usage(self, label_id, sublabels=False):
+
+    if (label_id != ID_NONE and label_id in RESERVED_IDS or
+        label_id not in self._labels):
+      raise ValueError("Unknown label: %r" % label_id)
+
+    if not label_id:
+      label_id = ID_NONE
+
+    labels = [label_id]
+
+    if label_id != ID_NONE and sublabels:
+      labels += self._get_descendent_labels(label_id)
+
+    active_torrents = self._get_labeled_torrents_status(
+      labels, {"state": ["Seeding", "Downloading"]},
+      ["download_payload_rate", "upload_payload_rate"])
+
+    return self._get_bandwidth_usage(active_torrents)
+
+
   # Section: Label: Modifiers
+
+  @export
+  @init_check
+  def add_label(self, parent_id, label_name):
+
+    if parent_id != NULL_PARENT and parent_id not in self._labels:
+      raise ValueError("Unknown label: %r" % parent_id)
+
+    label_name = label_name.strip()
+    self._validate_name(parent_id, label_name)
+
+    id = self._get_unused_id(parent_id)
+    self._index[parent_id]["children"].append(id)
+
+    self._labels[id] = {
+      "name": label_name,
+      "data": copy.deepcopy(self._prefs["defaults"]),
+    }
+
+    self._index[id] = {
+      "children": [],
+      "torrents": [],
+    }
+
+    options = self._labels[id]["data"]
+    mode = options["move_data_completed_mode"]
+    if mode != "folder":
+      path = self.get_parent_path(id)
+
+      if mode == "subfolder":
+        path = os.path.join(path, label_name)
+
+      options["move_data_completed_path"] = path
+
+    self._build_label_ancestry(id)
+
+    self._last_modified = datetime.datetime.now()
+    self._config.save()
+
+    return id
+
+
+  @export
+  @init_check
+  def remove_label(self, label_id):
+
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    self._remove_label(label_id)
+
+    parent_id = labelplus.common.get_parent(label_id)
+    self._index[parent_id]["children"].remove(label_id)
+
+    self._last_modified = datetime.datetime.now()
+    self._config.save()
+
+
+  @export
+  @init_check
+  def rename_label(self, label_id, label_name):
+
+    if label_id in RESERVED_IDS or label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    label_name = label_name.strip()
+    self._validate_name(labelplus.common.get_parent(label_id), label_name)
+
+    obj = self._labels[label_id]
+    obj["name"] = label_name
+
+    self._clear_subtree_ancestry(label_id)
+
+    if obj["data"]["move_data_completed_mode"] == "subfolder":
+      path = os.path.join(self.get_parent_path(label_id), label_name)
+      obj["data"]["move_data_completed_path"] = path
+
+      self._apply_data_completed_path(label_id)
+      self._propagate_path_to_descendents(label_id)
+
+    self._last_modified = datetime.datetime.now()
+    self._config.save()
+
+    if (obj["data"]["move_data_completed_mode"] == "subfolder" and
+        self._prefs["options"]["move_on_changes"]):
+      self._subtree_move_completed(label_id)
+
 
   def _remove_label(self, label_id):
 
@@ -917,6 +1161,12 @@ class Core(CorePluginBase):
 
   # Section: Label-Torrent: Queries
 
+  @export
+  @init_check
+  def get_torrent_label(self, torrent_id):
+
+    return self._get_torrent_label(torrent_id)
+
   def _get_torrent_label(self, torrent_id):
 
     return self._mappings.get(torrent_id) or ""
@@ -1029,6 +1279,28 @@ class Core(CorePluginBase):
 
 
   # Section: Label-Torrent: Modifiers
+
+  @export
+  @init_check
+  def set_torrent_labels(self, label_id, torrent_list):
+
+    if not label_id:
+      label_id = ID_NONE
+
+    if (label_id != ID_NONE and label_id in RESERVED_IDS or
+        label_id not in self._labels):
+      raise ValueError("Unknown label: %r" % label_id)
+
+    torrents = [t for t in torrent_list if t in self._torrents]
+    for id in torrents:
+      self._set_torrent_label(id, label_id)
+
+    self._last_modified = datetime.datetime.now()
+    self._config.save()
+
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed(label_id, torrents)
+
 
   def _set_torrent_label(self, torrent_id, label_id):
 
