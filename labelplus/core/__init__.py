@@ -55,6 +55,8 @@ from deluge.core.rpcserver import export
 from deluge.plugins.pluginbase import CorePluginBase
 
 import labelplus.common
+import labelplus.common.config
+import labelplus.core.config
 
 from labelplus.common import (
   PLUGIN_NAME, MODULE_NAME,
@@ -102,11 +104,9 @@ class Core(CorePluginBase):
     log.debug("Initializing Core...")
 
     self._core = deluge.configmanager.ConfigManager("core.conf")
-    self._config = deluge.configmanager.ConfigManager(
-        CORE_CONFIG, defaults=CONFIG_DEFAULTS)
+    self._config = self._load_config()
 
     self._prefs = self._config["prefs"]
-
     self._labels = self._config["labels"]
     self._mappings = self._config["mappings"]
 
@@ -483,13 +483,18 @@ class Core(CorePluginBase):
       defaults=copy.deepcopy(CONFIG_DEFAULTS))
 
     ver = labelplus.common.config.get_version(config)
-    if ver != labelplus.common.config.CONFIG_VERSION:
-      key = (ver, labelplus.common.config.CONFIG_VERSION)
-      map = labelplus.common.config.CONFIG_MAPS.get(key)
-      if not map:
-        raise ValueError("Config file conversion v%s -> v%s unsupported" % key)
+    while ver != labelplus.core.config.CONFIG_VERSION:
+      if ver < labelplus.core.config.CONFIG_VERSION:
+        key = (ver, ver+1)
       else:
-        labelplus.common.configconverter.convert(map, config)
+        key = (ver, ver-1)
+
+      spec = labelplus.core.config.CONFIG_SPECS.get(key)
+      if spec:
+        labelplus.common.config.convert(spec, config)
+        ver = labelplus.common.config.get_version(config)
+      else:
+        raise ValueError("Config file conversion v%s->v%s unsupported" % key)
 
     for key in config.config.keys():
       if key not in CONFIG_DEFAULTS:
