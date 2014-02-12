@@ -82,7 +82,7 @@ def init_check(func):
   def wrap(*args, **kwargs):
 
     if len(args) > 0 and isinstance(args[0], Core):
-      if not args[0].initialized:
+      if not args[0]._initialized:
         raise RuntimeError("Plugin %r not initialized" % PLUGIN_NAME)
 
     return func(*args, **kwargs)
@@ -96,7 +96,7 @@ class Core(CorePluginBase):
   def __init__(self, plugin_name):
 
     super(Core, self).__init__(plugin_name)
-    self.initialized = False
+    self._initialized = False
 
 
   def enable(self):
@@ -125,7 +125,7 @@ class Core(CorePluginBase):
     component.get("EventManager").deregister_event_handler(
         "SessionStartedEvent", self._initialize)
 
-    self.initialized = False
+    self._initialized = False
 
     self._config.save()
     deluge.configmanager.close(CORE_CONFIG)
@@ -151,7 +151,7 @@ class Core(CorePluginBase):
   @export
   def is_initialized(self):
 
-    return self.initialized
+    return self._initialized
 
 
   @export
@@ -531,7 +531,7 @@ class Core(CorePluginBase):
         "torrent_finished_alert", self.on_torrent_finished)
 
     self._last_modified = datetime.datetime.now()
-    self.initialized = True
+    self._initialized = True
 
     reactor.callLater(1, self._shared_limit_update)
 
@@ -1084,7 +1084,7 @@ class Core(CorePluginBase):
 
   def _shared_limit_update(self):
 
-    if self.initialized:
+    if self._initialized:
       for id in self._shared_limit_index:
         self._do_update_shared_limit(id)
 
