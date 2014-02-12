@@ -1,5 +1,5 @@
 #
-# configconverter.py
+# config.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
@@ -35,6 +35,11 @@
 
 
 import copy
+
+
+def get_version(config):
+
+  return config._Config__version["file"]
 
 
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,

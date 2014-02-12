@@ -54,11 +54,6 @@ ID_NONE = "None"
 RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
 
 
-def get_config_version(config):
-
-  return config._Config__version["file"]
-
-
 def get_resource(filename):
 
   return pkg_resources.resource_filename(
