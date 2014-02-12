@@ -1,7 +1,7 @@
 /*!
  * labelplus.js
  *
- * Copyright (c) Ratanak Lun 2013 <ratanakvlun@gmail.com>
+ * Copyright (c) Ratanak Lun 2014 <ratanakvlun@gmail.com>
  * Copyright (c) Damien Churchill 2010 <damoxc@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 
 PLUGIN_NAME = "LabelPlus";
 MODULE_NAME = "labelplus";
-DISPLAY_NAME = _("Label Plus");
+DISPLAY_NAME = "LabelPlus";
 
 STATUS_NAME = MODULE_NAME + "_name";
 
