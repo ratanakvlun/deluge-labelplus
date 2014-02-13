@@ -769,18 +769,19 @@ class Core(CorePluginBase):
 
     label = self._labels[label_id]
     label["name"] = label_name
+    options = label["data"]
 
-    self._clear_subtree_ancestry(label_id)
+    self._remove_full_label_name_index(label_id)
 
-    if label["data"]["move_data_completed_mode"] == "subfolder":
+    if options["move_data_completed_mode"] == "subfolder":
       path = os.path.join(self._get_parent_move_path(label_id), label_name)
-      label["data"]["move_data_completed_path"] = path
+      options["move_data_completed_path"] = path
 
-      self._apply_data_completed_path(label_id)
-      self._propagate_path_to_descendents(label_id)
+      self._apply_move_completed_path(label_id)
+      self._update_descendent_paths(label_id)
 
     if (self._prefs["options"]["move_on_changes"] and
-        label["data"]["move_data_completed_mode"] == "subfolder"):
+        options["move_data_completed_mode"] == "subfolder"):
       self._subtree_move_completed(label_id)
 
 
