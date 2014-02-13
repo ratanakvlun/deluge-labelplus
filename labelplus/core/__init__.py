@@ -153,8 +153,9 @@ class Core(CorePluginBase):
 
     self._torrents = component.get("TorrentManager").torrents
 
-    self._initialize_data()
+    self._remove_reserved_ids()
     self._build_index()
+    self._initialize_data()
     self._remove_orphans()
 
     component.get("FilterManager").register_filter(
@@ -183,38 +184,27 @@ class Core(CorePluginBase):
 
   def _initialize_data(self):
 
-    for id in self._mappings.keys():
-      if id not in self._torrents or self._mappings[id] not in self._labels:
-        del self._mappings[id]
-
-    for id in RESERVED_IDS:
-      if id in self._labels:
-        del self._labels[id]
+    self._normalize_options(self._prefs["options"])
+    self._normalize_label_data(self._prefs["defaults"])
 
     for id in self._labels:
       self._normalize_label_data(self._labels[id]["data"])
 
-    self._labels[NULL_PARENT] = {
-      "name": None,
-      "data": None,
-    }
+    for id in self._mappings.keys():
+      if id not in self._torrents:
+        del self._mappings[id]
+        continue
 
-    self._normalize_options(self._prefs["options"])
-    self._normalize_label_data(self._prefs["defaults"])
-
-    self._config.save()
+      if self._mappings[id] in self._labels:
+        self._apply_torrent_options(id)
+      else:
+        self._reset_torrent_options(id)
+        del self._mappings[id]
 
 
   def _build_index(self):
 
-    index = {}
-    shared_limit_index = []
-
-    for id in self._labels:
-      if id not in RESERVED_IDS and (
-          self._labels[id]["data"]["bandwidth_settings"] and
-          self._labels[id]["data"]["shared_limit_on"]):
-        shared_limit_index.append(id)
+    def build_label_index(id):
 
       children = []
       torrents = []
@@ -229,10 +219,23 @@ class Core(CorePluginBase):
         if self._mappings[torrent_id] == id:
           torrents.append(torrent_id)
 
-      index[id] = {
+      label_index = {
         "children": children,
         "torrents": torrents,
       }
+
+      return label_index
+
+
+    index = {}
+    shared_limit_index = []
+
+    for id in self._labels:
+      index[id] = build_label_index(id)
+
+      if (self._labels[id]["data"]["bandwidth_settings"] and
+          self._labels[id]["data"]["shared_limit_on"]):
+        shared_limit_index.append(id)
 
     self._index = index
     self._shared_limit_index = shared_limit_index
@@ -244,15 +247,21 @@ class Core(CorePluginBase):
   def _remove_orphans(self):
 
     removals = []
-    for id in self._labels:
-      if id == NULL_PARENT: continue
 
+    for id in self._labels:
       parent_id = labelplus.common.get_parent(id)
-      if not self._labels.get(parent_id):
+      if parent_id != NULL_PARENT and parent_id not in self._labels:
         removals.append(id)
 
     for id in removals:
       self._remove_label(id)
+
+
+  def _remove_reserved_ids(self):
+
+    for id in RESERVED_IDS:
+      if id in self._labels:
+        del self._labels[id]
 
 
   # Section: Deinitialization
@@ -1032,7 +1041,6 @@ class Core(CorePluginBase):
 
     for id in self._index[label_id]["torrents"]:
       self._reset_torrent_options(id)
-
       del self._mappings[id]
 
     del self._index[label_id]
@@ -1339,9 +1347,6 @@ class Core(CorePluginBase):
 
   def _reset_torrent_options(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id)
-
-    options = self._labels[label_id]["data"]
     torrent = self._torrents[torrent_id]
 
     # Download settings
