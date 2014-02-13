@@ -1124,15 +1124,16 @@ class Core(CorePluginBase):
 
   # Section: Torrent: Queries
 
-  def _get_bandwidth_usage(self, torrents):
+  def _get_torrent_bandwidth_usage(self, torrents):
 
     download_rate_sum = 0.0
     upload_rate_sum = 0.0
 
     for torrent in torrents:
-      status = torrents[torrent]
-      download_rate_sum += status["download_payload_rate"]
-      upload_rate_sum += status["upload_payload_rate"]
+      if torrent in self._torrents:
+        status = torrents[torrent]
+        download_rate_sum += status["download_payload_rate"]
+        upload_rate_sum += status["upload_payload_rate"]
 
     return (download_rate_sum, upload_rate_sum)
 
