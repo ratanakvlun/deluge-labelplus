@@ -737,6 +737,7 @@ class Core(CorePluginBase):
     }
 
     self._index[id] = {
+      "full_name": self._build_full_label_name(id),
       "children": [],
       "torrents": [],
     }
@@ -751,7 +752,6 @@ class Core(CorePluginBase):
 
       options["move_data_completed_path"] = path
 
-    self._build_label_ancestry(id)
 
     return id
 
