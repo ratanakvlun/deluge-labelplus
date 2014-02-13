@@ -197,7 +197,7 @@ class Core(CorePluginBase):
 
     self._initialized = True
 
-    reactor.callLater(1, self._shared_limit_update)
+    reactor.callLater(1, self._shared_limit_update_loop)
 
     log.debug("Core initialized")
 
@@ -217,9 +217,10 @@ class Core(CorePluginBase):
       torrents = []
 
       for child_id in self._labels:
-        if child_id == id: continue
+        if child_id == id:
+          continue
 
-        if labelplus.common.get_parent(child_id) == id:
+        if labelplus.common.get_parent_id(child_id) == id:
           children.append(child_id)
 
       for torrent_id in self._mappings:
@@ -261,7 +262,7 @@ class Core(CorePluginBase):
       if id in self._torrents and self._mappings[id] in self._labels:
         self._apply_torrent_options(id)
       else:
-        self._remove_torrent_mapping(id)
+        self._remove_torrent_label(id)
 
 
   def _remove_orphans(self):
@@ -269,7 +270,7 @@ class Core(CorePluginBase):
     removals = []
 
     for id in self._labels:
-      parent_id = labelplus.common.get_parent(id)
+      parent_id = labelplus.common.get_parent_id(id)
       if parent_id != NULL_PARENT and parent_id not in self._labels:
         removals.append(id)
 
@@ -491,7 +492,7 @@ class Core(CorePluginBase):
 
     if torrent_id in self._mappings:
       label_id = self._mappings[torrent_id]
-      self._remove_torrent_mapping(torrent_id)
+      self._remove_torrent_label(torrent_id)
       log.debug("Torrent %r removed from label %r", torrent_id, label_id)
 
       self._timestamp["mappings_changed"] = datetime.datetime.now()
@@ -825,7 +826,7 @@ class Core(CorePluginBase):
 
   def _remove_label(self, label_id):
 
-    parent_id = labelplus.common.get_parent(label_id)
+    parent_id = labelplus.common.get_parent_id(label_id)
     if parent_id in self._index:
       self._index[parent_id]["children"].remove(label_id)
 
@@ -833,7 +834,7 @@ class Core(CorePluginBase):
       self._remove_label(id)
 
     for id in list(self._index[label_id]["torrents"]):
-      self._remove_torrent_mapping(id)
+      self._remove_torrent_label(id)
 
     del self._index[label_id]
     del self._labels[label_id]
@@ -1098,9 +1099,10 @@ class Core(CorePluginBase):
       log.debug("Torrent %r is labeled %r", torrent_id, label_id)
 
 
-  def _remove_torrent_mapping(self, torrent_id):
+  def _remove_torrent_label(self, torrent_id):
 
     label_id = self._mappings[torrent_id]
+
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
 
@@ -1176,8 +1178,7 @@ class Core(CorePluginBase):
     if torrent_id not in self._torrents:
       return
 
-    label_id = self._mappings.get(torrent_id)
-
+    label_id = self._mappings[torrent_id]
     options = self._labels[label_id]["data"]
     torrent = self._torrents[torrent_id]
 
