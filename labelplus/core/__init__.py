@@ -992,37 +992,22 @@ class Core(CorePluginBase):
     return name
 
 
-  def _has_auto_apply_match(self, label_id, torrent_id):
-
-    uses_regex = self._prefs["options"]["autolabel_uses_regex"]
-
-    name = self._torrents[torrent_id].get_status(["name"])["name"]
-    trackers = tuple(t["url"] for t in self._torrents[torrent_id].trackers)
+  def _has_autolabel_match(self, label_id, torrent_id):
 
     options = self._labels[label_id]["data"]
-    for line in options["auto_queries"]:
-      if uses_regex:
-        re_line = re.compile(line)
-      else:
-        terms = line.split()
 
-      if options["auto_name"]:
-        if uses_regex:
-          match = re_line.search(name)
-          if match:
-            return True
-        elif all(t in name for t in terms):
-          return True
-      elif options["auto_tracker"]:
-        for tracker in trackers:
-          if uses_regex:
-            match = re_line.search(tracker)
-            if match:
-              return True
-          elif all(t in tracker for t in terms):
-            return True
+    rules = options["autolabel_rules"]
+    match_all = options["autolabel_match_all"]
 
-    return False
+    name = self._torrents[torrent_id].get_status(["name"])["name"]
+    trackers = [t["url"] for t in self._torrents[torrent_id].trackers]
+
+    props = {
+      "Name": [name],
+      "Tracker": trackers,
+    }
+
+    return labelplus.common.autolabel.find_match(props, rules, match_all)
 
 
   def _filter_by_label(self, torrent_ids, label_ids, include_children=False):
