@@ -78,7 +78,7 @@ LOG_FILTER = PluginPrefixFilter()
 
 # Label
 
-def get_parent(label_id):
+def get_parent_id(label_id):
 
   return label_id.rpartition(":")[0]
 
@@ -98,7 +98,7 @@ RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
 def validate_name(label_name):
 
   if not label_name:
-    raise ValueError("Empty Label")
+    raise ValueError("Empty label")
 
   if RE_INVALID_CHARS.search(label_name):
     raise ValueError("Invalid characters")
