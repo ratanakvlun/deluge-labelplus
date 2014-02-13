@@ -979,7 +979,7 @@ class Core(CorePluginBase):
       return ""
 
     if self._prefs["options"]["show_full_name"]:
-      name = self._get_label_ancestry(label_id)
+      name = self._get_full_label_name(label_id)
     else:
       name = self._labels[label_id]["name"]
 
@@ -1019,19 +1019,16 @@ class Core(CorePluginBase):
     return False
 
 
-  def _filter_by_label(self, torrent_ids, label_ids):
+  def _filter_by_label(self, torrent_ids, label_ids, include_children=False):
 
     filtered = []
 
     for id in torrent_ids:
-      label_id = self._mappings.get(id)
+      label_id = self._mappings.get(id, ID_NONE)
 
-      if not label_id:
-        if ID_NONE in label_ids:
-          filtered.append(id)
-      elif label_id in label_ids:
+      if label_id in label_ids:
         filtered.append(id)
-      elif self._prefs["options"]["include_children"]:
+      elif include_children:
         if any(x for x in label_ids if
             labelplus.common.is_ancestor(x, label_id)):
           filtered.append(id)
@@ -1039,7 +1036,7 @@ class Core(CorePluginBase):
     return filtered
 
 
-  def _get_labeled_torrents_status(self, label_ids, filters, fields):
+  def _get_torrent_status_by_label(self, label_ids, filters, fields):
 
     filtered_torrents = {}
     torrents = []
@@ -1050,10 +1047,7 @@ class Core(CorePluginBase):
       torrents = self._filter_by_label(self._torrents.keys(), label_ids)
     else:
       for label_id in label_ids:
-        if label_id in self._index:
-          for id in self._index[label_id]["torrents"]:
-            if id not in torrents:
-              torrents.append(id)
+        torrents.extend(self._index[label_id]["torrents"])
 
     for filter in filters:
       if filter not in fields:
@@ -1084,7 +1078,7 @@ class Core(CorePluginBase):
 
     for label_id in labels:
       if self._labels[label_id]["data"]["auto_settings"]:
-        if self._has_auto_apply_match(label_id, torrent_id):
+        if self._has_autolabel_match(label_id, torrent_id):
           return label_id
 
     return None
