@@ -183,9 +183,9 @@ class Core(CorePluginBase):
         STATUS_ID, self.filter_by_label)
 
     component.get("CorePluginManager").register_status_field(
-        STATUS_NAME, self._get_torrent_label_name)
+        STATUS_NAME, self.get_torrent_label_name)
     component.get("CorePluginManager").register_status_field(
-        STATUS_ID, self._get_torrent_label)
+        STATUS_ID, self.get_torrent_label)
 
     component.get("EventManager").register_event_handler(
         "TorrentAddedEvent", self.on_torrent_added)
@@ -324,7 +324,7 @@ class Core(CorePluginBase):
           del server.factory.methods[method]
 
 
-  # Section: Public API
+  # Section: Public Interface
 
   @export
   def is_initialized(self):
@@ -475,7 +475,7 @@ class Core(CorePluginBase):
     return self._get_daemon_info()
 
 
-  # Section: Callbacks
+  # Section: Public Callbacks
 
   def on_torrent_added(self, torrent_id):
 
@@ -513,6 +513,11 @@ class Core(CorePluginBase):
 
     include_children = self._prefs["options"]["include_children"]
     self._filter_by_label(torrent_ids, label_ids, include_children)
+
+
+  def get_torrent_label_name(self, torrent_id):
+
+    return self._get_torrent_label_name(torrent_id)
 
 
   # Section: General
