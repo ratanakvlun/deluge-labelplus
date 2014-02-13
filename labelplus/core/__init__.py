@@ -520,7 +520,7 @@ class Core(CorePluginBase):
   def filter_by_label(self, torrent_ids, label_ids):
 
     include_children = self._prefs["options"]["include_children"]
-    self._filter_by_label(torrent_ids, label_ids, include_children)
+    return self._filter_by_label(torrent_ids, label_ids, include_children)
 
 
   # Section: General
