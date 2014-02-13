@@ -965,17 +965,11 @@ class Core(CorePluginBase):
         torrent.set_max_upload_speed(limit)
 
 
-  # Section: Label-Torrent: Queries
-
-  @export
-  @init_check
-  def get_torrent_label(self, torrent_id):
-
-    return self._get_torrent_label(torrent_id)
+  # Section: Label: Mapping: Queries
 
   def _get_torrent_label(self, torrent_id):
 
-    return self._mappings.get(torrent_id) or ""
+    return self._mappings.get(torrent_id) or ID_NONE
 
 
   def _get_torrent_label_name(self, torrent_id):
@@ -1096,7 +1090,7 @@ class Core(CorePluginBase):
     return None
 
 
-  # Section: Label-Torrent: Modifiers
+  # Section: Label: Mapping: Modifiers
 
   @export
   @init_check
