@@ -139,8 +139,12 @@ class Core(CorePluginBase):
 
   def _load_config(self):
 
-    config = deluge.configmanager.ConfigManager(CORE_CONFIG,
-      defaults=copy.deepcopy(CONFIG_DEFAULTS))
+    config = deluge.configmanager.ConfigManager(CORE_CONFIG)
+
+    if not config.config:
+      config.config.update(copy.deepcopy(CONFIG_DEFAULTS))
+      labelplus.common.config.set_version(config,
+        labelplus.core.config.CONFIG_VERSION)
 
     ver = labelplus.common.config.get_version(config)
     while ver != labelplus.core.config.CONFIG_VERSION:
@@ -151,7 +155,7 @@ class Core(CorePluginBase):
 
       spec = labelplus.core.config.CONFIG_SPECS.get(key)
       if spec:
-        labelplus.common.config.convert(spec, config)
+        labelplus.common.config.convert(spec, config, strict_paths=True)
         ver = labelplus.common.config.get_version(config)
       else:
         raise ValueError("Config file conversion v%s->v%s unsupported" % key)
