@@ -502,10 +502,9 @@ class Core(CorePluginBase):
     self._normalize_options(prefs["options"])
     self._prefs["options"].update(prefs["options"])
 
-    self._normalize_label_data(prefs["defaults"])
+    self._normalize_label_options(prefs["defaults"])
     self._prefs["defaults"].update(prefs["defaults"])
 
-    self._last_modified = datetime.datetime.now()
     self._config.save()
 
 
@@ -698,101 +697,6 @@ class Core(CorePluginBase):
 
     if options["stop_ratio"] < 0.0:
       options["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
-
-
-  # Section: Preference: Queries
-
-  @export
-  @init_check
-  def get_options(self, label_id):
-
-    if label_id in RESERVED_IDS or label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    return self._labels[label_id]["data"]
-
-
-  @export
-  @init_check
-  def get_preferences(self):
-
-    return self._prefs
-
-
-  # Section: Preference: Modifiers
-
-  @export
-  @init_check
-  def set_options(self, label_id, options_in):
-
-    if label_id in RESERVED_IDS or label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    retroactive = options_in.get("tmp_auto_retroactive", False)
-    unlabeled_only = options_in.get("tmp_auto_unlabeled", True)
-
-    options = self._labels[label_id]["data"]
-
-    old_download = options["download_settings"]
-    old_move = options["move_data_completed"]
-    old_move_path = options["move_data_completed_path"]
-
-    self._normalize_label_data(options_in)
-    options.update(options_in)
-
-    self._config.save()
-
-    for id in self._index[label_id]["torrents"]:
-      self._apply_torrent_options(id)
-
-    if label_id in self._shared_limit_index:
-      self._shared_limit_index.remove(label_id)
-
-    if options["bandwidth_settings"] and options["shared_limit_on"]:
-      self._shared_limit_index.append(label_id)
-
-    # Make sure descendent labels are updated if path changed
-    if old_move_path != options["move_data_completed_path"]:
-      self._propagate_path_to_descendents(label_id)
-
-      self._config.save()
-
-      if self._prefs["options"]["move_on_changes"]:
-        self._subtree_move_completed(label_id)
-    else:
-      # If move completed was just turned on...
-      if (options["download_settings"] and
-          options["move_data_completed"] and
-          (not old_download or not old_move) and
-          self._prefs["options"]["move_on_changes"]):
-        self._do_move_completed(label_id, self._index[label_id]["torrents"])
-
-    if options["auto_settings"] and retroactive:
-      autolabel = []
-      for torrent_id in self._torrents:
-        if not unlabeled_only or torrent_id not in self._mappings:
-          if self._has_auto_apply_match(label_id, torrent_id):
-            autolabel.append(torrent_id)
-
-      if autolabel:
-        self.set_torrent_labels(label_id, autolabel)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
-
-
-  @export
-  @init_check
-  def set_preferences(self, prefs):
-
-    self._normalize_options(prefs["options"])
-    self._prefs["options"].update(prefs["options"])
-
-    self._normalize_label_data(prefs["defaults"])
-    self._prefs["defaults"].update(prefs["defaults"])
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
 
 
   # Section: Label: Queries
