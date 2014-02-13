@@ -1247,15 +1247,6 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Move Completed: Execution
 
-  def _subtree_move_completed(self, parent_id):
-
-    if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed(parent_id, self._index[parent_id]["torrents"])
-
-    for id in self._index[parent_id]["children"]:
-      self._subtree_move_completed(id)
-
-
   def _do_move_completed(self, label_id, torrent_list):
 
     if label_id in self._labels:
@@ -1266,18 +1257,31 @@ class Core(CorePluginBase):
         return
 
       dest_path = options["move_data_completed_path"]
-    else:
+    elif label_id == ID_NONE:
       dest_path = self._get_deluge_move_path()
+    else:
+      return
 
     move_list = []
+
     for tid in torrent_list:
-      torrent = self._torrents.get(tid)
-      if torrent:
-        path = torrent.get_status(["save_path"])["save_path"]
-        if path != dest_path:
-          move_list.append(tid)
+      if tid not in self._torrents:
+        continue
+
+      torrent = self._torrents[tid]
+      path = torrent.get_status(["save_path"])["save_path"]
+      if path != dest_path:
+        move_list.append(tid)
 
     try:
       component.get("CorePlugin.MoveTools").move_completed(move_list)
     except KeyError:
       pass
+
+
+  def _do_move_completed_cascade(self, label_id):
+
+    self._do_move_completed(label_id, self._index[label_id]["torrents"])
+
+    for id in self._index[label_id]["children"]:
+      self._do_move_completed_cascade(id)
