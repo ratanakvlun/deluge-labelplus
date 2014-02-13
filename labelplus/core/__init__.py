@@ -598,46 +598,27 @@ class Core(CorePluginBase):
 
   def on_torrent_added(self, torrent_id):
 
-    def cmp_len_then_value(x, y):
+    label_id = self._find_autolabel_match(torrent_id)
+    if label_id:
+      self._set_torrent_label(torrent_id, label_id)
+      log.debug("Torrent %r is labeled %r", torrent_id, label_id)
 
-      if len(x) > len(y): return -1
-      if len(x) < len(y): return 1
-      return cmp(x, y)
-
-    labels = sorted(self._labels, cmp=cmp_len_then_value)
-
-    for label_id in labels:
-      if label_id == NULL_PARENT: continue
-
-      if self._labels[label_id]["data"]["auto_settings"]:
-        if self._has_auto_apply_match(label_id, torrent_id):
-          self._set_torrent_label(torrent_id, label_id)
-          log.debug("Torrent %r is labeled %r", torrent_id, label_id)
-
-          self._config.save()
-
-          break
-
-    self._last_modified = datetime.datetime.now()
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def on_torrent_removed(self, torrent_id):
 
     if torrent_id in self._mappings:
       label_id = self._mappings[torrent_id]
-      self._index[label_id]["torrents"].remove(torrent_id)
-      del self._mappings[torrent_id]
+      self._remove_torrent_mapping(torrent_id)
       log.debug("Torrent %r removed from label %r", torrent_id, label_id)
 
-      self._config.save()
-
-    self._last_modified = datetime.datetime.now()
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def on_torrent_finished(self, alert):
 
     torrent_id = str(alert.handle.info_hash())
-
     if torrent_id in self._mappings:
       log.debug("Labeled torrent %r has finished", torrent_id)
 
