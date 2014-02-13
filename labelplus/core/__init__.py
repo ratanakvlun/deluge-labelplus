@@ -375,16 +375,16 @@ class Core(CorePluginBase):
   @init_check
   def remove_label(self, label_id):
 
-    if label_id in RESERVED_IDS or label_id not in self._labels:
+    if label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
+
+    count = len(self._index[label_id]["torrents"])
 
     self._remove_label(label_id)
 
-    parent_id = labelplus.common.get_parent(label_id)
-    self._index[parent_id]["children"].remove(label_id)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
+    self._timestamp["labels_changed"] = datetime.datetime.now()
+    if count:
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   @export
@@ -861,22 +861,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def remove_label(self, label_id):
-
-    if label_id in RESERVED_IDS or label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    self._remove_label(label_id)
-
-    parent_id = labelplus.common.get_parent(label_id)
-    self._index[parent_id]["children"].remove(label_id)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
-
-
-  @export
-  @init_check
   def rename_label(self, label_id, label_name):
 
     if label_id in RESERVED_IDS or label_id not in self._labels:
@@ -907,12 +891,15 @@ class Core(CorePluginBase):
 
   def _remove_label(self, label_id):
 
-    for id in self._index[label_id]["children"]:
+    parent_id = labelplus.common.get_parent(label_id)
+    if parent_id in self._index:
+      self._index[parent_id]["children"].remove(label_id)
+
+    for id in list(self._index[label_id]["children"]):
       self._remove_label(id)
 
-    for id in self._index[label_id]["torrents"]:
-      self._reset_torrent_options(id)
-      del self._mappings[id]
+    for id in list(self._index[label_id]["torrents"]):
+      self._remove_torrent_mapping(id)
 
     del self._index[label_id]
     del self._labels[label_id]
