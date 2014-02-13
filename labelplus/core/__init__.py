@@ -524,11 +524,20 @@ class Core(CorePluginBase):
     return info
 
 
-  def _get_default_save_path(self):
+  def _get_deluge_save_path(self):
 
     path = self._core["download_location"]
     if not path:
       path = deluge.common.get_default_download_dir()
+
+    return path
+
+
+  def _get_deluge_move_path(self):
+
+    path = self._core["move_completed_path"]
+    if not path:
+      path = self._get_deluge_save_path()
 
     return path
 
@@ -564,7 +573,7 @@ class Core(CorePluginBase):
 
     if not options["move_data_completed_path"]:
       options["move_data_completed_path"] = \
-        self._core["move_completed_path"] or self._get_default_save_path()
+        self._core["move_completed_path"] or self._get_deluge_move_path()
 
     for rule in list(options["autolabel_rules"]):
       if (rule[0] not in labelplus.common.autolabel.PROPS or
@@ -596,7 +605,7 @@ class Core(CorePluginBase):
     parent_id = labelplus.common.get_parent(label_id)
     if parent_id == NULL_PARENT:
       path = (self._core["move_completed_path"] or
-        self._get_default_save_path())
+        self._get_deluge_move_path())
     else:
       path = self._labels[parent_id]["data"]["move_data_completed_path"]
 
@@ -1206,7 +1215,7 @@ class Core(CorePluginBase):
 
   # Section: Torrent: Move Completed: Modifiers
 
-  def _apply_data_completed_path(self, label_id):
+  def _apply_move_completed_path(self, label_id):
 
     for id in self._index[label_id]["torrents"]:
       self._torrents[id].set_move_completed_path(
@@ -1214,7 +1223,6 @@ class Core(CorePluginBase):
 
 
   def _propagate_path_to_descendents(self, parent_id):
-
 
     def descend(parent_id):
       name = self._labels[parent_id]["name"]
@@ -1229,7 +1237,7 @@ class Core(CorePluginBase):
       options["move_data_completed_path"] = os.path.join(*move_path)
 
       if options["download_settings"] and options["move_data_completed"]:
-        self._apply_data_completed_path(parent_id)
+        self._apply_move_completed_path(parent_id)
 
       for id in self._index[parent_id]["children"]:
         descend(id)
@@ -1269,7 +1277,7 @@ class Core(CorePluginBase):
 
       dest_path = options["move_data_completed_path"]
     else:
-      dest_path = self._get_default_save_path()
+      dest_path = self._get_deluge_move_path()
 
     move_list = []
     for tid in torrent_list:
