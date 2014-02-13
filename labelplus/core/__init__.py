@@ -584,14 +584,9 @@ class Core(CorePluginBase):
 
 
   @export
-  @init_check
-  def get_daemon_vars(self):
+  def get_daemon_info(self):
 
-    vars = {
-      "os_path_module": os.path.__name__,
-    }
-
-    return vars
+    return self._get_daemon_info()
 
 
   # Section: Event Handlers
@@ -630,15 +625,14 @@ class Core(CorePluginBase):
 
   # Section: General
 
-  @export
-  @init_check
-  def get_daemon_vars(self):
+  def _get_daemon_info(self):
 
-    vars = {
-      "os_path_module": os.path.__name__,
+    info = {
+      "os_path": os.path.__name__,
     }
 
-    return vars
+    return info
+
 
   def _get_default_save_path(self):
 
