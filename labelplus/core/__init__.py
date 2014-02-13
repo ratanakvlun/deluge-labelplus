@@ -843,44 +843,39 @@ class Core(CorePluginBase):
     del self._labels[label_id]
 
 
-  # Section: Label: Ancestry
+  # Section: Label: Full Name
 
-  def _build_label_ancestry(self, label_id):
+  def _build_full_label_name(self, label_id):
 
-    members = []
-    member = label_id
-    while member and member != NULL_PARENT:
-      ancestry_str = self._index[member].get("ancestry")
-      if ancestry_str:
-        members.append(ancestry_str)
+    parts = []
+    id = label_id
 
-        break
+    while id and id != NULL_PARENT:
+      parts.append(self._labels[id]["name"])
+      id = labelplus.common.get_parent_id(id)
 
-      members.append(self._labels[member]["name"])
-      member = labelplus.common.get_parent(member)
+    full_name = "/".join(reversed(parts))
 
-    ancestry_str = "/".join(reversed(members))
-    self._index[label_id]["ancestry"] = ancestry_str
-
-    return ancestry_str
+    return full_name
 
 
-  def _get_label_ancestry(self, label_id):
+  def _get_full_label_name(self, label_id):
 
-    ancestry_str = self._index[label_id].get("ancestry")
-    if ancestry_str:
-      return ancestry_str
+    full_name = self._index[label_id].get("full_name")
+    if not full_name:
+      full_name = self._build_full_label_name(label_id)
+      self._index[label_id]["full_name"] = full_name
 
-    return self._build_label_ancestry(label_id)
+    return full_name
 
 
-  def _clear_subtree_ancestry(self, parent_id):
+  def _remove_full_label_name_index(self, parent_id):
 
-    if self._index[parent_id].get("ancestry") is not None:
-      del self._index[parent_id]["ancestry"]
+    if self._index[parent_id].get("full_name") is not None:
+      del self._index[parent_id]["full_name"]
 
     for id in self._index[parent_id]["children"]:
-      self._clear_subtree_ancestry(id)
+      self._remove_full_label_name_index(id)
 
 
   # Section: Label: Shared Limit
