@@ -596,17 +596,6 @@ class Core(CorePluginBase):
 
   # Section: Label: Queries
 
-  def _get_parent_move_path(self, label_id):
-
-    parent_id = labelplus.common.get_parent(label_id)
-    if parent_id == NULL_PARENT:
-      path = (self._core["move_completed_path"] or
-        self._get_deluge_move_path())
-    else:
-      path = self._labels[parent_id]["data"]["move_data_completed_path"]
-
-    return path
-
 
   def _get_unused_id(self, parent_id):
 
@@ -649,8 +638,15 @@ class Core(CorePluginBase):
     return descendents
 
 
+  def _get_parent_move_path(self, label_id):
 
+    parent_id = labelplus.common.get_parent_id(label_id)
+    if parent_id == NULL_PARENT:
+      path = self._get_deluge_move_path()
+    else:
+      path = self._labels[parent_id]["data"]["move_data_completed_path"]
 
+    return path
 
 
   def _get_label_bandwidth_usage(self, label_id, include_children=False):
