@@ -517,18 +517,12 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_parent_path(self, label_id):
+  def get_parent_move_path(self, label_id):
 
-    if label_id in RESERVED_IDS or label_id not in self._labels:
+    if label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
-    parent_id = labelplus.common.get_parent(label_id)
-    if parent_id == NULL_PARENT:
-      path = self._get_default_save_path()
-    else:
-      path = self._labels[parent_id]["data"]["move_data_completed_path"]
-
-    return path
+    return self._get_parent_move_path(label_id)
 
 
   @export
@@ -701,20 +695,17 @@ class Core(CorePluginBase):
 
   # Section: Label: Queries
 
-  @export
-  @init_check
-  def get_parent_path(self, label_id):
-
-    if label_id in RESERVED_IDS or label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+  def _get_parent_move_path(self, label_id):
 
     parent_id = labelplus.common.get_parent(label_id)
     if parent_id == NULL_PARENT:
-      path = self._get_default_save_path()
+      path = (self._core["move_completed_path"] or
+        self._get_default_save_path())
     else:
       path = self._labels[parent_id]["data"]["move_data_completed_path"]
 
     return path
+
 
   def _get_unused_id(self, parent_id):
 
