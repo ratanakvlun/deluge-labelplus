@@ -1165,6 +1165,20 @@ class Core(CorePluginBase):
     del self._mappings[torrent_id]
 
 
+  def _do_autolabel_torrents(self, label_id, apply_to_labeled=False):
+
+    torrents = []
+
+    for torrent_id in self._torrents:
+      if apply_to_labeled or torrent_id not in self._mappings:
+        if self._has_auto_apply_match(label_id, torrent_id):
+          torrents.append(torrent_id)
+
+    if torrents:
+      self.set_torrent_labels(label_id, torrents)
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
+
+
   # Section: Torrent: Queries
 
   def _get_bandwidth_usage(self, torrents):
