@@ -738,18 +738,6 @@ class Core(CorePluginBase):
       raise ValueError("Label already exists: %r" % label_name)
 
 
-  def _get_descendent_labels(self, label_id):
-
-    descendents = []
-
-    if label_id in self._index:
-      for child in self._index[label_id]["children"]:
-        descendents.append(child)
-        descendents += self._get_descendent_labels(child)
-
-    return descendents
-
-
   def _get_children_names(self, parent_id):
 
     names = []
@@ -759,7 +747,15 @@ class Core(CorePluginBase):
     return names
 
 
+  def _get_descendent_labels(self, label_id):
 
+    descendents = []
+
+    for child in self._index[label_id]["children"]:
+      descendents.append(child)
+      descendents += self._get_descendent_labels(child)
+
+    return descendents
 
 
   def _get_label_summary(self):
