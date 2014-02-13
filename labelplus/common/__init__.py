@@ -90,6 +90,11 @@ def is_ancestor(ancestor_id, label_id):
   return ancestor_id != label_id and label_id.startswith(prefix)
 
 
+def get_base_name(full_name):
+
+  return full_name.rpartition("/")[2]
+
+
 # Validation
 
 RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
