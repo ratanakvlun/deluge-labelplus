@@ -223,6 +223,7 @@ class Core(CorePluginBase):
           torrents.append(torrent_id)
 
       label_index = {
+        "full_name": self._build_full_label_name(id),
         "children": children,
         "torrents": torrents,
       }
@@ -242,9 +243,6 @@ class Core(CorePluginBase):
 
     self._index = index
     self._shared_limit_index = shared_limit_index
-
-    for id in self._labels:
-      self._build_label_ancestry(id)
 
 
   def _initialize_data(self):
