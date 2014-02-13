@@ -182,24 +182,11 @@ class Core(CorePluginBase):
     log.debug("Core initialized")
 
 
-  def _initialize_data(self):
+  def _remove_reserved_ids(self):
 
-    self._normalize_options(self._prefs["options"])
-    self._normalize_label_data(self._prefs["defaults"])
-
-    for id in self._labels:
-      self._normalize_label_data(self._labels[id]["data"])
-
-    for id in self._mappings.keys():
-      if id not in self._torrents:
-        del self._mappings[id]
-        continue
-
-      if self._mappings[id] in self._labels:
-        self._apply_torrent_options(id)
-      else:
-        self._reset_torrent_options(id)
-        del self._mappings[id]
+    for id in RESERVED_IDS:
+      if id in self._labels:
+        del self._labels[id]
 
 
   def _build_index(self):
@@ -244,6 +231,26 @@ class Core(CorePluginBase):
       self._build_label_ancestry(id)
 
 
+  def _initialize_data(self):
+
+    self._normalize_options(self._prefs["options"])
+    self._normalize_label_data(self._prefs["defaults"])
+
+    for id in self._labels:
+      self._normalize_label_data(self._labels[id]["data"])
+
+    for id in self._mappings.keys():
+      if id not in self._torrents:
+        del self._mappings[id]
+        continue
+
+      if self._mappings[id] in self._labels:
+        self._apply_torrent_options(id)
+      else:
+        self._reset_torrent_options(id)
+        del self._mappings[id]
+
+
   def _remove_orphans(self):
 
     removals = []
@@ -255,13 +262,6 @@ class Core(CorePluginBase):
 
     for id in removals:
       self._remove_label(id)
-
-
-  def _remove_reserved_ids(self):
-
-    for id in RESERVED_IDS:
-      if id in self._labels:
-        del self._labels[id]
 
 
   # Section: Deinitialization
