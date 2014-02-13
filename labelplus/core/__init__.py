@@ -56,6 +56,7 @@ from deluge.plugins.pluginbase import CorePluginBase
 
 import labelplus.common
 import labelplus.common.config
+import labelplus.common.autolabel
 import labelplus.core.config
 
 from labelplus.common import (
@@ -653,45 +654,50 @@ class Core(CorePluginBase):
 
     for key in OPTION_DEFAULTS:
       if key not in options:
-        options[key] = OPTION_DEFAULTS[key]
+        options[key] = copy.deepcopy(OPTION_DEFAULTS[key])
 
     if options["shared_limit_update_interval"] < 1:
       options["shared_limit_update_interval"] = 1
 
 
-  def _normalize_label_data(self, data):
+  def _normalize_label_options(self, options):
 
-    for key in data.keys():
+    for key in options.keys():
       if key not in LABEL_DEFAULTS:
-        del data[key]
+        del options[key]
 
     for key in LABEL_DEFAULTS:
-      if key not in data:
-        data[key] = LABEL_DEFAULTS[key]
+      if key not in options:
+        options[key] = copy.deepcopy(LABEL_DEFAULTS[key])
 
-    data["move_data_completed_path"] = \
-        data["move_data_completed_path"].strip()
-    if not data["move_data_completed_path"]:
-      data["move_data_completed_path"] = \
+    options["move_data_completed_path"] = \
+      options["move_data_completed_path"].strip()
+
+    if not options["move_data_completed_path"]:
+      options["move_data_completed_path"] = \
         self._core["move_completed_path"] or self._get_default_save_path()
 
-    queries = [line for line in data["auto_queries"] if line.strip()]
-    data["auto_queries"] = queries
+    for rule in list(options["autolabel_rules"]):
+      if (rule[0] not in labelplus.common.autolabel.PROPS or
+          rule[1] not in labelplus.common.autolabel.OPS or
+          rule[2] not in labelplus.common.autolabel.CASES or
+          not rule[3]):
+        options["autolabel_rules"].remove(rule)
 
-    if data["max_download_speed"] == 0.0:
-      data["max_download_speed"] = LABEL_DEFAULTS["max_download_speed"]
+    if options["max_download_speed"] == 0.0:
+      options["max_download_speed"] = LABEL_DEFAULTS["max_download_speed"]
 
-    if data["max_upload_speed"] == 0.0:
-      data["max_upload_speed"] = LABEL_DEFAULTS["max_upload_speed"]
+    if options["max_upload_speed"] == 0.0:
+      options["max_upload_speed"] = LABEL_DEFAULTS["max_upload_speed"]
 
-    if data["max_connections"] == 0:
-      data["max_connections"] = LABEL_DEFAULTS["max_connections"]
+    if options["max_connections"] == 0:
+      options["max_connections"] = LABEL_DEFAULTS["max_connections"]
 
-    if data["max_upload_slots"] == 0:
-      data["max_upload_slots"] = LABEL_DEFAULTS["max_upload_slots"]
+    if options["max_upload_slots"] == 0:
+      options["max_upload_slots"] = LABEL_DEFAULTS["max_upload_slots"]
 
-    if data["stop_ratio"] < 0.0:
-      data["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
+    if options["stop_ratio"] < 0.0:
+      options["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
   # Section: Preference: Queries
