@@ -566,25 +566,12 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_label_bandwidth_usage(self, label_id, sublabels=False):
+  def get_label_bandwidth_usage(self, label_id, include_sublabels=False):
 
-    if (label_id != ID_NONE and label_id in RESERVED_IDS or
-        label_id not in self._labels):
+    if label_id != ID_NONE and label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
-    if not label_id:
-      label_id = ID_NONE
-
-    labels = [label_id]
-
-    if label_id != ID_NONE and sublabels:
-      labels += self._get_descendent_labels(label_id)
-
-    active_torrents = self._get_labeled_torrents_status(
-      labels, {"state": ["Seeding", "Downloading"]},
-      ["download_payload_rate", "upload_payload_rate"])
-
-    return self._get_bandwidth_usage(active_torrents)
+    return self._get_label_bandwidth_usage(label_id, include_sublabels)
 
 
   @export
@@ -796,27 +783,18 @@ class Core(CorePluginBase):
     return counts
 
 
-  @export
-  @init_check
-  def get_label_bandwidth_usage(self, label_id, sublabels=False):
-
-    if (label_id != ID_NONE and label_id in RESERVED_IDS or
-        label_id not in self._labels):
-      raise ValueError("Unknown label: %r" % label_id)
-
-    if not label_id:
-      label_id = ID_NONE
+  def _get_label_bandwidth_usage(self, label_id, include_sublabels=False):
 
     labels = [label_id]
 
-    if label_id != ID_NONE and sublabels:
+    if label_id != ID_NONE and include_sublabels:
       labels += self._get_descendent_labels(label_id)
 
-    active_torrents = self._get_labeled_torrents_status(
+    active_torrents = self._get_torrent_status_by_label(
       labels, {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
 
-    return self._get_bandwidth_usage(active_torrents)
+    return self._get_torrent_bandwidth_usage(active_torrents)
 
 
   def _get_sorted_labels(self, cmp_func=None, reverse=False):
