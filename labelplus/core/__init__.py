@@ -391,30 +391,12 @@ class Core(CorePluginBase):
   @init_check
   def rename_label(self, label_id, label_name):
 
-    if label_id in RESERVED_IDS or label_id not in self._labels:
+    if label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
-    label_name = label_name.strip()
-    self._validate_name(labelplus.common.get_parent(label_id), label_name)
+    self._rename_label(label_id, label_name)
 
-    obj = self._labels[label_id]
-    obj["name"] = label_name
-
-    self._clear_subtree_ancestry(label_id)
-
-    if obj["data"]["move_data_completed_mode"] == "subfolder":
-      path = os.path.join(self.get_parent_path(label_id), label_name)
-      obj["data"]["move_data_completed_path"] = path
-
-      self._apply_data_completed_path(label_id)
-      self._propagate_path_to_descendents(label_id)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
-
-    if (obj["data"]["move_data_completed_mode"] == "subfolder" and
-        self._prefs["options"]["move_on_changes"]):
-      self._subtree_move_completed(label_id)
+    self._timestamp["labels_changed"] = datetime.datetime.now()
 
 
   @export
@@ -859,33 +841,31 @@ class Core(CorePluginBase):
     return id
 
 
-  @export
-  @init_check
-  def rename_label(self, label_id, label_name):
-
-    if label_id in RESERVED_IDS or label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+  def _rename_label(self, label_id, label_name):
 
     label_name = label_name.strip()
-    self._validate_name(labelplus.common.get_parent(label_id), label_name)
 
-    obj = self._labels[label_id]
-    obj["name"] = label_name
+    try:
+      label_name = unicode(label_name, "utf8")
+    except (TypeError, UnicodeDecodeError):
+      pass
+
+    self._validate_name(labelplus.common.get_parent_id(label_id), label_name)
+
+    label = self._labels[label_id]
+    label["name"] = label_name
 
     self._clear_subtree_ancestry(label_id)
 
-    if obj["data"]["move_data_completed_mode"] == "subfolder":
-      path = os.path.join(self.get_parent_path(label_id), label_name)
-      obj["data"]["move_data_completed_path"] = path
+    if label["data"]["move_data_completed_mode"] == "subfolder":
+      path = os.path.join(self._get_parent_move_path(label_id), label_name)
+      label["data"]["move_data_completed_path"] = path
 
       self._apply_data_completed_path(label_id)
       self._propagate_path_to_descendents(label_id)
 
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
-
-    if (obj["data"]["move_data_completed_mode"] == "subfolder" and
-        self._prefs["options"]["move_on_changes"]):
+    if (self._prefs["options"]["move_on_changes"] and
+        label["data"]["move_data_completed_mode"] == "subfolder"):
       self._subtree_move_completed(label_id)
 
 
