@@ -253,10 +253,10 @@ class Core(CorePluginBase):
   def _initialize_data(self):
 
     self._normalize_options(self._prefs["options"])
-    self._normalize_label_data(self._prefs["defaults"])
+    self._normalize_label_options(self._prefs["defaults"])
 
     for id in self._labels:
-      self._normalize_label_data(self._labels[id]["data"])
+      self._normalize_label_options(self._labels[id]["data"])
 
     for id in self._mappings.keys():
       if id in self._torrents and self._mappings[id] in self._labels:
@@ -809,7 +809,7 @@ class Core(CorePluginBase):
     old_move_on = options["move_data_completed"]
     old_move_path = options["move_data_completed_path"]
 
-    self._normalize_label_data(options_in)
+    self._normalize_label_options(options_in)
     options.update(options_in)
 
     for id in self._index[label_id]["torrents"]:
