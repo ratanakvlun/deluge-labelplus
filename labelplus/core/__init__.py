@@ -962,7 +962,7 @@ class Core(CorePluginBase):
         torrent.set_max_upload_speed(limit)
 
 
-  # Section: Label: Mapping: Queries
+  # Section: Torrent-Label: Queries
 
   def _get_torrent_label(self, torrent_id):
 
@@ -1066,7 +1066,7 @@ class Core(CorePluginBase):
     return None
 
 
-  # Section: Label: Mapping: Modifiers
+  # Section: Torrent-Label: Modifiers
 
   def _set_torrent_labels(self, label_id, torrent_list):
 
@@ -1146,9 +1146,6 @@ class Core(CorePluginBase):
 
   def _reset_torrent_options(self, torrent_id):
 
-    if torrent_id not in self._torrents:
-      return
-
     torrent = self._torrents[torrent_id]
 
     # Download settings
@@ -1174,9 +1171,6 @@ class Core(CorePluginBase):
 
 
   def _apply_torrent_options(self, torrent_id):
-
-    if torrent_id not in self._torrents:
-      return
 
     label_id = self._mappings[torrent_id]
     options = self._labels[label_id]["data"]
