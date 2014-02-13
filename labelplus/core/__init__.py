@@ -444,22 +444,10 @@ class Core(CorePluginBase):
   @init_check
   def set_torrent_labels(self, label_id, torrent_list):
 
-    if not label_id:
-      label_id = ID_NONE
-
-    if (label_id != ID_NONE and label_id in RESERVED_IDS or
-        label_id not in self._labels):
+    if label_id != ID_NONE and label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
-    torrents = [t for t in torrent_list if t in self._torrents]
-    for id in torrents:
-      self._set_torrent_label(id, label_id)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
-
-    if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed(label_id, torrents)
+    self._set_torrent_labels(label_id, torrent_list)
 
 
   @export
@@ -1077,26 +1065,17 @@ class Core(CorePluginBase):
 
   # Section: Label: Mapping: Modifiers
 
-  @export
-  @init_check
-  def set_torrent_labels(self, label_id, torrent_list):
-
-    if not label_id:
-      label_id = ID_NONE
-
-    if (label_id != ID_NONE and label_id in RESERVED_IDS or
-        label_id not in self._labels):
-      raise ValueError("Unknown label: %r" % label_id)
+  def _set_torrent_labels(self, label_id, torrent_list):
 
     torrents = [t for t in torrent_list if t in self._torrents]
     for id in torrents:
       self._set_torrent_label(id, label_id)
 
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
-
     if self._prefs["options"]["move_on_changes"]:
       self._do_move_completed(label_id, torrents)
+
+    if torrents:
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def _set_torrent_label(self, torrent_id, label_id):
