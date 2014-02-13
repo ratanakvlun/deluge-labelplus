@@ -905,7 +905,7 @@ class Core(CorePluginBase):
       [label_id], {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
 
-    (download_rate_sum, upload_rate_sum) =
+    (download_rate_sum, upload_rate_sum) = \
       self._get_torrent_bandwidth_usage(active_torrents)
 
     download_rate_sum /= 1024.0
