@@ -579,30 +579,16 @@ class Core(CorePluginBase):
       options["move_data_completed_path"].strip()
 
     if not options["move_data_completed_path"]:
-      options["move_data_completed_path"] = \
-        self._core["move_completed_path"] or self._get_deluge_move_path()
+      options["move_data_completed_mode"] = "folder"
+      options["move_data_completed_path"] = self._get_deluge_move_path()
 
     for rule in list(options["autolabel_rules"]):
-      if (rule[0] not in labelplus.common.autolabel.PROPS or
-          rule[1] not in labelplus.common.autolabel.OPS or
-          rule[2] not in labelplus.common.autolabel.CASES or
-          not rule[3]):
+      prop, op, case, query = rule
+      if (prop not in labelplus.common.autolabel.PROPS or
+          op not in labelplus.common.autolabel.OPS or
+          case not in labelplus.common.autolabel.CASES or
+          not query):
         options["autolabel_rules"].remove(rule)
-
-    if options["max_download_speed"] == 0.0:
-      options["max_download_speed"] = LABEL_DEFAULTS["max_download_speed"]
-
-    if options["max_upload_speed"] == 0.0:
-      options["max_upload_speed"] = LABEL_DEFAULTS["max_upload_speed"]
-
-    if options["max_connections"] == 0:
-      options["max_connections"] = LABEL_DEFAULTS["max_connections"]
-
-    if options["max_upload_slots"] == 0:
-      options["max_upload_slots"] = LABEL_DEFAULTS["max_upload_slots"]
-
-    if options["stop_ratio"] < 0.0:
-      options["stop_ratio"] = LABEL_DEFAULTS["stop_ratio"]
 
 
   # Section: Label: Queries
