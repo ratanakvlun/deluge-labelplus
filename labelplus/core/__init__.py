@@ -191,7 +191,6 @@ class Core(CorePluginBase):
     component.get("AlertManager").register_handler(
         "torrent_finished_alert", self.on_torrent_finished)
 
-    self._last_modified = datetime.datetime.now()
     self._initialized = True
 
     reactor.callLater(1, self._shared_limit_update)
@@ -420,15 +419,18 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_label_data(self, timestamp):
+  def get_label_summary(self, timestamp):
 
     if timestamp:
       t = cPickle.loads(timestamp)
     else:
       t = datetime.datetime(1, 1, 1)
 
-    if t < self._last_modified:
-      return (cPickle.dumps(self._last_modified), self._get_label_counts())
+    latest = max(
+      self._timestamp["labels_changed"], self._timestamp["mappings_changed"])
+
+    if t < latest:
+      return self._get_label_summary()
     else:
       return None
 
@@ -757,27 +759,16 @@ class Core(CorePluginBase):
     return names
 
 
-  @export
-  @init_check
-  def get_label_data(self, timestamp):
 
-    if timestamp:
-      t = cPickle.loads(timestamp)
-    else:
-      t = datetime.datetime(1, 1, 1)
 
-    if t < self._last_modified:
-      return (cPickle.dumps(self._last_modified), self._get_label_counts())
-    else:
-      return None
 
-  def _get_label_counts(self):
+  def _get_label_summary(self):
 
     label_count = 0
     counts = {}
-    for id in sorted(self._labels, reverse=True):
-      if id == NULL_PARENT: continue
+    labels = self._get_sorted_labels(cmp_length_then_value)
 
+    for id in labels:
       count = len(self._index[id]["torrents"])
       label_count += count
 
