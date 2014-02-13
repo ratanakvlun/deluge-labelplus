@@ -176,7 +176,7 @@ class Core(CorePluginBase):
     self._remove_orphans()
 
     component.get("FilterManager").register_filter(
-        STATUS_ID, self._filter_by_label)
+        STATUS_ID, self.filter_by_label)
 
     component.get("CorePluginManager").register_status_field(
         STATUS_NAME, self._get_torrent_label_name)
@@ -485,7 +485,7 @@ class Core(CorePluginBase):
     return self._get_daemon_info()
 
 
-  # Section: Event Handlers
+  # Section: Callbacks
 
   def on_torrent_added(self, torrent_id):
 
@@ -517,6 +517,12 @@ class Core(CorePluginBase):
         # Try to move in case this alert was from a recheck
         label_id = self._mappings[torrent_id]
         self._do_move_completed(label_id, [torrent_id])
+
+
+  def filter_by_label(self, torrent_ids, label_ids):
+
+    include_children = self._prefs["options"]["include_children"]
+    self._filter_by_label(torrent_ids, label_ids, include_children)
 
 
   # Section: General
