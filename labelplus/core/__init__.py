@@ -248,15 +248,10 @@ class Core(CorePluginBase):
       self._normalize_label_data(self._labels[id]["data"])
 
     for id in self._mappings.keys():
-      if id not in self._torrents:
-        del self._mappings[id]
-        continue
-
-      if self._mappings[id] in self._labels:
+      if id in self._torrents and self._mappings[id] in self._labels:
         self._apply_torrent_options(id)
       else:
-        self._reset_torrent_options(id)
-        del self._mappings[id]
+        self._remove_torrent_mapping(id)
 
 
   def _remove_orphans(self):
