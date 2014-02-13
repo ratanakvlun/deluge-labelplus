@@ -880,7 +880,7 @@ class Core(CorePluginBase):
 
   # Section: Label: Shared Limit
 
-  def _shared_limit_update(self):
+  def _shared_limit_update_loop(self):
 
     if self._initialized:
       for id in self._shared_limit_index:
@@ -888,7 +888,7 @@ class Core(CorePluginBase):
 
       reactor.callLater(
         self._prefs["options"]["shared_limit_update_interval"],
-        self._shared_limit_update)
+        self._shared_limit_update_loop)
 
 
   def _do_update_shared_limit(self, label_id):
@@ -900,11 +900,13 @@ class Core(CorePluginBase):
     if shared_download_limit < 0.0 and shared_upload_limit < 0.0:
       return
 
-    active_torrents = self._get_labeled_torrents_status(
+    active_torrents = self._get_torrent_status_by_label(
       [label_id], {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
 
-    (download_rate_sum, upload_rate_sum) = self._get_bandwidth_usage(active_torrents)
+    (download_rate_sum, upload_rate_sum) =
+      self._get_torrent_bandwidth_usage(active_torrents)
+
     download_rate_sum /= 1024.0
     upload_rate_sum /= 1024.0
 
@@ -923,6 +925,7 @@ class Core(CorePluginBase):
       torrent = self._torrents[id]
       status = active_torrents[id]
 
+      # Determine new torrent download limit
       if shared_download_limit < 0.0:
         torrent.set_max_download_speed(-1.0)
       else:
@@ -930,16 +933,20 @@ class Core(CorePluginBase):
         limit = download_rate
 
         if download_diff >= 0.0:
+        # Total is above shared limit; deduct based on usage
           usage_ratio = download_rate / download_rate_sum
           limit -= (usage_ratio * download_diff)
         elif download_rate > 0.0:
+        # Total is below and torrent active; increase by slice of excess
           limit += (-download_diff) / num_active_download
         else:
+        # Total is below and torrent inactive; give chance by setting max
           limit = shared_download_limit
 
         if limit < 0.1: limit = 0.1
         torrent.set_max_download_speed(limit)
 
+      # Determine new torrent upload limit
       if shared_upload_limit < 0.0:
         torrent.set_max_upload_speed(-1.0)
       else:
