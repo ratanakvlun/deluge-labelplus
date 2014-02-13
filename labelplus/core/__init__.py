@@ -491,7 +491,6 @@ class Core(CorePluginBase):
     if label_id:
       self._set_torrent_label(torrent_id, label_id)
       log.debug("Torrent %r is labeled %r", torrent_id, label_id)
-
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
@@ -501,7 +500,6 @@ class Core(CorePluginBase):
       label_id = self._mappings[torrent_id]
       self._remove_torrent_label(torrent_id)
       log.debug("Torrent %r removed from label %r", torrent_id, label_id)
-
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
@@ -528,7 +526,7 @@ class Core(CorePluginBase):
   def _get_daemon_info(self):
 
     info = {
-      "os_path": os.path.__name__,
+      "os.path": os.path.__name__,
     }
 
     return info
