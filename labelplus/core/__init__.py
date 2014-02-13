@@ -337,36 +337,9 @@ class Core(CorePluginBase):
     if parent_id != NULL_PARENT and parent_id not in self._labels:
       raise ValueError("Unknown label: %r" % parent_id)
 
-    label_name = label_name.strip()
-    self._validate_name(parent_id, label_name)
+    id = self._add_label(parent_id, label_name)
 
-    id = self._get_unused_id(parent_id)
-    self._index[parent_id]["children"].append(id)
-
-    self._labels[id] = {
-      "name": label_name,
-      "data": copy.deepcopy(self._prefs["defaults"]),
-    }
-
-    self._index[id] = {
-      "children": [],
-      "torrents": [],
-    }
-
-    options = self._labels[id]["data"]
-    mode = options["move_data_completed_mode"]
-    if mode != "folder":
-      path = self.get_parent_path(id)
-
-      if mode == "subfolder":
-        path = os.path.join(path, label_name)
-
-      options["move_data_completed_path"] = path
-
-    self._build_label_ancestry(id)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
+    self._timestamp["labels_changed"] = datetime.datetime.now()
 
     return id
 
@@ -802,12 +775,17 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def add_label(self, parent_id, label_name):
 
-    if parent_id != NULL_PARENT and parent_id not in self._labels:
-      raise ValueError("Unknown label: %r" % parent_id)
+
+  def _add_label(self, parent_id, label_name):
 
     label_name = label_name.strip()
+
+    try:
+      label_name = unicode(label_name, "utf8")
+    except (TypeError, UnicodeDecodeError):
+      pass
+
     self._validate_name(parent_id, label_name)
 
     id = self._get_unused_id(parent_id)
@@ -826,7 +804,7 @@ class Core(CorePluginBase):
     options = self._labels[id]["data"]
     mode = options["move_data_completed_mode"]
     if mode != "folder":
-      path = self.get_parent_path(id)
+      path = self._get_parent_move_path(id)
 
       if mode == "subfolder":
         path = os.path.join(path, label_name)
@@ -834,9 +812,6 @@ class Core(CorePluginBase):
       options["move_data_completed_path"] = path
 
     self._build_label_ancestry(id)
-
-    self._last_modified = datetime.datetime.now()
-    self._config.save()
 
     return id
 
