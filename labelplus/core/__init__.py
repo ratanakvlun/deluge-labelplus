@@ -112,6 +112,14 @@ class Core(CorePluginBase):
     self._labels = self._config["labels"]
     self._mappings = self._config["mappings"]
 
+    self._sorted_labels = {}
+
+    self._timestamp = {
+      "labels_changed": datetime.datetime.now(),
+      "mappings_changed": datetime.datetime.now(),
+      "labels_sorted": datetime.datetime(1, 1, 1),
+    }
+
     if not component.get("TorrentManager").session_started:
       component.get("EventManager").register_event_handler(
           "SessionStartedEvent", self._initialize)
@@ -943,6 +951,25 @@ class Core(CorePluginBase):
       ["download_payload_rate", "upload_payload_rate"])
 
     return self._get_bandwidth_usage(active_torrents)
+
+
+  def _get_sorted_labels(self, cmp_func=None, reverse=False):
+
+    last_sorted = self._timestamp["labels_sorted"]
+    last_changed = self._timestamp["labels_changed"]
+
+    if last_sorted < last_changed:
+      self._sorted_labels.clear()
+
+    key = (cmp_func, reverse)
+
+    if key not in self._sorted_labels:
+      self._sorted_labels[key] = sorted(self._labels,
+        cmp=key[0], reverse=key[1])
+
+      self._timestamp["labels_sorted"] = datetime.datetime.now()
+
+    return self._sorted_labels[key]
 
 
   # Section: Label: Modifiers
