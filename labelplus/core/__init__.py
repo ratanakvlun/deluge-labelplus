@@ -720,44 +720,16 @@ class Core(CorePluginBase):
     return self._sorted_labels[key]
 
 
+
+
+
+
+
+
+
+
+
   # Section: Label: Modifiers
-
-  def _set_label_options(self, label_id, options_in, apply_to_labeled=None):
-
-    options = self._labels[label_id]["data"]
-
-    old_download_on = options["download_settings"]
-    old_move_on = options["move_data_completed"]
-    old_move_path = options["move_data_completed_path"]
-
-    self._normalize_label_data(options_in)
-    options.update(options_in)
-
-    for id in self._index[label_id]["torrents"]:
-      self._apply_torrent_options(id)
-
-    if label_id in self._shared_limit_index:
-      self._shared_limit_index.remove(label_id)
-
-    if options["bandwidth_settings"] and options["shared_limit_on"]:
-      self._shared_limit_index.append(label_id)
-
-    if old_move_path != options["move_data_completed_path"]:
-    # Path was modified; make sure descendent labels are updated
-      self._propagate_path_to_descendents(label_id)
-
-      if self._prefs["options"]["move_on_changes"]:
-        self._subtree_move_completed(label_id)
-    else:
-      # If move completed was just turned on...
-      if (options["download_settings"] and options["move_data_completed"] and
-          (not old_download_on or not old_move_on) and
-          self._prefs["options"]["move_on_changes"]):
-        self._do_move_completed(label_id, self._index[label_id]["torrents"])
-
-    if options["auto_settings"] and apply_to_labeled is not None:
-      self._do_autolabel_torrents(label_id, apply_to_labeled)
-
 
   def _add_label(self, parent_id, label_name):
 
@@ -840,6 +812,43 @@ class Core(CorePluginBase):
 
     del self._index[label_id]
     del self._labels[label_id]
+
+
+  def _set_label_options(self, label_id, options_in, apply_to_labeled=None):
+
+    options = self._labels[label_id]["data"]
+
+    old_download_on = options["download_settings"]
+    old_move_on = options["move_data_completed"]
+    old_move_path = options["move_data_completed_path"]
+
+    self._normalize_label_data(options_in)
+    options.update(options_in)
+
+    for id in self._index[label_id]["torrents"]:
+      self._apply_torrent_options(id)
+
+    if label_id in self._shared_limit_index:
+      self._shared_limit_index.remove(label_id)
+
+    if options["bandwidth_settings"] and options["shared_limit_on"]:
+      self._shared_limit_index.append(label_id)
+
+    if old_move_path != options["move_data_completed_path"]:
+    # Path was modified; make sure descendent paths are updated
+      self._update_descendent_paths(label_id)
+
+      if self._prefs["options"]["move_on_changes"]:
+        self._do_move_completed_cascade(label_id)
+    else:
+      # If move completed was just turned on and move on changes enabled...
+      if (options["download_settings"] and options["move_data_completed"] and
+          (not old_download_on or not old_move_on) and
+          self._prefs["options"]["move_on_changes"]):
+        self._do_move_completed(label_id, self._index[label_id]["torrents"])
+
+    if options["auto_settings"] and apply_to_labeled is not None:
+      self._do_autolabel_torrents(label_id, apply_to_labeled)
 
 
   # Section: Label: Full Name
