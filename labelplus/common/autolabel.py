@@ -37,44 +37,59 @@
 import re
 
 
+PROP_NAME = "Name"
+PROP_TRACKER = "Tracker"
+
 PROPS = [
-  "Name",
-  "Tracker",
+  PROP_NAME,
+  PROP_TRACKER,
 ]
+
+OP_CONTAINS = "contains"
+OP_DOESNT_CONTAIN = "doesn't contain"
+OP_IS = "is"
+OP_IS_NOT = "is not"
+OP_STARTS_WITH = "starts with"
+OP_ENDS_WITH = "ends with"
+OP_MATCHES_REGEX = "matches regex"
+OP_CONTAINS_WORDS = "contains words"
 
 OPS = [
-  "contains",
-  "doesn't contain",
-  "is",
-  "is not",
-  "starts with",
-  "ends with",
-  "matches regex",
-  "contains words",
+  OP_CONTAINS,
+  OP_DOESNT_CONTAIN,
+  OP_IS,
+  OP_IS_NOT,
+  OP_STARTS_WITH,
+  OP_ENDS_WITH,
+  OP_MATCHES_REGEX,
+  OP_CONTAINS_WORDS,
 ]
 
+CASE_MATCH = "match case"
+CASE_IGNORE = "ignore case"
+
 CASES = [
-  "match case",
-  "ignore case",
+  CASE_MATCH,
+  CASE_IGNORE,
 ]
 
 OP_FUNCS = {
-  OPS[0]: lambda x,y,z: re.search(re.escape(y), x, z),
-  OPS[1]: lambda x,y,z: not OP_FUNCS[OPS[0]](x, y, z),
-  OPS[2]: lambda x,y,z: re.search('^' + re.escape(y) + '$', x, z),
-  OPS[3]: lambda x,y,z: not OP_FUNCS[OPS[2]](x, y, z),
-  OPS[4]: lambda x,y,z: re.search('^' + re.escape(y), x, z),
-  OPS[5]: lambda x,y,z: re.search(re.escape(y) + '$', x, z),
-  OPS[6]: lambda x,y,z: re.search(y, x, z),
-  OPS[7]: lambda x,y,z: all(OP_FUNCS[OPS[0]](x, s, z) for s in y.split()),
+  OP_CONTAINS: lambda x,y,z: re.search(re.escape(y), x, z),
+  OP_DOESNT_CONTAIN: lambda x,y,z: not OP_FUNCS[OP_CONTAINS](x, y, z),
+  OP_IS: lambda x,y,z: re.search('^' + re.escape(y) + '$', x, z),
+  OP_IS_NOT: lambda x,y,z: not OP_FUNCS[OP_IS](x, y, z),
+  OP_STARTS_WITH: lambda x,y,z: re.search('^' + re.escape(y), x, z),
+  OP_ENDS_WITH: lambda x,y,z: re.search(re.escape(y) + '$', x, z),
+  OP_MATCHES_REGEX: lambda x,y,z: re.search(y, x, z),
+  OP_CONTAINS_WORDS: \
+    lambda x,y,z: all(OP_FUNCS[OP_CONTAINS](x, s, z) for s in y.split()),
 }
 
-# Columns
-COLUMN_PROP = 0
-COLUMN_OP = 1
-COLUMN_CASE = 2
-COLUMN_QUERY = 3
-NUM_COLUMNS = 4
+FIELD_PROP = 0
+FIELD_OP = 1
+FIELD_CASE = 2
+FIELD_QUERY = 3
+NUM_FIELDS = 4
 
 
 #
@@ -89,15 +104,15 @@ NUM_COLUMNS = 4
 def find_match(props, rules, match_all=False):
 
   for rule in rules:
-    values = props[rule[COLUMN_PROP]]
-    op_func = OP_FUNCS[rule[COLUMN_OP]]
+    values = props[rule[FIELD_PROP]]
+    op_func = OP_FUNCS[rule[FIELD_OP]]
 
     flags = 0
 
-    if rule[COLUMN_CASE] == "ignore case":
+    if rule[FIELD_CASE] == CASE_IGNORE:
       flags |= re.IGNORECASE
 
-    query = rule[COLUMN_QUERY]
+    query = rule[FIELD_QUERY]
     try:
       query = unicode(query, "utf8")
       flags |= re.UNICODE
