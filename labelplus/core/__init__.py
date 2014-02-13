@@ -462,6 +462,13 @@ class Core(CorePluginBase):
 
   @export
   @init_check
+  def get_torrent_label_name(self, torrent_id):
+
+    return self._get_torrent_label_name(torrent_id)
+
+
+  @export
+  @init_check
   def get_label_bandwidth_usage(self, label_id, include_sublabels=False):
 
     if label_id != ID_NONE and label_id not in self._labels:
@@ -514,11 +521,6 @@ class Core(CorePluginBase):
 
     include_children = self._prefs["options"]["include_children"]
     self._filter_by_label(torrent_ids, label_ids, include_children)
-
-
-  def get_torrent_label_name(self, torrent_id):
-
-    return self._get_torrent_label_name(torrent_id)
 
 
   # Section: General
