@@ -469,12 +469,12 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_label_bandwidth_usage(self, label_id, include_sublabels=False):
+  def get_label_bandwidth_usage(self, label_id, include_children=False):
 
     if label_id != ID_NONE and label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
-    return self._get_label_bandwidth_usage(label_id, include_sublabels)
+    return self._get_label_bandwidth_usage(label_id, include_children)
 
 
   @export
@@ -687,11 +687,11 @@ class Core(CorePluginBase):
     return counts
 
 
-  def _get_label_bandwidth_usage(self, label_id, include_sublabels=False):
+  def _get_label_bandwidth_usage(self, label_id, include_children=False):
 
     labels = [label_id]
 
-    if label_id != ID_NONE and include_sublabels:
+    if label_id != ID_NONE and include_children:
       labels += self._get_descendent_labels(label_id)
 
     active_torrents = self._get_torrent_status_by_label(
