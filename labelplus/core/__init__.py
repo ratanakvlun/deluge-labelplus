@@ -649,42 +649,8 @@ class Core(CorePluginBase):
     return descendents
 
 
-  def _get_label_summary(self):
 
-    label_count = 0
-    counts = {}
-    labels = self._get_sorted_labels(cmp_length_then_value)
 
-    for id in labels:
-      count = len(self._index[id]["torrents"])
-      label_count += count
-
-      if self._prefs["options"]["include_children"]:
-        for child in self._index[id]["children"]:
-          count += counts[child]["count"]
-
-      full_name = self._get_label_ancestry(id)
-
-      counts[id] = {
-        "name": self._labels[id]["name"],
-        "count": count,
-        "full_name": full_name,
-      }
-
-    total = len(self._torrents)
-    counts[ID_ALL] = {
-      "name": ID_ALL,
-      "count": total,
-      "full_name": ID_ALL,
-    }
-
-    counts[ID_NONE] = {
-      "name": ID_NONE,
-      "count": total-label_count,
-      "full_name": ID_NONE,
-    }
-
-    return counts
 
 
   def _get_label_bandwidth_usage(self, label_id, include_children=False):
@@ -720,13 +686,37 @@ class Core(CorePluginBase):
     return self._sorted_labels[key]
 
 
+  def _get_label_summary(self):
 
+    label_count = 0
+    counts = {}
+    labels = self._get_sorted_labels(cmp_length_then_value)
 
+    for id in labels:
+      count = len(self._index[id]["torrents"])
+      label_count += count
 
+      if self._prefs["options"]["include_children"]:
+        for child in self._index[id]["children"]:
+          count += counts[child]["count"]
 
+      counts[id] = {
+        "name": self._get_full_label_name(id),
+        "count": count,
+      }
 
+    total = len(self._torrents)
+    counts[ID_ALL] = {
+      "name": ID_ALL,
+      "count": total,
+    }
 
+    counts[ID_NONE] = {
+      "name": ID_NONE,
+      "count": total-label_count,
+    }
 
+    return counts
 
 
   # Section: Label: Modifiers
