@@ -1313,6 +1313,25 @@ class Core(CorePluginBase):
     return filtered_torrents
 
 
+  def _find_autolabel_match(self, torrent_id):
+
+    # Longest (i.e. childless) label ids first
+    def cmp_len_then_value(x, y):
+
+      if len(x) > len(y): return -1
+      if len(x) < len(y): return 1
+      return cmp(x, y)
+
+    labels = self._get_sorted_labels(cmp_len_then_value)
+
+    for label_id in labels:
+      if self._labels[label_id]["data"]["auto_settings"]:
+        if self._has_auto_apply_match(label_id, torrent_id):
+          return label_id
+
+    return None
+
+
   # Section: Label-Torrent: Modifiers
 
   @export
