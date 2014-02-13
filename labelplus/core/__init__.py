@@ -1142,6 +1142,9 @@ class Core(CorePluginBase):
 
   def _reset_torrent_options(self, torrent_id):
 
+    if torrent_id not in self._torrents:
+      return
+
     torrent = self._torrents[torrent_id]
 
     # Download settings
@@ -1167,6 +1170,9 @@ class Core(CorePluginBase):
 
 
   def _apply_torrent_options(self, torrent_id):
+
+    if torrent_id not in self._torrents:
+      return
 
     label_id = self._mappings.get(torrent_id)
 
