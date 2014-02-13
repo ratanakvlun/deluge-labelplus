@@ -81,7 +81,7 @@ OP_FUNCS = {
   OP_STARTS_WITH: lambda x,y,z: re.search('^' + re.escape(y), x, z),
   OP_ENDS_WITH: lambda x,y,z: re.search(re.escape(y) + '$', x, z),
   OP_MATCHES_REGEX: lambda x,y,z: re.search(y, x, z),
-  OP_CONTAINS_WORDS: \
+  OP_CONTAINS_WORDS:
     lambda x,y,z: all(OP_FUNCS[OP_CONTAINS](x, s, z) for s in y.split()),
 }
 
