@@ -1190,11 +1190,11 @@ class Core(CorePluginBase):
 
     for torrent_id in self._torrents:
       if apply_to_labeled or torrent_id not in self._mappings:
-        if self._has_auto_apply_match(label_id, torrent_id):
+        if self._has_autolabel_match(label_id, torrent_id):
           torrents.append(torrent_id)
 
     if torrents:
-      self.set_torrent_labels(label_id, torrents)
+      self._set_torrent_labels(label_id, torrents)
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
@@ -1207,7 +1207,7 @@ class Core(CorePluginBase):
           self._labels[label_id]["data"]["move_data_completed_path"])
 
 
-  def _propagate_path_to_descendents(self, parent_id):
+  def _update_descendent_paths(self, parent_id):
 
     def descend(parent_id):
       name = self._labels[parent_id]["name"]
