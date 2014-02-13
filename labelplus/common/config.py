@@ -42,6 +42,11 @@ def get_version(config):
   return config._Config__version["file"]
 
 
+def set_version(config, version):
+
+  config._Config__version["file"] = version
+
+
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     strict_paths=False):
 
