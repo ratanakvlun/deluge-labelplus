@@ -1072,6 +1072,18 @@ class Core(CorePluginBase):
     return labelplus.common.autolabel.find_match(props, rules, match_all)
 
 
+  def _find_autolabel_match(self, torrent_id):
+
+    labels = self._get_sorted_labels(cmp_length_then_value)
+
+    for label_id in labels:
+      if self._labels[label_id]["data"]["auto_settings"]:
+        if self._has_autolabel_match(label_id, torrent_id):
+          return label_id
+
+    return None
+
+
   def _filter_by_label(self, torrent_ids, label_ids, include_children=False):
 
     filtered = []
@@ -1123,18 +1135,6 @@ class Core(CorePluginBase):
           filtered_torrents[torrent_id] = status_values
 
     return filtered_torrents
-
-
-  def _find_autolabel_match(self, torrent_id):
-
-    labels = self._get_sorted_labels(cmp_length_then_value)
-
-    for label_id in labels:
-      if self._labels[label_id]["data"]["auto_settings"]:
-        if self._has_autolabel_match(label_id, torrent_id):
-          return label_id
-
-    return None
 
 
   # Section: Torrent-Label: Modifiers
