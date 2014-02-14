@@ -1256,8 +1256,12 @@ class Core(CorePluginBase):
         continue
 
       torrent = self._torrents[tid]
-      path = torrent.get_status(["save_path"])["save_path"]
-      if path != dest_path:
+      values = torrent.get_status(["save_path", "is_finished"])
+
+      finished = values["is_finished"]
+      path = values["save_path"]
+
+      if finished and path != dest_path:
         move_list.append(tid)
 
     try:
