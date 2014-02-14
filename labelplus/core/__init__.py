@@ -1139,19 +1139,6 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Modifiers
 
-  def _set_torrent_labels(self, label_id, torrent_list):
-
-    torrents = [t for t in torrent_list if t in self._torrents]
-    for id in torrents:
-      self._set_torrent_label(id, label_id)
-
-    if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed(label_id, torrents)
-
-    if torrents:
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
-
-
   def _set_torrent_label(self, torrent_id, label_id):
 
     log.debug("Setting label %r on %r", label_id, torrent_id)
@@ -1168,6 +1155,19 @@ class Core(CorePluginBase):
       self._index[label_id]["torrents"].append(torrent_id)
       self._apply_torrent_options(torrent_id)
       log.debug("Torrent %r is labeled %r", torrent_id, label_id)
+
+
+  def _set_torrent_labels(self, label_id, torrent_list):
+
+    torrents = [t for t in torrent_list if t in self._torrents]
+    for id in torrents:
+      self._set_torrent_label(id, label_id)
+
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed(label_id, torrents)
+
+    if torrents:
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def _remove_torrent_label(self, torrent_id):
