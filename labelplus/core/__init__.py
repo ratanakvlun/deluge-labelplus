@@ -647,6 +647,23 @@ class Core(CorePluginBase):
     return path
 
 
+  def _resolve_move_path(self, label_id):
+
+    name = self._labels[label_id]["name"]
+    options = self._labels[label_id]["data"]
+
+    mode = options["move_data_completed_mode"]
+    path = options["move_data_completed_path"]
+
+    if mode != "folder":
+      path = self._get_parent_move_path(label_id)
+
+      if mode == "subfolder":
+        path = os.path.join(path, name)
+
+    return path
+
+
   def _get_label_bandwidth_usage(self, label_id, include_children=False):
 
     labels = [label_id]
