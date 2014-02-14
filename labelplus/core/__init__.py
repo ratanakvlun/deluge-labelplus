@@ -607,15 +607,6 @@ class Core(CorePluginBase):
     return id
 
 
-  def _validate_name(self, parent_id, label_name):
-
-    labelplus.common.validate_name(label_name)
-
-    names = self._get_children_names(parent_id)
-    if label_name in names:
-      raise ValueError("Label already exists: %r" % label_name)
-
-
   def _get_children_names(self, parent_id):
 
     names = []
@@ -623,6 +614,15 @@ class Core(CorePluginBase):
       names.append(self._labels[id]["name"])
 
     return names
+
+
+  def _validate_name(self, parent_id, label_name):
+
+    labelplus.common.validate_name(label_name)
+
+    names = self._get_children_names(parent_id)
+    if label_name in names:
+      raise ValueError("Label already exists: %r" % label_name)
 
 
   def _get_descendent_labels(self, label_id):
