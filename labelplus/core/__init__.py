@@ -1141,38 +1141,23 @@ class Core(CorePluginBase):
 
   def _set_torrent_label(self, torrent_id, label_id):
 
-    log.debug("Setting label %r on %r", label_id, torrent_id)
+    self._remove_torrent_label(torrent_id)
 
-    id = self._mappings.get(torrent_id)
-    if id is not None:
-      self._reset_torrent_options(torrent_id)
-      self._index[id]["torrents"].remove(torrent_id)
-      del self._mappings[torrent_id]
-      log.debug("Torrent %r removed from label %r", torrent_id, id)
-
-    if label_id and label_id not in RESERVED_IDS:
+    if label_id in self._labels:
       self._mappings[torrent_id] = label_id
       self._index[label_id]["torrents"].append(torrent_id)
       self._apply_torrent_options(torrent_id)
-      log.debug("Torrent %r is labeled %r", torrent_id, label_id)
 
 
   def _set_torrent_labels(self, label_id, torrent_list):
 
-    torrents = [t for t in torrent_list if t in self._torrents]
-    for id in torrents:
+    for id in torrent_list:
       self._set_torrent_label(id, label_id)
-
-    if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed(label_id, torrents)
-
-    if torrents:
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def _remove_torrent_label(self, torrent_id):
 
-    label_id = self._mappings[torrent_id]
+    label_id = self._mappings.get(torrent_id)
 
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
@@ -1194,7 +1179,6 @@ class Core(CorePluginBase):
 
     if torrents:
       self._set_torrent_labels(label_id, torrents)
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   # Section: Torrent-Label: Move Completed: Modifiers
