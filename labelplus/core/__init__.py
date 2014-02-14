@@ -750,7 +750,6 @@ class Core(CorePluginBase):
 
       options["move_data_completed_path"] = path
 
-
     return id
 
 
@@ -770,6 +769,8 @@ class Core(CorePluginBase):
     options = label["data"]
 
     self._remove_full_label_name_index(label_id)
+    full_name = self._build_full_label_name(label_id)
+    self._index[label_id]["full_name"] = full_name
 
     if options["move_data_completed_mode"] == "subfolder":
       path = os.path.join(self._get_parent_move_path(label_id), label_name)
@@ -778,9 +779,8 @@ class Core(CorePluginBase):
       self._apply_move_completed_path(label_id)
       self._update_descendent_paths(label_id)
 
-    if (self._prefs["options"]["move_on_changes"] and
-        options["move_data_completed_mode"] == "subfolder"):
-      self._subtree_move_completed(label_id)
+      if self._prefs["options"]["move_on_changes"]:
+        self._do_move_completed_cascade(label_id)
 
 
   def _remove_label(self, label_id):
