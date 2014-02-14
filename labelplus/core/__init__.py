@@ -757,15 +757,7 @@ class Core(CorePluginBase):
       "torrents": [],
     }
 
-    options = self._labels[id]["data"]
-    mode = options["move_data_completed_mode"]
-    if mode != "folder":
-      path = self._get_parent_move_path(id)
-
-      if mode == "subfolder":
-        path = os.path.join(path, label_name)
-
-      options["move_data_completed_path"] = path
+    options["move_data_completed_path"] = self._resolve_move_path(id)
 
     return id
 
