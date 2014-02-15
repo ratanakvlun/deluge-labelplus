@@ -813,6 +813,10 @@ class Core(CorePluginBase):
       options["move_data_completed_mode"] = labelplus.core.config.MOVE_FOLDER
       options["move_data_completed_path"] = self._get_deluge_move_path()
 
+    if (options["move_data_completed_mode"] not in
+        labelplus.core.config.MOVE_MODES):
+      options["move_data_completed_mode"] = labelplus.core.config.MOVE_FOLDER
+
     for rule in list(options["autolabel_rules"]):
       prop, op, case, query = rule
       if (prop not in labelplus.common.autolabel.PROPS or
