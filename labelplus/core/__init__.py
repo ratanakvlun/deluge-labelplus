@@ -1220,6 +1220,3 @@ class Core(CorePluginBase):
         torrent_ids.append(id)
 
     self._do_move_completed(torrent_ids)
-
-    for id in self._index[label_id]["children"]:
-      self._do_move_completed_by_label(id)
