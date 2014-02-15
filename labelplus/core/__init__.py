@@ -1122,8 +1122,7 @@ class Core(CorePluginBase):
 
   def _remove_torrent_label(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id)
-
+    label_id = self._mappings.get(torrent_id, ID_NONE)
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
 
