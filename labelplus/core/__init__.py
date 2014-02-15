@@ -566,32 +566,6 @@ class Core(CorePluginBase):
       options["shared_limit_update_interval"] = 1
 
 
-  def _normalize_label_options(self, options):
-
-    for key in options.keys():
-      if key not in LABEL_DEFAULTS:
-        del options[key]
-
-    for key in LABEL_DEFAULTS:
-      if key not in options:
-        options[key] = copy.deepcopy(LABEL_DEFAULTS[key])
-
-    options["move_data_completed_path"] = \
-      options["move_data_completed_path"].strip()
-
-    if not options["move_data_completed_path"]:
-      options["move_data_completed_mode"] = "folder"
-      options["move_data_completed_path"] = self._get_deluge_move_path()
-
-    for rule in list(options["autolabel_rules"]):
-      prop, op, case, query = rule
-      if (prop not in labelplus.common.autolabel.PROPS or
-          op not in labelplus.common.autolabel.OPS or
-          case not in labelplus.common.autolabel.CASES or
-          not query):
-        options["autolabel_rules"].remove(rule)
-
-
   # Section: Label: Queries
 
 
@@ -808,6 +782,34 @@ class Core(CorePluginBase):
     del self._labels[label_id]
 
 
+  # Section: Label: Options
+
+  def _normalize_label_options(self, options):
+
+    for key in options.keys():
+      if key not in LABEL_DEFAULTS:
+        del options[key]
+
+    for key in LABEL_DEFAULTS:
+      if key not in options:
+        options[key] = copy.deepcopy(LABEL_DEFAULTS[key])
+
+    options["move_data_completed_path"] = \
+      options["move_data_completed_path"].strip()
+
+    if not options["move_data_completed_path"]:
+      options["move_data_completed_mode"] = "folder"
+      options["move_data_completed_path"] = self._get_deluge_move_path()
+
+    for rule in list(options["autolabel_rules"]):
+      prop, op, case, query = rule
+      if (prop not in labelplus.common.autolabel.PROPS or
+          op not in labelplus.common.autolabel.OPS or
+          case not in labelplus.common.autolabel.CASES or
+          not query):
+        options["autolabel_rules"].remove(rule)
+
+
   def _set_label_options(self, label_id, options_in, apply_to_labeled=None):
 
     options = self._labels[label_id]["data"]
@@ -844,7 +846,6 @@ class Core(CorePluginBase):
     if options["auto_settings"] and apply_to_labeled is not None:
       self._do_autolabel_torrents(label_id, apply_to_labeled)
 
-  # Section: Label: Options
 
   # Section: Label: Full Name
 
