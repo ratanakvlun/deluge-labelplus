@@ -1235,7 +1235,7 @@ class Core(CorePluginBase):
         torrent.move_storage(dest_path)
 
 
-  def _do_move_completed_cascade(self, label_id):
+  def _do_move_completed_by_label(self, label_id):
 
     torrent_ids = []
 
@@ -1243,7 +1243,7 @@ class Core(CorePluginBase):
       if id in self._torrents:
         torrent_ids.append(id)
 
-    self._do_move_completed(label_id, torrent_ids)
+    self._do_move_completed(torrent_ids)
 
     for id in self._index[label_id]["children"]:
-      self._do_move_completed_cascade(id)
+      self._do_move_completed_by_label(id)
