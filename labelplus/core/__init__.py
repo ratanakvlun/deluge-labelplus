@@ -464,8 +464,8 @@ class Core(CorePluginBase):
   @init_check
   def get_torrent_label_name(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id)
-    if not label_id:
+    label_id = self._mappings.get(torrent_id, ID_NONE)
+    if label_id == ID_NONE:
       return ""
 
     if self._prefs["options"]["show_full_name"]:
