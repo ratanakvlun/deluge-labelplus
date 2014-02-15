@@ -1181,17 +1181,17 @@ class Core(CorePluginBase):
     return ID_NONE
 
 
-  def _do_autolabel_torrents(self, label_id, apply_to_labeled=False):
+  def _do_autolabel_torrents(self, label_id, apply_to_all=False):
 
-    torrents = []
+    torrent_ids = []
 
-    for torrent_id in self._torrents:
-      if apply_to_labeled or torrent_id not in self._mappings:
-        if self._has_autolabel_match(label_id, torrent_id):
-          torrents.append(torrent_id)
+    for id in self._torrents:
+      if apply_to_all or id not in self._mappings:
+        if self._has_autolabel_match(id, label_id):
+          torrent_ids.append(id)
 
-    if torrents:
-      self._set_torrent_labels(label_id, torrents)
+    if torrent_ids:
+      self._set_torrent_labels(label_id, torrent_ids)
 
 
   # Section: Torrent-Label: Move Completed
