@@ -1199,40 +1199,22 @@ class Core(CorePluginBase):
           self._labels[label_id]["data"]["move_data_completed_path"])
 
 
-  def _update_descendent_paths(self, parent_id):
+  def _update_move_completed_paths(self, label_id):
 
-    def descend(parent_id):
-      name = self._labels[parent_id]["name"]
-      options = self._labels[parent_id]["data"]
+    options = self._labels[label_id]["data"]
 
-      mode = options["move_data_completed_mode"]
-      if mode == "folder": return
+    path = self._resolve_move_path(label_id)
+    if path == options["move_data_completed_path"]:
+      return
 
-      if mode == "subfolder":
-        move_path.append(name)
+    options["move_data_completed_path"] = path
 
-      options["move_data_completed_path"] = os.path.join(*move_path)
+    if options["download_settings"] and options["move_data_completed"]:
+      self._apply_move_completed_path(label_id)
 
-      if options["download_settings"] and options["move_data_completed"]:
-        self._apply_move_completed_path(parent_id)
+    for child_id in self._index[label_id]["children"]:
+      self._update_move_completed_paths(child_id)
 
-      for id in self._index[parent_id]["children"]:
-        descend(id)
-
-      if mode == "subfolder":
-        move_path.pop()
-
-
-    options = self._labels[parent_id]["data"]
-    path = options["move_data_completed_path"]
-
-    move_path = [path]
-
-    for id in self._index[parent_id]["children"]:
-      descend(id)
-
-
-  # Section: Torrent-Label: Move Completed: Execution
 
   def _do_move_completed(self, label_id, torrent_list):
 
