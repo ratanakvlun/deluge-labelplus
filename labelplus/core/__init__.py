@@ -1142,12 +1142,6 @@ class Core(CorePluginBase):
       self._apply_torrent_options(torrent_id)
 
 
-  def _set_torrent_labels(self, torrent_ids, label_id):
-
-    for id in torrent_ids:
-      self._set_torrent_label(id, label_id)
-
-
   # Section: Torrent-Label: Autolabel
 
   def _has_autolabel_match(self, torrent_id, label_id):
