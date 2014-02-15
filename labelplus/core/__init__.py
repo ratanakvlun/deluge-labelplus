@@ -1220,40 +1220,22 @@ class Core(CorePluginBase):
       self._update_move_completed_paths(child_id)
 
 
-  def _do_move_completed(self, label_id, torrent_list):
 
-    if label_id in self._labels:
-      options = self._labels[label_id]["data"]
 
-      if not options["download_settings"] or \
-          not options["move_data_completed"]:
-        return
+  def _do_move_completed(self, label_id, torrent_ids):
 
-      dest_path = options["move_data_completed_path"]
-    elif label_id == ID_NONE:
+    if label_id == ID_NONE:
       dest_path = self._get_deluge_move_path()
     else:
-      return
+      options = self._labels[label_id]["data"]
+      dest_path = options["move_data_completed_path"]
 
-    move_list = []
+    for id in torrent_ids:
+      torrent = self._torrents[id]
+      status = torrent.get_status(["save_path", "is_finished"])
 
-    for tid in torrent_list:
-      if tid not in self._torrents:
-        continue
-
-      torrent = self._torrents[tid]
-      values = torrent.get_status(["save_path", "is_finished"])
-
-      finished = values["is_finished"]
-      path = values["save_path"]
-
-      if finished and path != dest_path:
-        move_list.append(tid)
-
-    try:
-      component.get("CorePlugin.MoveTools").move_completed(move_list)
-    except KeyError:
-      pass
+      if status["is_finished"] and dest_path != status["save_path"]:
+        torrent.move_storage(dest_path)
 
 
   def _do_move_completed_cascade(self, label_id):
