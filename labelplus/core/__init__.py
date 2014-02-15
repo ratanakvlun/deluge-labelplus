@@ -638,10 +638,10 @@ class Core(CorePluginBase):
     mode = options["move_data_completed_mode"]
     path = options["move_data_completed_path"]
 
-    if mode != "folder":
+    if mode != labelplus.core.config.MOVE_FOLDER:
       path = self._get_parent_move_path(label_id)
 
-      if mode == "subfolder":
+      if mode == labelplus.core.config.MOVE_SUBFOLDER:
         path = os.path.join(path, name)
 
     return path
@@ -764,7 +764,8 @@ class Core(CorePluginBase):
     full_name = self._build_full_label_name(label_id)
     self._index[label_id]["full_name"] = full_name
 
-    if options["move_data_completed_mode"] == "subfolder":
+    if options["move_data_completed_mode"] == \
+        labelplus.core.config.MOVE_SUBFOLDER:
       path = os.path.join(self._get_parent_move_path(label_id), label_name)
       options["move_data_completed_path"] = path
 
@@ -807,7 +808,7 @@ class Core(CorePluginBase):
       options["move_data_completed_path"].strip()
 
     if not options["move_data_completed_path"]:
-      options["move_data_completed_mode"] = "folder"
+      options["move_data_completed_mode"] = labelplus.core.config.MOVE_FOLDER
       options["move_data_completed_path"] = self._get_deluge_move_path()
 
     for rule in list(options["autolabel_rules"]):
