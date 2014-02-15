@@ -1151,20 +1151,20 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Autolabel
 
-  def _has_autolabel_match(self, label_id, torrent_id):
+  def _has_autolabel_match(self, torrent_id, label_id):
 
-    options = self._labels[label_id]["data"]
-
-    rules = options["autolabel_rules"]
-    match_all = options["autolabel_match_all"]
-
-    name = self._torrents[torrent_id].get_status(["name"])["name"]
-    trackers = [t["url"] for t in self._torrents[torrent_id].trackers]
+    status = self._torrents[torrent_id].get_status(["name", "trackers"])
+    name = status["name"]
+    trackers = [x["url"] for x in status["trackers"]]
 
     props = {
-      "Name": [name],
-      "Tracker": trackers,
+      labelplus.common.autolabel.PROP_NAME: [name],
+      labelplus.common.autolabel.PROP_TRACKER: trackers,
     }
+
+    options = self._labels[label_id]["data"]
+    rules = options["autolabel_rules"]
+    match_all = options["autolabel_match_all"]
 
     return labelplus.common.autolabel.find_match(props, rules, match_all)
 
