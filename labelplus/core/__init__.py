@@ -897,7 +897,8 @@ class Core(CorePluginBase):
 
     if self._initialized:
       for id in self._shared_limit_index:
-        self._do_update_shared_limit(id)
+        if id in self._labels:
+          self._do_update_shared_limit(id)
 
       reactor.callLater(
         self._prefs["options"]["shared_limit_update_interval"],
