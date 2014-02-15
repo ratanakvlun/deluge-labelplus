@@ -1134,9 +1134,12 @@ class Core(CorePluginBase):
     if torrent_id in self._mappings:
       self._remove_torrent_label(torrent_id)
 
-    self._mappings[torrent_id] = label_id
-    self._index[label_id]["torrents"].append(torrent_id)
-    self._apply_torrent_options(torrent_id)
+    if label_id == ID_NONE:
+      self._reset_torrent_options(torrent_id)
+    else:
+      self._mappings[torrent_id] = label_id
+      self._index[label_id]["torrents"].append(torrent_id)
+      self._apply_torrent_options(torrent_id)
 
 
   def _set_torrent_labels(self, torrent_ids, label_id):
