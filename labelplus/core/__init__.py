@@ -980,6 +980,33 @@ class Core(CorePluginBase):
 
   # Section: Torrent: Queries
 
+  def _get_torrent_statuses(self, torrent_ids, filters, fields):
+
+    statuses = {}
+
+    for filter in filters:
+      if filter not in fields:
+        fields.append(filter)
+
+    for id in torrent_ids:
+      status = self._torrents[id].get_status(fields)
+
+      if not filters:
+        statuses[id] = status
+      else:
+        passed = True
+
+        for filter in filters:
+          if status[filter] not in filters[filter]:
+            passed = False
+            break
+
+        if passed:
+          statuses[id] = status
+
+    return statuses
+
+
   def _get_torrent_bandwidth_usage(self, torrents):
 
     download_rate_sum = 0.0
@@ -1065,33 +1092,6 @@ class Core(CorePluginBase):
         filtered.append(id)
 
     return filtered
-
-
-  def _get_torrent_statuses(self, torrent_ids, filters, fields):
-
-    statuses = {}
-
-    for filter in filters:
-      if filter not in fields:
-        fields.append(filter)
-
-    for id in torrent_ids:
-      status = self._torrents[id].get_status(fields)
-
-      if not filters:
-        statuses[id] = status
-      else:
-        passed = True
-
-        for filter in filters:
-          if status[filter] not in filters[filter]:
-            passed = False
-            break
-
-        if passed:
-          statuses[id] = status
-
-    return statuses
 
 
   # Section: Torrent-Label: Modifiers
