@@ -1173,12 +1173,12 @@ class Core(CorePluginBase):
 
     labels = self._get_sorted_labels(cmp_length_then_value)
 
-    for label_id in labels:
-      if self._labels[label_id]["data"]["auto_settings"]:
-        if self._has_autolabel_match(label_id, torrent_id):
-          return label_id
+    for id in labels:
+      if self._labels[id]["data"]["auto_settings"]:
+        if self._has_autolabel_match(torrent_id, id):
+          return id
 
-    return None
+    return ID_NONE
 
 
   def _do_autolabel_torrents(self, label_id, apply_to_labeled=False):
