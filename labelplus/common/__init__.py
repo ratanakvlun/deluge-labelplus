@@ -90,9 +90,12 @@ def is_ancestor(ancestor_id, label_id):
   return ancestor_id != label_id and label_id.startswith(prefix)
 
 
-def get_base_name(full_name):
+def get_name_by_depth(full_name, depth=0):
 
-  return full_name.rpartition("/")[2]
+  if depth < 1:
+    return full_name
+
+  return "/".join(name.split("/")[-depth:])
 
 
 # Validation
