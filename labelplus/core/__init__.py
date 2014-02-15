@@ -1120,6 +1120,19 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Modifiers
 
+  def _remove_torrent_label(self, torrent_id):
+
+    label_id = self._mappings.get(torrent_id)
+
+    if label_id in self._index:
+      self._index[label_id]["torrents"].remove(torrent_id)
+
+    if torrent_id in self._torrents:
+      self._reset_torrent_options(torrent_id)
+
+    del self._mappings[torrent_id]
+
+
   def _set_torrent_label(self, torrent_id, label_id):
 
     self._remove_torrent_label(torrent_id)
@@ -1134,19 +1147,6 @@ class Core(CorePluginBase):
 
     for id in torrent_list:
       self._set_torrent_label(id, label_id)
-
-
-  def _remove_torrent_label(self, torrent_id):
-
-    label_id = self._mappings.get(torrent_id)
-
-    if label_id in self._index:
-      self._index[label_id]["torrents"].remove(torrent_id)
-
-    if torrent_id in self._torrents:
-      self._reset_torrent_options(torrent_id)
-
-    del self._mappings[torrent_id]
 
 
   # Section: Torrent-Label: Autolabel
