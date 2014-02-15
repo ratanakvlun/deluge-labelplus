@@ -858,7 +858,7 @@ class Core(CorePluginBase):
 
   # Section: Label: Full Name
 
-  def _build_full_label_name(self, label_id):
+  def _resolve_full_name(self, label_id):
 
     parts = []
     id = label_id
@@ -872,17 +872,17 @@ class Core(CorePluginBase):
     return full_name
 
 
-  def _get_full_label_name(self, label_id):
+  def _get_full_name_from_index(self, label_id):
 
     full_name = self._index[label_id].get("full_name")
     if not full_name:
-      full_name = self._build_full_label_name(label_id)
+      full_name = self._resolve_full_name(label_id)
       self._index[label_id]["full_name"] = full_name
 
     return full_name
 
 
-  def _remove_full_label_name_index(self, parent_id):
+  def _remove_full_name_from_index(self, label_id):
 
     if self._index[parent_id].get("full_name") is not None:
       del self._index[parent_id]["full_name"]
