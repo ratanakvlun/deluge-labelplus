@@ -799,6 +799,8 @@ class Core(CorePluginBase):
     for key in options.keys():
       if key not in spec:
         del options[key]
+      elif type(options[key]) != type(spec[key]):
+        options[key] = copy.deepcopy(spec[key])
 
     for key in spec:
       if key not in options:
