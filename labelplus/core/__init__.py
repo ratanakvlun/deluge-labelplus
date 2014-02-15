@@ -1216,10 +1216,8 @@ class Core(CorePluginBase):
     if options["download_settings"] and options["move_data_completed"]:
       self._apply_move_completed_path(label_id)
 
-    for child_id in self._index[label_id]["children"]:
-      self._update_move_completed_paths(child_id)
-
-
+    for id in self._index[label_id]["children"]:
+      self._update_move_completed_paths(id)
 
 
   def _do_move_completed(self, label_id, torrent_ids):
