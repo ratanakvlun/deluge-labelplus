@@ -1140,9 +1140,9 @@ class Core(CorePluginBase):
     self._apply_torrent_options(torrent_id)
 
 
-  def _set_torrent_labels(self, label_id, torrent_list):
+  def _set_torrent_labels(self, torrent_ids, label_id):
 
-    for id in torrent_list:
+    for id in torrent_ids:
       self._set_torrent_label(id, label_id)
 
 
