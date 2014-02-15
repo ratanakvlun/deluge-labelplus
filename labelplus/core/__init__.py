@@ -1240,7 +1240,13 @@ class Core(CorePluginBase):
 
   def _do_move_completed_cascade(self, label_id):
 
-    self._do_move_completed(label_id, self._index[label_id]["torrents"])
+    torrent_ids = []
+
+    for id in self._index[label_id]["torrents"]:
+      if id in self._torrents:
+        torrent_ids.append(id)
+
+    self._do_move_completed(label_id, torrent_ids)
 
     for id in self._index[label_id]["children"]:
       self._do_move_completed_cascade(id)
