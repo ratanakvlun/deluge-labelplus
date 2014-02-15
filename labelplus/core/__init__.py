@@ -475,6 +475,7 @@ class Core(CorePluginBase):
 
     return name
 
+
   @export
   @init_check
   def get_label_bandwidth_usage(self, label_id, include_children=False):
@@ -1054,19 +1055,14 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Queries
 
-  def _filter_by_label(self, torrent_ids, label_ids, include_children=False):
+  def _filter_by_label(self, torrent_ids, label_ids):
 
     filtered = []
 
     for id in torrent_ids:
       label_id = self._mappings.get(id, ID_NONE)
-
       if label_id in label_ids:
         filtered.append(id)
-      elif include_children:
-        if any(x for x in label_ids if
-            labelplus.common.is_ancestor(x, label_id)):
-          filtered.append(id)
 
     return filtered
 
