@@ -818,6 +818,10 @@ class Core(CorePluginBase):
       options["move_data_completed_mode"] = labelplus.core.config.MOVE_FOLDER
 
     for rule in list(options["autolabel_rules"]):
+      if len(rule) != labelplus.common.autolabel.NUM_FIELDS:
+        options["autolabel_rules"].remove(rule)
+        continue
+
       prop, op, case, query = rule
       if (prop not in labelplus.common.autolabel.PROPS or
           op not in labelplus.common.autolabel.OPS or
