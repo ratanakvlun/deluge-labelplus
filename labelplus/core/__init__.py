@@ -1064,36 +1064,6 @@ class Core(CorePluginBase):
     return name
 
 
-  def _has_autolabel_match(self, label_id, torrent_id):
-
-    options = self._labels[label_id]["data"]
-
-    rules = options["autolabel_rules"]
-    match_all = options["autolabel_match_all"]
-
-    name = self._torrents[torrent_id].get_status(["name"])["name"]
-    trackers = [t["url"] for t in self._torrents[torrent_id].trackers]
-
-    props = {
-      "Name": [name],
-      "Tracker": trackers,
-    }
-
-    return labelplus.common.autolabel.find_match(props, rules, match_all)
-
-
-  def _find_autolabel_match(self, torrent_id):
-
-    labels = self._get_sorted_labels(cmp_length_then_value)
-
-    for label_id in labels:
-      if self._labels[label_id]["data"]["auto_settings"]:
-        if self._has_autolabel_match(label_id, torrent_id):
-          return label_id
-
-    return None
-
-
   def _filter_by_label(self, torrent_ids, label_ids, include_children=False):
 
     filtered = []
@@ -1178,6 +1148,38 @@ class Core(CorePluginBase):
     del self._mappings[torrent_id]
 
 
+  # Section: Torrent-Label: Autolabel
+
+  def _has_autolabel_match(self, label_id, torrent_id):
+
+    options = self._labels[label_id]["data"]
+
+    rules = options["autolabel_rules"]
+    match_all = options["autolabel_match_all"]
+
+    name = self._torrents[torrent_id].get_status(["name"])["name"]
+    trackers = [t["url"] for t in self._torrents[torrent_id].trackers]
+
+    props = {
+      "Name": [name],
+      "Tracker": trackers,
+    }
+
+    return labelplus.common.autolabel.find_match(props, rules, match_all)
+
+
+  def _find_autolabel_match(self, torrent_id):
+
+    labels = self._get_sorted_labels(cmp_length_then_value)
+
+    for label_id in labels:
+      if self._labels[label_id]["data"]["auto_settings"]:
+        if self._has_autolabel_match(label_id, torrent_id):
+          return label_id
+
+    return None
+
+
   def _do_autolabel_torrents(self, label_id, apply_to_labeled=False):
 
     torrents = []
@@ -1190,8 +1192,6 @@ class Core(CorePluginBase):
     if torrents:
       self._set_torrent_labels(label_id, torrents)
 
-
-  # Section: Torrent-Label: Autolabel
 
   # Section: Torrent-Label: Move Completed
 
