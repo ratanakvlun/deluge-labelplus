@@ -1007,16 +1007,19 @@ class Core(CorePluginBase):
     return statuses
 
 
-  def _get_torrent_bandwidth_usage(self, torrents):
+  def _get_torrent_bandwidth_usage(self, torrent_ids):
+
+    statuses = self._get_torrent_statuses(
+      torrent_ids, {"state": ["Seeding", "Downloading"]},
+      ["download_payload_rate", "upload_payload_rate"])
 
     download_rate_sum = 0.0
     upload_rate_sum = 0.0
 
-    for torrent in torrents:
-      if torrent in self._torrents:
-        status = torrents[torrent]
-        download_rate_sum += status["download_payload_rate"]
-        upload_rate_sum += status["upload_payload_rate"]
+    for id in statuses:
+      status = statuses[id]
+      download_rate_sum += status["download_payload_rate"]
+      upload_rate_sum += status["upload_payload_rate"]
 
     return (download_rate_sum, upload_rate_sum)
 
