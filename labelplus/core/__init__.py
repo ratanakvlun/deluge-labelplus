@@ -457,7 +457,7 @@ class Core(CorePluginBase):
   @init_check
   def get_torrent_label(self, torrent_id):
 
-    return self._mappings.get(torrent_id) or ID_NONE
+    return self._mappings.get(torrent_id, ID_NONE)
 
 
   @export
