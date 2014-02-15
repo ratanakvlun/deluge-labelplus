@@ -550,7 +550,7 @@ class Core(CorePluginBase):
     return path
 
 
-  # Section: Maintenance
+  # Section: Options
 
   def _normalize_options(self, options):
 
@@ -844,6 +844,7 @@ class Core(CorePluginBase):
     if options["auto_settings"] and apply_to_labeled is not None:
       self._do_autolabel_torrents(label_id, apply_to_labeled)
 
+  # Section: Label: Options
 
   # Section: Label: Full Name
 
@@ -1190,7 +1191,9 @@ class Core(CorePluginBase):
       self._set_torrent_labels(label_id, torrents)
 
 
-  # Section: Torrent-Label: Move Completed: Modifiers
+  # Section: Torrent-Label: Autolabel
+
+  # Section: Torrent-Label: Move Completed
 
   def _apply_move_completed_path(self, label_id):
 
