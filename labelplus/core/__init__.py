@@ -464,8 +464,16 @@ class Core(CorePluginBase):
   @init_check
   def get_torrent_label_name(self, torrent_id):
 
-    return self._get_torrent_label_name(torrent_id)
+    label_id = self._mappings.get(torrent_id)
+    if not label_id:
+      return ""
 
+    if self._prefs["options"]["show_full_name"]:
+      name = self._get_full_label_name(label_id)
+    else:
+      name = self._labels[label_id]["name"]
+
+    return name
 
   @export
   @init_check
@@ -1045,20 +1053,6 @@ class Core(CorePluginBase):
 
 
   # Section: Torrent-Label: Queries
-
-  def _get_torrent_label_name(self, torrent_id):
-
-    label_id = self._mappings.get(torrent_id)
-    if not label_id:
-      return ""
-
-    if self._prefs["options"]["show_full_name"]:
-      name = self._get_full_label_name(label_id)
-    else:
-      name = self._labels[label_id]["name"]
-
-    return name
-
 
   def _filter_by_label(self, torrent_ids, label_ids, include_children=False):
 
