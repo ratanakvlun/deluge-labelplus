@@ -1182,15 +1182,10 @@ class Core(CorePluginBase):
 
   def _do_autolabel_torrents(self, label_id, apply_to_all=False):
 
-    torrent_ids = []
-
     for id in self._torrents:
       if apply_to_all or id not in self._mappings:
         if self._has_autolabel_match(id, label_id):
-          torrent_ids.append(id)
-
-    if torrent_ids:
-      self._set_torrent_labels(label_id, torrent_ids)
+          self._set_torrent_label(id, label_id)
 
 
   # Section: Torrent-Label: Move Completed
