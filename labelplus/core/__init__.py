@@ -884,11 +884,8 @@ class Core(CorePluginBase):
 
   def _remove_full_name_from_index(self, label_id):
 
-    if self._index[parent_id].get("full_name") is not None:
-      del self._index[parent_id]["full_name"]
-
-    for id in self._index[parent_id]["children"]:
-      self._remove_full_label_name_index(id)
+    if self._index[label_id].get("full_name") is not None:
+      del self._index[label_id]["full_name"]
 
 
   # Section: Label: Shared Limit
