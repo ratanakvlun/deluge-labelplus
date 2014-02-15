@@ -907,37 +907,38 @@ class Core(CorePluginBase):
 
   def _do_update_shared_limit(self, label_id):
 
-    shared_download_limit = \
-      self._labels[label_id]["data"]["max_download_speed"]
-    shared_upload_limit = self._labels[label_id]["data"]["max_upload_speed"]
+    options = self._labels[label_id]["data"]
+    shared_download_limit = options["max_download_speed"]
+    shared_upload_limit = options["max_upload_speed"]
 
     if shared_download_limit < 0.0 and shared_upload_limit < 0.0:
       return
 
-    active_torrents = self._get_torrent_status_by_label(
-      [label_id], {"state": ["Seeding", "Downloading"]},
+    torrent_ids = []
+    for id in self._index[label_id]["torrents"]:
+      if id in self._torrents:
+        torrent_ids.append(id)
+
+    statuses = self._get_torrent_statuses(
+      torrent_ids, {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
 
-    (download_rate_sum, upload_rate_sum) = \
-      self._get_torrent_bandwidth_usage(active_torrents)
-
-    download_rate_sum /= 1024.0
-    upload_rate_sum /= 1024.0
-
+    num_active_downloads = \
+      sum(1 for id in statuses if statuses[id]["download_payload_rate"] > 0.0)
+    download_rate_sum = \
+      sum(statuses[id]["download_payload_rate"] for id in statuses) / 1024.0
     download_diff = download_rate_sum - shared_download_limit
+
+    num_active_uploads = \
+      sum(1 for id in statuses if statuses[id]["upload_payload_rate"] > 0.0)
+    upload_rate_sum = \
+      sum(statuses[id]["upload_payload_rate"] for id in statuses) / 1024.0
     upload_diff = upload_rate_sum - shared_upload_limit
 
-    num_active_download = sum(
-      1 for id in active_torrents \
-      if active_torrents[id]["download_payload_rate"] > 0.0)
-    num_active_upload = sum(
-      1 for id in active_torrents \
-      if active_torrents[id]["upload_payload_rate"] > 0.0)
-
-    # Modify individual bandwidth limits based on shared limit
-    for id in active_torrents:
+    # Modify individual torrent bandwidth limits based on shared limit
+    for id in statuses:
       torrent = self._torrents[id]
-      status = active_torrents[id]
+      status = statuses[id]
 
       # Determine new torrent download limit
       if shared_download_limit < 0.0:
@@ -951,8 +952,8 @@ class Core(CorePluginBase):
           usage_ratio = download_rate / download_rate_sum
           limit -= (usage_ratio * download_diff)
         elif download_rate > 0.0:
-        # Total is below and torrent active; increase by slice of excess
-          limit += (-download_diff) / num_active_download
+        # Total is below and torrent active; increase by a slice of unused
+          limit += abs(download_diff) / num_active_downloads
         else:
         # Total is below and torrent inactive; give chance by setting max
           limit = shared_download_limit
@@ -971,7 +972,7 @@ class Core(CorePluginBase):
           usage_ratio = upload_rate / upload_rate_sum
           limit -= (usage_ratio * upload_diff)
         elif upload_rate > 0.0:
-          limit += (-upload_diff) / num_active_upload
+          limit += abs(upload_diff) / num_active_uploads
         else:
           limit = shared_upload_limit
 
