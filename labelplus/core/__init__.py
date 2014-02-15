@@ -1127,9 +1127,6 @@ class Core(CorePluginBase):
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
 
-    if torrent_id in self._torrents:
-      self._reset_torrent_options(torrent_id)
-
     del self._mappings[torrent_id]
 
 
