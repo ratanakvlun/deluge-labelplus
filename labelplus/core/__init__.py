@@ -1051,7 +1051,12 @@ class Core(CorePluginBase):
 
   def _apply_torrent_options(self, torrent_id):
 
-    label_id = self._mappings[torrent_id]
+    label_id = self._mappings.get(torrent_id, ID_NONE)
+
+    if label_id == ID_NONE:
+      self._reset_torrent_options(torrent_id)
+      return
+
     options = self._labels[label_id]["data"]
     torrent = self._torrents[torrent_id]
 
