@@ -1217,17 +1217,19 @@ class Core(CorePluginBase):
       self._update_move_completed_paths(id)
 
 
-  def _do_move_completed(self, label_id, torrent_ids):
-
-    if label_id == ID_NONE:
-      dest_path = self._get_deluge_move_path()
-    else:
-      options = self._labels[label_id]["data"]
-      dest_path = options["move_data_completed_path"]
+  def _do_move_completed(self, torrent_ids):
 
     for id in torrent_ids:
       torrent = self._torrents[id]
-      status = torrent.get_status(["save_path", "is_finished"])
+      status = torrent.get_status(
+        ["save_path", "move_completed_path", "is_finished"])
+
+      label_id = self._mappings.get(id, ID_NONE)
+      if label_id == ID_NONE:
+        dest_path = status["move_completed_path"]
+      else:
+        options = self._labels[label_id]["data"]
+        dest_path = options["move_data_completed_path"]
 
       if status["is_finished"] and dest_path != status["save_path"]:
         torrent.move_storage(dest_path)
