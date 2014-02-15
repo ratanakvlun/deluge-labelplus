@@ -793,15 +793,15 @@ class Core(CorePluginBase):
 
   # Section: Label: Options
 
-  def _normalize_label_options(self, options):
+  def _normalize_label_options(self, options, spec=LABEL_DEFAULTS):
 
     for key in options.keys():
-      if key not in LABEL_DEFAULTS:
+      if key not in spec:
         del options[key]
 
-    for key in LABEL_DEFAULTS:
+    for key in spec:
       if key not in options:
-        options[key] = copy.deepcopy(LABEL_DEFAULTS[key])
+        options[key] = copy.deepcopy(spec[key])
 
     options["move_data_completed_path"] = \
       options["move_data_completed_path"].strip()
