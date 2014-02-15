@@ -1067,40 +1067,31 @@ class Core(CorePluginBase):
     return filtered
 
 
-  def _get_torrent_status_by_label(self, label_ids, filters, fields):
+  def _get_torrent_statuses(self, torrent_ids, filters, fields):
 
-    filtered_torrents = {}
-    torrents = []
-
-    if ID_ALL in label_ids:
-      torrents = self._torrents.keys()
-    elif ID_NONE in label_ids:
-      torrents = self._filter_by_label(self._torrents.keys(), label_ids)
-    else:
-      for label_id in label_ids:
-        torrents.extend(self._index[label_id]["torrents"])
+    statuses = {}
 
     for filter in filters:
       if filter not in fields:
         fields.append(filter)
 
-    for torrent_id in torrents:
-      status_values = self._torrents[torrent_id].get_status(fields)
+    for id in torrent_ids:
+      status = self._torrents[id].get_status(fields)
 
       if not filters:
-        filtered_torrents[torrent_id] = status_values
+        statuses[id] = status
       else:
-        filter_passed = True
+        passed = True
 
         for filter in filters:
-          if status_values[filter] not in filters[filter]:
-            filter_passed = False
+          if status[filter] not in filters[filter]:
+            passed = False
             break
 
-        if filter_passed:
-          filtered_torrents[torrent_id] = status_values
+        if passed:
+          statuses[id] = status
 
-    return filtered_torrents
+    return statuses
 
 
   # Section: Torrent-Label: Modifiers
