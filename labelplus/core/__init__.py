@@ -452,13 +452,13 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def set_label_options(self, label_id, options_in, apply_to_labeled=None):
+  def set_label_options(self, label_id, options_in, apply_to_all=None):
 
     if label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
     self._normalize_label_options(options_in, self._prefs["defaults"])
-    self._set_label_options(label_id, options_in, apply_to_labeled)
+    self._set_label_options(label_id, options_in, apply_to_all)
 
 
   # Section: Public API: Torrent-Label
