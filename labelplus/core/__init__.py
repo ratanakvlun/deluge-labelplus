@@ -648,18 +648,21 @@ class Core(CorePluginBase):
     return path
 
 
-  def _get_label_bandwidth_usage(self, label_id, include_children=False):
+  def _get_label_bandwidth_usage(self, label_id, sublabels=False):
 
     labels = [label_id]
 
-    if label_id != ID_NONE and include_children:
+    if label_id != ID_NONE and sublabels:
       labels += self._get_descendent_labels(label_id)
 
-    active_torrents = self._get_torrent_status_by_label(
-      labels, {"state": ["Seeding", "Downloading"]},
-      ["download_payload_rate", "upload_payload_rate"])
+    torrent_ids = []
 
-    return self._get_torrent_bandwidth_usage(active_torrents)
+    for id in labels:
+      for torrent_id in self._index[id]["torrents"]:
+        if torrent_id in self._torrents:
+          torrent_ids.append(torrent_id)
+
+    return self._get_torrent_bandwidth_usage(torrent_ids)
 
 
   def _get_sorted_labels(self, cmp_func=None, reverse=False):
