@@ -365,19 +365,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_torrent_labels(self, torrent_ids):
-
-    mappings = {}
-
-    for id in torrent_ids:
-      mappings[id] = [
-        self._get_torrent_label_id(id),
-        self._get_torrent_label_name(id),
-      ]
-
-    return mappings
-
-
   @export
   @init_check
   def get_label_bandwidth_usage(self, label_id, include_children=False):
@@ -474,6 +461,21 @@ class Core(CorePluginBase):
 
 
   # Section: Public API: Torrent-Label
+
+  @export
+  @init_check
+  def get_torrent_labels(self, torrent_ids):
+
+    mappings = {}
+
+    for id in torrent_ids:
+      mappings[id] = [
+        self._get_torrent_label_id(id),
+        self._get_torrent_label_name(id),
+      ]
+
+    return mappings
+
 
   @export
   @init_check
