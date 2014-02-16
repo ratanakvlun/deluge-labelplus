@@ -486,7 +486,13 @@ class Core(CorePluginBase):
     if label_id != ID_NONE and label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
-    self._set_torrent_labels(label_id, torrent_list)
+    torrent_ids = [x for x in torrent_ids if x in self._torrents]
+
+    for id in torrent_ids:
+      self._set_torrent_label(id, label_id)
+
+    if torrent_ids:
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   # Section: Public Callbacks
