@@ -1127,6 +1127,17 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Queries
 
+  def _get_unlabeled_torrents(self):
+
+    torrent_ids = []
+
+    for id in self._torrents:
+      if id not in self._mappings:
+        torrent_ids.append(id)
+
+    return torrent_ids
+
+
   def _get_torrent_label_id(self, torrent_id):
 
     return self._mappings.get(torrent_id, ID_NONE)
