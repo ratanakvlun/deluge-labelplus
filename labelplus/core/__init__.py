@@ -533,30 +533,21 @@ class Core(CorePluginBase):
 
 
   @init_check
-  def filter_by_label(self, torrent_ids, label_ids):
-
-    return self._filter_by_label(torrent_ids, label_ids)
-
-
-  @init_check
   def get_torrent_label_id(self, torrent_id):
 
-    return self._mappings.get(torrent_id, ID_NONE)
+    return self._get_torrent_label_id(torrent_id)
 
 
   @init_check
   def get_torrent_label_name(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id, ID_NONE)
-    if label_id == ID_NONE:
-      return ""
+    return self._get_torrent_label_name(torrent_id)
 
-    if self._prefs["options"]["show_full_name"]:
-      name = self._get_full_label_name(label_id)
-    else:
-      name = self._labels[label_id]["name"]
 
-    return name
+  @init_check
+  def filter_by_label(self, torrent_ids, label_ids):
+
+    return self._filter_by_label(torrent_ids, label_ids)
 
 
   # Section: General
@@ -1143,6 +1134,25 @@ class Core(CorePluginBase):
 
 
   # Section: Torrent-Label: Queries
+
+  def _get_torrent_label_id(self, torrent_id):
+
+    return self._mappings.get(torrent_id, ID_NONE)
+
+
+  def _get_torrent_label_name(self, torrent_id):
+
+    label_id = self._mappings.get(torrent_id, ID_NONE)
+    if label_id == ID_NONE:
+      return ""
+
+    if self._prefs["options"]["show_full_name"]:
+      name = self._get_full_label_name(label_id)
+    else:
+      name = self._labels[label_id]["name"]
+
+    return name
+
 
   def _filter_by_label(self, torrent_ids, label_ids):
 
