@@ -228,7 +228,7 @@ class Core(CorePluginBase):
           torrents.append(torrent_id)
 
       label_index = {
-        "full_name": self._build_full_label_name(id),
+        "full_name": self._resolve_full_name(id),
         "children": children,
         "torrents": torrents,
       }
