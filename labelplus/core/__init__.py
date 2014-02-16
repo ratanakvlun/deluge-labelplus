@@ -380,16 +380,6 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_parent_move_path(self, label_id):
-
-    if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    return self._get_parent_move_path(label_id)
-
-
-  @export
-  @init_check
   def get_label_bandwidth_usage(self, label_id, include_children=False):
 
     if label_id != ID_NONE and label_id not in self._labels:
