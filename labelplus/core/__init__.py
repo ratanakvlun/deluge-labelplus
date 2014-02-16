@@ -761,20 +761,11 @@ class Core(CorePluginBase):
     label["name"] = label_name
     options = label["data"]
 
-    self._remove_full_label_name_index(label_id)
-    full_name = self._build_full_label_name(label_id)
-    self._index[label_id]["full_name"] = full_name
+    self._build_full_name_index(label_id)
+    self._update_move_completed_paths(label_id)
 
-    if options["move_data_completed_mode"] == \
-        labelplus.core.config.MOVE_SUBFOLDER:
-      path = os.path.join(self._get_parent_move_path(label_id), label_name)
-      options["move_data_completed_path"] = path
-
-      self._apply_move_completed_path(label_id)
-      self._update_descendent_paths(label_id)
-
-      if self._prefs["options"]["move_on_changes"]:
-        self._do_move_completed_cascade(label_id)
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed_by_label(label_id, True)
 
 
   def _remove_label(self, label_id):
