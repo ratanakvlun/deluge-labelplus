@@ -736,7 +736,7 @@ class Core(CorePluginBase):
     }
 
     self._index[id] = {
-      "full_name": self._build_full_label_name(id),
+      "full_name": self._resolve_full_name(id),
       "children": [],
       "torrents": [],
     }
