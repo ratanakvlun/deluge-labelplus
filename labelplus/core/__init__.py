@@ -470,10 +470,11 @@ class Core(CorePluginBase):
     mappings = {}
 
     for id in torrent_ids:
-      mappings[id] = [
-        self._get_torrent_label_id(id),
-        self._get_torrent_label_name(id),
-      ]
+      if id in self._torrents:
+        mappings[id] = [
+          self._get_torrent_label_id(id),
+          self._get_torrent_label_name(id),
+        ]
 
     return mappings
 
