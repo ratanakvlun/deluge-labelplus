@@ -400,6 +400,7 @@ class Core(CorePluginBase):
     if label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
 
+    self._normalize_label_options(options_in, self._prefs["defaults"])
     self._set_label_options(label_id, options_in, apply_to_labeled)
 
 
@@ -830,19 +831,19 @@ class Core(CorePluginBase):
         options["autolabel_rules"].remove(rule)
 
 
-  def _set_label_options(self, label_id, options_in, apply_to_labeled=None):
+  def _set_label_options(self, label_id, options_in, apply_to_all=None):
 
     options = self._labels[label_id]["data"]
-
-    old_download_on = options["download_settings"]
-    old_move_on = options["move_data_completed"]
-    old_move_path = options["move_data_completed_path"]
-
-    self._normalize_label_options(options_in)
+    old = {
+      "download_settings": options["download_settings"],
+      "move_data_completed": options["move_data_completed"],
+      "move_data_completed_path": options["move_data_completed_path"],
+    }
     options.update(options_in)
 
     for id in self._index[label_id]["torrents"]:
-      self._apply_torrent_options(id)
+      if id in self._torrents:
+        self._apply_torrent_options(id)
 
     if label_id in self._shared_limit_index:
       self._shared_limit_index.remove(label_id)
@@ -850,21 +851,23 @@ class Core(CorePluginBase):
     if options["bandwidth_settings"] and options["shared_limit_on"]:
       self._shared_limit_index.append(label_id)
 
-    if old_move_path != options["move_data_completed_path"]:
+    # If move completed was just turned on and move on changes enabled...
+    if (options["download_settings"] and options["move_data_completed"] and
+        (not old["download_settings"] or not old["move_data_completed"]) and
+        self._prefs["options"]["move_on_changes"]):
+      self._do_move_completed_by_label(label_id)
+
+    if options["move_data_completed_path"] != old["move_data_completed_path"]:
     # Path was modified; make sure descendent paths are updated
-      self._update_descendent_paths(label_id)
+      for id in self._index[label_id]["children"]:
+        if id in self._labels:
+          self._update_move_completed_paths(id)
 
-      if self._prefs["options"]["move_on_changes"]:
-        self._do_move_completed_cascade(label_id)
-    else:
-      # If move completed was just turned on and move on changes enabled...
-      if (options["download_settings"] and options["move_data_completed"] and
-          (not old_download_on or not old_move_on) and
-          self._prefs["options"]["move_on_changes"]):
-        self._do_move_completed(label_id, self._index[label_id]["torrents"])
+          if self._prefs["options"]["move_on_changes"]:
+            self._do_move_completed_by_label(id, True)
 
-    if options["auto_settings"] and apply_to_labeled is not None:
-      self._do_autolabel_torrents(label_id, apply_to_labeled)
+    if options["auto_settings"] and apply_to_all is not None:
+      self._do_autolabel_torrents(label_id, apply_to_all)
 
 
   # Section: Label: Full Name
