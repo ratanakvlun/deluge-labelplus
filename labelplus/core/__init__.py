@@ -784,10 +784,12 @@ class Core(CorePluginBase):
       self._index[parent_id]["children"].remove(label_id)
 
     for id in list(self._index[label_id]["children"]):
-      self._remove_label(id)
+      if id in self._labels:
+        self._remove_label(id)
 
     for id in list(self._index[label_id]["torrents"]):
-      self._remove_torrent_label(id)
+      if id in self._torrents:
+        self._remove_torrent_label(id)
 
     del self._index[label_id]
     del self._labels[label_id]
