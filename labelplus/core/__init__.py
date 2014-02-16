@@ -325,7 +325,7 @@ class Core(CorePluginBase):
           del server.factory.methods[method]
 
 
-  # Section: Public Interface
+  # Section: Public API: General
 
   @export
   def is_initialized(self):
@@ -334,84 +334,18 @@ class Core(CorePluginBase):
 
 
   @export
-  @init_check
-  def add_label(self, parent_id, label_name):
+  def get_daemon_info(self):
 
-    if parent_id != NULL_PARENT and parent_id not in self._labels:
-      raise ValueError("Unknown label: %r" % parent_id)
+    return self._get_daemon_info()
 
-    id = self._add_label(parent_id, label_name)
 
-    self._timestamp["labels_changed"] = datetime.datetime.now()
-
-    return id
-
+  # Section: Public API: Preferences
 
   @export
   @init_check
-  def remove_label(self, label_id):
+  def get_preferences(self):
 
-    if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    count = len(self._index[label_id]["torrents"])
-
-    self._remove_label(label_id)
-
-    self._timestamp["labels_changed"] = datetime.datetime.now()
-    if count:
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
-
-
-  @export
-  @init_check
-  def rename_label(self, label_id, label_name):
-
-    if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    self._rename_label(label_id, label_name)
-
-    self._timestamp["labels_changed"] = datetime.datetime.now()
-
-
-  @export
-  @init_check
-  def get_label_summary(self, timestamp):
-
-    if timestamp:
-      t = cPickle.loads(timestamp)
-    else:
-      t = datetime.datetime(1, 1, 1)
-
-    latest = max(
-      self._timestamp["labels_changed"], self._timestamp["mappings_changed"])
-
-    if t < latest:
-      return self._get_label_summary()
-    else:
-      return None
-
-
-  @export
-  @init_check
-  def set_label_options(self, label_id, options_in, apply_to_labeled=None):
-
-    if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    self._normalize_label_options(options_in, self._prefs["defaults"])
-    self._set_label_options(label_id, options_in, apply_to_labeled)
-
-
-  @export
-  @init_check
-  def get_label_options(self, label_id):
-
-    if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    return self._labels[label_id]["data"]
+    return self._prefs
 
 
   @export
@@ -427,32 +361,7 @@ class Core(CorePluginBase):
     self._config.save()
 
 
-  @export
-  @init_check
-  def get_preferences(self):
-
-    return self._prefs
-
-
-  @export
-  @init_check
-  def get_parent_move_path(self, label_id):
-
-    if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    return self._get_parent_move_path(label_id)
-
-
-  @export
-  @init_check
-  def set_torrent_labels(self, label_id, torrent_list):
-
-    if label_id != ID_NONE and label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
-
-    self._set_torrent_labels(label_id, torrent_list)
-
+  # Section: Public API: Label: Queries
 
   @export
   @init_check
@@ -479,6 +388,16 @@ class Core(CorePluginBase):
 
   @export
   @init_check
+  def get_parent_move_path(self, label_id):
+
+    if label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    return self._get_parent_move_path(label_id)
+
+
+  @export
+  @init_check
   def get_label_bandwidth_usage(self, label_id, include_children=False):
 
     if label_id != ID_NONE and label_id not in self._labels:
@@ -488,9 +407,100 @@ class Core(CorePluginBase):
 
 
   @export
-  def get_daemon_info(self):
+  @init_check
+  def get_label_summary(self, timestamp):
 
-    return self._get_daemon_info()
+    if timestamp:
+      t = cPickle.loads(timestamp)
+    else:
+      t = datetime.datetime(1, 1, 1)
+
+    latest = max(
+      self._timestamp["labels_changed"], self._timestamp["mappings_changed"])
+
+    if t < latest:
+      return self._get_label_summary()
+    else:
+      return None
+
+
+  # Section: Public API: Label: Modifiers
+
+  @export
+  @init_check
+  def add_label(self, parent_id, label_name):
+
+    if parent_id != NULL_PARENT and parent_id not in self._labels:
+      raise ValueError("Unknown label: %r" % parent_id)
+
+    id = self._add_label(parent_id, label_name)
+
+    self._timestamp["labels_changed"] = datetime.datetime.now()
+
+    return id
+
+
+  @export
+  @init_check
+  def rename_label(self, label_id, label_name):
+
+    if label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    self._rename_label(label_id, label_name)
+
+    self._timestamp["labels_changed"] = datetime.datetime.now()
+
+
+  @export
+  @init_check
+  def remove_label(self, label_id):
+
+    if label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    count = len(self._index[label_id]["torrents"])
+
+    self._remove_label(label_id)
+
+    self._timestamp["labels_changed"] = datetime.datetime.now()
+    if count:
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
+
+
+  # Section: Public API: Label: Options
+
+  @export
+  @init_check
+  def get_label_options(self, label_id):
+
+    if label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    return self._labels[label_id]["data"]
+
+
+  @export
+  @init_check
+  def set_label_options(self, label_id, options_in, apply_to_labeled=None):
+
+    if label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    self._normalize_label_options(options_in, self._prefs["defaults"])
+    self._set_label_options(label_id, options_in, apply_to_labeled)
+
+
+  # Section: Public API: Torrent-Label
+
+  @export
+  @init_check
+  def set_torrent_labels(self, label_id, torrent_list):
+
+    if label_id != ID_NONE and label_id not in self._labels:
+      raise ValueError("Unknown label: %r" % label_id)
+
+    self._set_torrent_labels(label_id, torrent_list)
 
 
   # Section: Public Callbacks
