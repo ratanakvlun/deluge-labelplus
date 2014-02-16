@@ -500,7 +500,8 @@ class Core(CorePluginBase):
     label_id = self._find_autolabel_match(torrent_id)
     if label_id:
       self._set_torrent_label(torrent_id, label_id)
-      log.debug("Torrent %r is labeled %r", torrent_id, label_id)
+      log.debug("Torrent %r has been labeled %r", torrent_id, label_id)
+
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
