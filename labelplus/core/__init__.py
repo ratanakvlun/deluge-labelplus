@@ -787,9 +787,15 @@ class Core(CorePluginBase):
       if id in self._labels:
         self._remove_label(id)
 
+    torrent_ids = []
+
     for id in list(self._index[label_id]["torrents"]):
       if id in self._torrents:
         self._remove_torrent_label(id)
+        torrent_ids.append(id)
+
+    if self._prefs["options"]["move_on_changes"] and torrent_ids:
+      self._do_move_completed(torrent_ids)
 
     del self._index[label_id]
     del self._labels[label_id]
