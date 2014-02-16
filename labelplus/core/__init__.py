@@ -365,14 +365,15 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  @export
-  @init_check
-  def get_label_bandwidth_usage(self, label_id, include_children=False):
+  def get_label_bandwidth_usages(self, label_ids):
 
-    if label_id != ID_NONE and label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+    usages = {}
 
-    return self._get_label_bandwidth_usage(label_id, include_children)
+    for id in set(label_ids):
+      if id == ID_NONE or id in self._labels:
+        usages[id] = self._get_label_bandwidth_usage(id)
+
+    return usages
 
 
   @export
