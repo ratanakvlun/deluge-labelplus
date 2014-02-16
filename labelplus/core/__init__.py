@@ -613,9 +613,9 @@ class Core(CorePluginBase):
 
     descendents = []
 
-    for child in self._index[label_id]["children"]:
-      descendents.append(child)
-      descendents += self._get_descendent_labels(child)
+    for id in self._index[label_id]["children"]:
+      descendents.append(id)
+      descendents += self._get_descendent_labels(id)
 
     return descendents
 
