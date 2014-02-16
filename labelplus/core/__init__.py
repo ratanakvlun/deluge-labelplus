@@ -661,19 +661,16 @@ class Core(CorePluginBase):
     return path
 
 
-  def _get_label_bandwidth_usage(self, label_id, sublabels=False):
-
-    labels = [label_id]
-
-    if label_id != ID_NONE and sublabels:
-      labels += self._get_descendent_labels(label_id)
+  def _get_label_bandwidth_usage(self, label_id):
 
     torrent_ids = []
 
-    for id in labels:
-      for torrent_id in self._index[id]["torrents"]:
-        if torrent_id in self._torrents:
-          torrent_ids.append(torrent_id)
+    if label_id == ID_NONE:
+      torrent_ids = self._get_unlabeled_torrents()
+    else:
+      for id in self._index[id]["torrents"]:
+        if id in self._torrents:
+          torrent_ids.append(id)
 
     return self._get_torrent_bandwidth_usage(torrent_ids)
 
