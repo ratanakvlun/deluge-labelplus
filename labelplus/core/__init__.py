@@ -481,7 +481,7 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def set_torrent_labels(self, label_id, torrent_list):
+  def set_torrent_labels(self, torrent_ids, label_id):
 
     if label_id != ID_NONE and label_id not in self._labels:
       raise ValueError("Unknown label: %r" % label_id)
