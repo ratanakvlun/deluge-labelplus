@@ -489,6 +489,7 @@ class Core(CorePluginBase):
 
   # Section: Public Callbacks
 
+  @init_check
   def on_torrent_added(self, torrent_id):
 
     label_id = self._find_autolabel_match(torrent_id)
@@ -499,6 +500,7 @@ class Core(CorePluginBase):
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
+  @init_check
   def on_torrent_removed(self, torrent_id):
 
     if torrent_id in self._mappings:
@@ -509,6 +511,7 @@ class Core(CorePluginBase):
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
+  @init_check
   def on_torrent_finished(self, alert):
 
     torrent_id = str(alert.handle.info_hash())
@@ -521,6 +524,7 @@ class Core(CorePluginBase):
         self._do_move_completed([torrent_id])
 
 
+  @init_check
   def filter_by_label(self, torrent_ids, label_ids):
 
     return self._filter_by_label(torrent_ids, label_ids)
