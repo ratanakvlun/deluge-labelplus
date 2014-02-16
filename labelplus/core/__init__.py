@@ -694,10 +694,6 @@ class Core(CorePluginBase):
       count = len(self._index[id]["torrents"])
       label_count += count
 
-      if self._prefs["options"]["include_children"]:
-        for child in self._index[id]["children"]:
-          count += counts[child]["count"]
-
       counts[id] = {
         "name": self._get_full_label_name(id),
         "count": count,
