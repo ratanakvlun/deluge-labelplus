@@ -378,7 +378,7 @@ class Core(CorePluginBase):
 
   @export
   @init_check
-  def get_label_summary(self, timestamp):
+  def get_labels_summary(self, timestamp):
 
     if timestamp:
       t = cPickle.loads(timestamp)
@@ -389,7 +389,7 @@ class Core(CorePluginBase):
       self._timestamp["labels_changed"], self._timestamp["mappings_changed"])
 
     if t < latest:
-      return self._get_label_summary()
+      return self._get_labels_summary()
     else:
       return None
 
