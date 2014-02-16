@@ -898,6 +898,14 @@ class Core(CorePluginBase):
     return full_name
 
 
+  def _build_full_name_index(self, label_id):
+
+    self._index[label_id]["full_name"] = self._resolve_full_name(label_id)
+
+    for id in self._index[label_id]["children"]:
+      self._build_full_name_index(id)
+
+
   def _remove_full_name_from_index(self, label_id, sublabels=False):
 
     if self._index[label_id].get("full_name") is not None:
