@@ -567,6 +567,8 @@ class Core(CorePluginBase):
     for key in options.keys():
       if key not in OPTION_DEFAULTS:
         del options[key]
+      elif type(options[key]) != type(OPTION_DEFAULTS[key]):
+        options[key] = copy.deepcopy(OPTION_DEFAULTS[key])
 
     for key in OPTION_DEFAULTS:
       if key not in options:
