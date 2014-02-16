@@ -1220,12 +1220,19 @@ class Core(CorePluginBase):
         torrent.move_storage(dest_path)
 
 
-  def _do_move_completed_by_label(self, label_id):
+  def _do_move_completed_by_label(self, label_id, sublabels=False):
 
-    torrent_ids = []
+    options = self._labels[label_id]["data"]
+    if options["download_settings"] and options["move_data_completed"]:
+      torrent_ids = []
 
-    for id in self._index[label_id]["torrents"]:
-      if id in self._torrents:
-        torrent_ids.append(id)
+      for id in self._index[label_id]["torrents"]:
+        if id in self._torrents:
+          torrent_ids.append(id)
 
-    self._do_move_completed(torrent_ids)
+      self._do_move_completed(torrent_ids)
+
+    if sublabels:
+      for id in self._index[label_id]["children"]:
+        if id in self._labels:
+          self._do_move_completed_by_label(id, sublabels)
