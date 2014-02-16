@@ -256,7 +256,8 @@ class Core(CorePluginBase):
     self._normalize_label_options(self._prefs["defaults"])
 
     for id in self._labels:
-      self._normalize_label_options(self._labels[id]["data"])
+      self._normalize_label_options(self._labels[id]["data"],
+        self._prefs["defaults"])
 
     for id in self._mappings.keys():
       if id in self._torrents and self._mappings[id] in self._labels:
