@@ -511,19 +511,20 @@ class Core(CorePluginBase):
       label_id = self._mappings[torrent_id]
       self._remove_torrent_label(torrent_id)
       log.debug("Torrent %r removed from label %r", torrent_id, label_id)
+
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def on_torrent_finished(self, alert):
 
     torrent_id = str(alert.handle.info_hash())
+
     if torrent_id in self._mappings:
       log.debug("Labeled torrent %r has finished", torrent_id)
 
       if self._prefs["options"]["move_after_recheck"]:
         # Try to move in case this alert was from a recheck
-        label_id = self._mappings[torrent_id]
-        self._do_move_completed(label_id, [torrent_id])
+        self._do_move_completed([torrent_id])
 
 
   def filter_by_label(self, torrent_ids, label_ids):
