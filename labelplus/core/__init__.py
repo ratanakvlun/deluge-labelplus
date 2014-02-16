@@ -684,18 +684,18 @@ class Core(CorePluginBase):
     return self._sorted_labels[key]
 
 
-  def _get_label_summary(self):
+  def _get_labels_summary(self):
 
     label_count = 0
     counts = {}
-    labels = self._get_sorted_labels(cmp_length_then_value)
+    label_ids = self._get_sorted_labels(cmp_length_then_value)
 
-    for id in labels:
+    for id in label_ids:
       count = len(self._index[id]["torrents"])
       label_count += count
 
       counts[id] = {
-        "name": self._get_full_label_name(id),
+        "name": self._index[id]["full_name"],
         "count": count,
       }
 
