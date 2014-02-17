@@ -1,5 +1,5 @@
 #
-# config.py
+# __init__.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
@@ -32,6 +32,13 @@
 # software, but you are not obligated to do so. If you do not wish to
 # do so, delete this exception statement from your version.
 #
+
+
+MOVE_PARENT = "parent"
+MOVE_SUBFOLDER = "subfolder"
+MOVE_FOLDER = "folder"
+
+MOVE_MODES = [MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER]
 
 
 def get_version(config):

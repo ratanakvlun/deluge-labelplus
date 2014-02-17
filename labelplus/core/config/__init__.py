@@ -34,12 +34,6 @@
 #
 
 
-MOVE_PARENT = "parent"
-MOVE_SUBFOLDER = "subfolder"
-MOVE_FOLDER = "folder"
-
-MOVE_MODES = [MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER]
-
 OPTION_DEFAULTS_V1 = {
   "include_children": False,
   "show_full_name": False,
