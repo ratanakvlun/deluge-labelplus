@@ -296,28 +296,31 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     deluge.component.get("EventManager").deregister_event_handler(
       "SessionStartedEvent", self._initialize)
 
-    self._initialized = False
+    if getattr(self, "_config", None):
+      if self._initialized:
+        self._config.save()
+      deluge.configmanager.close(CORE_CONFIG)
 
-    self._config.save()
-    deluge.configmanager.close(CORE_CONFIG)
+    if self._initialized:
+      self._initialized = False
 
-    deluge.component.get("EventManager").deregister_event_handler(
-      "TorrentAddedEvent", self.on_torrent_added)
-    deluge.component.get("EventManager").deregister_event_handler(
-      "PreTorrentRemovedEvent", self.on_torrent_removed)
+      deluge.component.get("EventManager").deregister_event_handler(
+        "TorrentAddedEvent", self.on_torrent_added)
+      deluge.component.get("EventManager").deregister_event_handler(
+        "PreTorrentRemovedEvent", self.on_torrent_removed)
 
-    deluge.component.get("AlertManager").deregister_handler(
-      self.on_torrent_finished)
+      deluge.component.get("AlertManager").deregister_handler(
+        self.on_torrent_finished)
 
-    deluge.component.get("CorePluginManager").deregister_status_field(
-      labelplus.common.STATUS_ID)
-    deluge.component.get("CorePluginManager").deregister_status_field(
-      labelplus.common.STATUS_NAME)
+      deluge.component.get("CorePluginManager").deregister_status_field(
+        labelplus.common.STATUS_ID)
+      deluge.component.get("CorePluginManager").deregister_status_field(
+        labelplus.common.STATUS_NAME)
 
-    deluge.component.get("FilterManager").deregister_filter(
-      labelplus.common.STATUS_ID)
+      deluge.component.get("FilterManager").deregister_filter(
+        labelplus.common.STATUS_ID)
 
-    self._rpc_deregister(labelplus.common.PLUGIN_NAME)
+      self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
     log.debug("Core deinitialized")
 
