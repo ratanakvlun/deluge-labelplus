@@ -1076,10 +1076,8 @@ class Core(CorePluginBase):
     # Download settings
     torrent.set_move_completed(self._core["move_completed"])
     torrent.set_move_completed_path(self._core["move_completed_path"])
-    torrent.set_options({
-      "prioritize_first_last_pieces":
-        self._core["prioritize_first_last_pieces"],
-    })
+    torrent.set_prioritize_first_last(
+      self._core["prioritize_first_last_pieces"])
 
     # Bandwidth settings
     torrent.set_max_download_speed(
@@ -1108,13 +1106,10 @@ class Core(CorePluginBase):
 
     if options["download_settings"]:
       torrent.set_move_completed(options["move_data_completed"])
+      torrent.set_prioritize_first_last(options["prioritize_first_last"])
 
       if options["move_data_completed"]:
         torrent.set_move_completed_path(options["move_data_completed_path"])
-
-      torrent.set_options({
-        "prioritize_first_last_pieces": options["prioritize_first_last"],
-      })
 
     if options["bandwidth_settings"]:
       torrent.set_max_download_speed(options["max_download_speed"])
