@@ -270,12 +270,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._remove_label(id)
 
 
-  def _build_full_name_index(self):
-
-    for id in self._labels:
-      self._index[id]["full_name"] = self._resolve_full_name(id)
-
-
   def _apply_label_options(self):
 
     for id in self._mappings.keys():
@@ -946,33 +940,16 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     return full_name
 
 
-  def _get_full_name_from_index(self, label_id):
+  def _build_full_name_index(self,
+    label_id=labelplus.common.label.NULL_PARENT):
 
-    full_name = self._index[label_id].get("full_name")
-    if not full_name:
-      full_name = self._resolve_full_name(label_id)
-      self._index[label_id]["full_name"] = full_name
-
-    return full_name
-
-
-  def _build_full_name_index_from_label(self, label_id):
+    assert(label_id in self._labels or
+      label_id == labelplus.common.label.NULL_PARENT)
 
     self._index[label_id]["full_name"] = self._resolve_full_name(label_id)
 
     for id in self._index[label_id]["children"]:
-      self._build_full_name_index_from_label(id)
-
-
-  def _remove_full_name_from_index(self, label_id, sublabels=False):
-
-    if self._index[label_id].get("full_name") is not None:
-      del self._index[label_id]["full_name"]
-
-    if sublabels:
-      for id in self._index[label_id]["children"]:
-        if id in self._labels:
-          self._remove_full_name_from_index(id, sublabels)
+      self._build_full_name_index(id)
 
 
   # Section: Label: Shared Limit
