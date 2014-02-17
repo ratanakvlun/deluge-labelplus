@@ -214,43 +214,43 @@ class Core(CorePluginBase):
 
   def _remove_reserved_ids(self):
 
-    for id in RESERVED_IDS:
+    for id in labelplus.common.label.RESERVED_IDS:
       if id in self._labels:
         del self._labels[id]
 
 
   def _build_index(self):
 
-    def build_label_index(id):
+    def build_label_entry(label_id):
 
       children = []
       torrents = []
 
-      for child_id in self._labels:
-        if child_id == id:
+      for id in self._labels:
+        if id == label_id:
           continue
 
-        if labelplus.common.get_parent_id(child_id) == id:
-          children.append(child_id)
+        if labelplus.common.get_parent_id(id) == label_id:
+          children.append(id)
 
-      for torrent_id in self._mappings:
-        if self._mappings[torrent_id] == id:
-          torrents.append(torrent_id)
+      for id in self._mappings:
+        if self._mappings[id] == label_id:
+          torrents.append(id)
 
-      label_index = {
+      label_entry = {
         "full_name": self._resolve_full_name(id),
         "children": children,
         "torrents": torrents,
       }
 
-      return label_index
+      return label_entry
 
 
     index = {}
     shared_limit_index = []
 
     for id in self._labels:
-      index[id] = build_label_index(id)
+      index[id] = build_label_entry(id)
 
       if (self._labels[id]["data"]["bandwidth_settings"] and
           self._labels[id]["data"]["shared_limit_on"]):
