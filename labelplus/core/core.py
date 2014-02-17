@@ -140,7 +140,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       labelplus.common.config.set_version(config,
         labelplus.common.config.CONFIG_VERSION)
 
-    ver = labelplus.common.config.get_version(config)
+    file_ver = labelplus.common.config.get_version(config)
+    ver = file_ver
     while ver != labelplus.common.config.CONFIG_VERSION:
       if ver < labelplus.common.config.CONFIG_VERSION:
         key = (ver, ver+1)
@@ -153,7 +154,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
           config, strict_paths=True)
         ver = labelplus.common.config.get_version(config)
       else:
-        raise ValueError("Config file conversion v%s->v%s unsupported" % key)
+        raise ValueError("Config file conversion v%s->v%s not supported" %
+          (file_ver, labelplus.common.config.CONFIG_VERSION))
 
     for key in config.config.keys():
       if key not in labelplus.common.config.CONFIG_DEFAULTS:
