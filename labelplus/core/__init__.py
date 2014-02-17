@@ -289,6 +289,12 @@ class Core(CorePluginBase):
       self._remove_label(id)
 
 
+  def _init_full_name_index(self):
+
+    for id in self._labels:
+      self._index[id]["full_name"] = self._resolve_full_name(id)
+
+
   # Section: Deinitialization
 
   def disable(self):
