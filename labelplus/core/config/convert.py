@@ -35,8 +35,8 @@
 
 
 import labelplus.common.label
+import labelplus.common.config
 import labelplus.common.config.autolabel
-import labelplus.core.config
 
 
 def convert_v1_v2(spec, dict_in):
@@ -81,7 +81,7 @@ def convert_v1_v2(spec, dict_in):
 CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
-  "defaults": labelplus.core.config.CONFIG_DEFAULTS_V2,
+  "defaults": labelplus.common.config.CONFIG_DEFAULTS_V2,
   "map": {
     "*": "*",
   },
