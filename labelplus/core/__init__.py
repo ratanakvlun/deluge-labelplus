@@ -260,7 +260,7 @@ class Core(CorePluginBase):
     self._shared_limit_index = shared_limit_index
 
 
-  def _initialize_data(self):
+  def _normalize_data(self):
 
     self._normalize_options(self._prefs["options"])
     self._normalize_label_options(self._prefs["defaults"])
@@ -269,6 +269,8 @@ class Core(CorePluginBase):
       self._normalize_label_options(self._labels[id]["data"],
         self._prefs["defaults"])
 
+
+  def _apply_all_torrent_options(self):
     for id in self._mappings.keys():
       if id in self._torrents and self._mappings[id] in self._labels:
         self._apply_torrent_options(id)
