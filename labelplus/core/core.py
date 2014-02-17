@@ -135,8 +135,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     config = deluge.configmanager.ConfigManager(CORE_CONFIG)
 
     if not config.config:
-      config.config.update(
-        copy.deepcopy(labelplus.common.config.CONFIG_DEFAULTS))
+      config.config.update(copy.deepcopy(
+        labelplus.common.config.CONFIG_DEFAULTS))
       labelplus.common.config.set_version(config,
         labelplus.common.config.CONFIG_VERSION)
 
@@ -165,6 +165,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _initialize(self):
+
+    log.debug("Resuming initialization...")
 
     deluge.component.get("EventManager").deregister_event_handler(
       "SessionStartedEvent", self._initialize)
@@ -360,12 +362,16 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def get_preferences(self):
 
+    log.debug("Getting preferences")
+
     return self._prefs
 
 
   @deluge.core.rpcserver.export
   @check_init
   def set_preferences(self, prefs):
+
+    log.debug("Setting preferences")
 
     self._normalize_options(prefs["options"])
     self._prefs["options"].update(prefs["options"])
@@ -415,9 +421,11 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def add_label(self, parent_id, label_name):
 
+    log.debug("Adding %r to label %r", label_name, parent_id)
+
     if (parent_id != labelplus.common.label.NULL_PARENT and
         parent_id not in self._labels):
-      raise ValueError("Unknown label: %r" % parent_id)
+      raise ValueError("Invalid label: %r" % parent_id)
 
     id = self._add_label(parent_id, label_name)
 
@@ -430,8 +438,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def rename_label(self, label_id, label_name):
 
+    log.debug("Renaming name of label %r to %r", label_id, label_name)
+
     if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+      raise ValueError("Invalid label: %r" % label_id)
 
     self._rename_label(label_id, label_name)
 
@@ -442,8 +452,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def remove_label(self, label_id):
 
+    log.debug("Removing label %r", label_id)
+
     if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+      raise ValueError("Invalid label: %r" % label_id)
 
     count = len(self._index[label_id]["torrents"])
 
@@ -460,8 +472,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def get_label_options(self, label_id):
 
+    log.debug("Getting label options for %r", label_id)
+
     if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+      raise ValueError("Invalid label: %r" % label_id)
 
     return self._labels[label_id]["data"]
 
@@ -470,8 +484,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def set_label_options(self, label_id, options_in, apply_to_all=None):
 
+    log.debug("Setting label options for %r", label_id)
+
     if label_id not in self._labels:
-      raise ValueError("Unknown label: %r" % label_id)
+      raise ValueError("Invalid label: %r" % label_id)
 
     self._normalize_label_options(options_in, self._prefs["defaults"])
     self._set_label_options(label_id, options_in, apply_to_all)
@@ -483,9 +499,11 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def get_torrent_labels(self, torrent_ids):
 
+    log.debug("Getting torrent labels")
+
     mappings = {}
 
-    for id in torrent_ids:
+    for id in set(torrent_ids):
       if id in self._torrents:
         mappings[id] = [
           self._get_torrent_label_id(id),
@@ -499,11 +517,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   @check_init
   def set_torrent_labels(self, torrent_ids, label_id):
 
+    log.debug("Setting torrent labels to %r", label_id)
+
     if (label_id != labelplus.common.label.ID_NONE and
         label_id not in self._labels):
-      raise ValueError("Unknown label: %r" % label_id)
+      raise ValueError("Invalid label: %r" % label_id)
 
-    torrent_ids = [x for x in torrent_ids if x in self._torrents]
+    torrent_ids = [x for x in set(torrent_ids) if x in self._torrents]
 
     for id in torrent_ids:
       self._set_torrent_label(id, label_id)
@@ -520,7 +540,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     label_id = self._find_autolabel_match(torrent_id)
     if label_id:
       self._set_torrent_label(torrent_id, label_id)
-      log.debug("Torrent %r has been labeled %r", torrent_id, label_id)
+      log.debug("Setting torrent %r to label %r", torrent_id, label_id)
 
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
@@ -531,7 +551,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if torrent_id in self._mappings:
       label_id = self._mappings[torrent_id]
       self._remove_torrent_label(torrent_id)
-      log.debug("Torrent %r removed from label %r", torrent_id, label_id)
+      log.debug("Removing torrent %r from label %r", torrent_id, label_id)
 
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
