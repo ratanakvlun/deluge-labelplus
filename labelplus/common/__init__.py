@@ -56,6 +56,8 @@ ID_ALL = "All"
 ID_NONE = "None"
 RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
 
+RE_INVALID_LABEL_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
+
 
 def get_resource(filename):
 
@@ -98,15 +100,10 @@ def get_name_by_depth(full_name, depth=0):
   return "/".join(name.split("/")[-depth:])
 
 
-# Validation
-
-RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
-
-
 def validate_name(label_name):
 
   if not label_name:
     raise ValueError("Empty label")
 
-  if RE_INVALID_CHARS.search(label_name):
+  if RE_INVALID_LABEL_CHARS.search(label_name):
     raise ValueError("Invalid characters")
