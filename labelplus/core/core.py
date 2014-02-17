@@ -60,7 +60,6 @@ import labelplus.common.config
 import labelplus.common.config.convert
 import labelplus.common.config.autolabel
 
-import labelplus.core.config
 import labelplus.core.config.convert
 
 
@@ -137,13 +136,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     if not config.config:
       config.config.update(
-        copy.deepcopy(labelplus.core.config.CONFIG_DEFAULTS))
+        copy.deepcopy(labelplus.common.config.CONFIG_DEFAULTS))
       labelplus.common.config.set_version(config,
-        labelplus.core.config.CONFIG_VERSION)
+        labelplus.common.config.CONFIG_VERSION)
 
     ver = labelplus.common.config.get_version(config)
-    while ver != labelplus.core.config.CONFIG_VERSION:
-      if ver < labelplus.core.config.CONFIG_VERSION:
+    while ver != labelplus.common.config.CONFIG_VERSION:
+      if ver < labelplus.common.config.CONFIG_VERSION:
         key = (ver, ver+1)
       else:
         key = (ver, ver-1)
@@ -157,7 +156,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         raise ValueError("Config file conversion v%s->v%s unsupported" % key)
 
     for key in config.config.keys():
-      if key not in labelplus.core.config.CONFIG_DEFAULTS:
+      if key not in labelplus.common.config.CONFIG_DEFAULTS:
         del config.config[key]
 
     return config
@@ -593,17 +592,17 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   def _normalize_options(self, options):
 
     for key in options.keys():
-      if key not in labelplus.core.config.OPTION_DEFAULTS:
+      if key not in labelplus.common.config.OPTION_DEFAULTS:
         del options[key]
       elif (type(options[key]) !=
-          type(labelplus.core.config.OPTION_DEFAULTS[key])):
+          type(labelplus.common.config.OPTION_DEFAULTS[key])):
         options[key] = copy.deepcopy(
-          labelplus.core.config.OPTION_DEFAULTS[key])
+          labelplus.common.config.OPTION_DEFAULTS[key])
 
-    for key in labelplus.core.config.OPTION_DEFAULTS:
+    for key in labelplus.common.config.OPTION_DEFAULTS:
       if key not in options:
         options[key] = copy.deepcopy(
-          labelplus.core.config.OPTION_DEFAULTS[key])
+          labelplus.common.config.OPTION_DEFAULTS[key])
 
     if options["shared_limit_update_interval"] < 1:
       options["shared_limit_update_interval"] = 1
@@ -825,7 +824,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   # Section: Label: Options
 
   def _normalize_label_options(self, options,
-      spec=labelplus.core.config.LABEL_DEFAULTS):
+      spec=labelplus.common.config.LABEL_DEFAULTS):
 
     for key in options.keys():
       if key not in spec:
