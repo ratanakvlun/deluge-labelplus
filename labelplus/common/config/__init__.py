@@ -39,6 +39,97 @@ MOVE_SUBFOLDER = "subfolder"
 MOVE_FOLDER = "folder"
 MOVE_MODES = (MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER)
 
+OPTION_DEFAULTS_V1 = {
+  "include_children": False,
+  "show_full_name": False,
+  "move_on_changes": False,
+  "autolabel_uses_regex": False,
+  "shared_limit_update_interval": 5,
+  "move_after_recheck": False,
+}
+
+LABEL_DEFAULTS_V1 = {
+  "download_settings": False,
+  "move_data_completed": False,
+  "move_data_completed_path": "",
+  "move_data_completed_mode": MOVE_FOLDER,
+  "prioritize_first_last": False,
+
+  "bandwidth_settings": False,
+  "max_download_speed": -1.0,
+  "max_upload_speed": -1.0,
+  "max_connections": -1,
+  "max_upload_slots": -1,
+  "shared_limit_on": False,
+
+  "queue_settings": False,
+  "auto_managed": False,
+  "stop_at_ratio": False,
+  "stop_ratio": 1.0,
+  "remove_at_ratio": False,
+
+  "auto_settings": False,
+  "auto_name": True,
+  "auto_tracker": False,
+  "auto_queries": [],
+}
+
+CONFIG_DEFAULTS_V1 = {
+  "prefs": {
+    "options": OPTION_DEFAULTS_V1,
+    "defaults": LABEL_DEFAULTS_V1,
+  },
+  "labels": {},   # "label_id": {"name": str, "data": dict}
+  "mappings": {}, # "torrent_id": "label_id"
+}
+
+OPTION_DEFAULTS_V2 = {
+  "include_children": False,
+  "show_full_name": False,
+  "move_on_changes": False,
+  "shared_limit_update_interval": 5,
+  "move_after_recheck": False,
+}
+
+LABEL_DEFAULTS_V2 = {
+  "download_settings": False,
+  "move_data_completed": False,
+  "move_data_completed_path": "",
+  "move_data_completed_mode": MOVE_FOLDER,
+  "prioritize_first_last": False,
+
+  "bandwidth_settings": False,
+  "max_download_speed": -1.0,
+  "max_upload_speed": -1.0,
+  "max_connections": -1,
+  "max_upload_slots": -1,
+  "shared_limit_on": False,
+
+  "queue_settings": False,
+  "auto_managed": False,
+  "stop_at_ratio": False,
+  "stop_ratio": 1.0,
+  "remove_at_ratio": False,
+
+  "auto_settings": False,
+  "autolabel_match_all": False,
+  "autolabel_rules": [],
+}
+
+CONFIG_DEFAULTS_V2 = {
+  "prefs": {
+    "options": OPTION_DEFAULTS_V2,
+    "defaults": LABEL_DEFAULTS_V2,
+  },
+  "labels": {},   # "label_id": {"name": str, "data": dict}
+  "mappings": {}, # "torrent_id": "label_id"
+}
+
+CONFIG_VERSION = 2
+CONFIG_DEFAULTS = CONFIG_DEFAULTS_V2
+OPTION_DEFAULTS = OPTION_DEFAULTS_V2
+LABEL_DEFAULTS = LABEL_DEFAULTS_V2
+
 
 def get_version(config):
 
