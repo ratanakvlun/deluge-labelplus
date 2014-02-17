@@ -34,6 +34,9 @@
 #
 
 
+import labelplus.common.config
+
+
 OPTION_DEFAULTS_V1 = {
   "include_children": False,
   "show_full_name": False,
@@ -47,7 +50,7 @@ LABEL_DEFAULTS_V1 = {
   "download_settings": False,
   "move_data_completed": False,
   "move_data_completed_path": "",
-  "move_data_completed_mode": MOVE_FOLDER,
+  "move_data_completed_mode": labelplus.common.config.MOVE_FOLDER,
   "prioritize_first_last": False,
 
   "bandwidth_settings": False,
@@ -90,7 +93,7 @@ LABEL_DEFAULTS_V2 = {
   "download_settings": False,
   "move_data_completed": False,
   "move_data_completed_path": "",
-  "move_data_completed_mode": MOVE_FOLDER,
+  "move_data_completed_mode": labelplus.common.config.MOVE_FOLDER,
   "prioritize_first_last": False,
 
   "bandwidth_settings": False,
