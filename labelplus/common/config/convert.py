@@ -104,7 +104,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
 
     key_in = parts_in[pos_in]
     key_out = parts_out[pos_out]
-    # Since number of "*" is required to be the same, either both keys are "*"
+    # Since number of "*" is required to be the same, both keys are either "*"
     # or the last keys in their respective paths
 
     if key_in != "*":
@@ -140,7 +140,8 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
           try:
             parts_in[pos_in] = key
 
-            dict_in_end, pos = traverse_parts(dict_in[key], parts_in, pos_in+1)
+            dict_in_end, pos = traverse_parts(dict_in[key],
+              parts_in, pos_in+1)
             key_in = parts_in[pos]
 
             if key_in not in dict_in_end:
