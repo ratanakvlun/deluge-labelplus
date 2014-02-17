@@ -55,13 +55,20 @@ from deluge.core.rpcserver import export
 from deluge.plugins.pluginbase import CorePluginBase
 
 import labelplus.common
+import labelplus.common.label
 import labelplus.common.config
-import labelplus.common.autolabel
+import labelplus.common.config.convert
+import labelplus.common.config.autolabel
+
 import labelplus.core.config
+import labelplus.core.config.convert
 
 from labelplus.common import (
   PLUGIN_NAME, MODULE_NAME,
   STATUS_ID, STATUS_NAME,
+)
+
+from labelplus.common.label import (
   NULL_PARENT, ID_ALL, ID_NONE, RESERVED_IDS,
 )
 
@@ -72,7 +79,8 @@ from labelplus.core.config import (
 )
 
 
-CORE_CONFIG = "%s.conf" % MODULE_NAME
+CORE_CONFIG = "%s.conf" % labelplus.common.MODULE_NAME
+DELUGE_CORE_CONFIG = "core.conf"
 
 log = logging.getLogger(__name__)
 log.addFilter(labelplus.common.LOG_FILTER)
@@ -90,9 +98,10 @@ def init_check(func):
 
   def wrap(*args, **kwargs):
 
-    if len(args) > 0 and isinstance(args[0], Core):
+    if args and isinstance(args[0], Core):
       if not args[0]._initialized:
-        raise RuntimeError("Plugin %r not initialized" % PLUGIN_NAME)
+        raise RuntimeError("Plugin %r not initialized" %
+          labelplus.common.PLUGIN_NAME)
 
     return func(*args, **kwargs)
 
@@ -114,7 +123,7 @@ class Core(CorePluginBase):
 
     log.debug("Initializing Core...")
 
-    self._core = deluge.configmanager.ConfigManager("core.conf")
+    self._core = deluge.configmanager.ConfigManager(DELUGE_CORE_CONFIG)
     self._config = self._load_config()
 
     self._prefs = self._config["prefs"]
@@ -131,7 +140,7 @@ class Core(CorePluginBase):
 
     if not component.get("TorrentManager").session_started:
       component.get("EventManager").register_event_handler(
-          "SessionStartedEvent", self._initialize)
+        "SessionStartedEvent", self._initialize)
       log.debug("Waiting for session to start...")
     else:
       self._initialize()
@@ -142,7 +151,8 @@ class Core(CorePluginBase):
     config = deluge.configmanager.ConfigManager(CORE_CONFIG)
 
     if not config.config:
-      config.config.update(copy.deepcopy(CONFIG_DEFAULTS))
+      config.config.update(
+        copy.deepcopy(labelplus.core.config.CONFIG_DEFAULTS))
       labelplus.common.config.set_version(config,
         labelplus.core.config.CONFIG_VERSION)
 
@@ -153,7 +163,7 @@ class Core(CorePluginBase):
       else:
         key = (ver, ver-1)
 
-      spec = labelplus.core.config.CONFIG_SPECS.get(key)
+      spec = labelplus.core.config.convert.CONFIG_SPECS.get(key)
       if spec:
         labelplus.common.config.convert(spec, config, strict_paths=True)
         ver = labelplus.common.config.get_version(config)
@@ -161,7 +171,7 @@ class Core(CorePluginBase):
         raise ValueError("Config file conversion v%s->v%s unsupported" % key)
 
     for key in config.config.keys():
-      if key not in CONFIG_DEFAULTS:
+      if key not in labelplus.core.config.CONFIG_DEFAULTS:
         del config.config[key]
 
     return config
@@ -170,7 +180,7 @@ class Core(CorePluginBase):
   def _initialize(self):
 
     component.get("EventManager").deregister_event_handler(
-        "SessionStartedEvent", self._initialize)
+      "SessionStartedEvent", self._initialize)
 
     self._torrents = component.get("TorrentManager").torrents
 
@@ -180,20 +190,20 @@ class Core(CorePluginBase):
     self._remove_orphans()
 
     component.get("FilterManager").register_filter(
-        STATUS_ID, self.filter_by_label)
+      labelplus.common.STATUS_ID, self.filter_by_label)
 
     component.get("CorePluginManager").register_status_field(
-        STATUS_NAME, self.get_torrent_label_name)
+      labelplus.common.STATUS_NAME, self.get_torrent_label_name)
     component.get("CorePluginManager").register_status_field(
-        STATUS_ID, self.get_torrent_label)
+      labelplus.common.STATUS_ID, self.get_torrent_label_id)
 
     component.get("EventManager").register_event_handler(
-        "TorrentAddedEvent", self.on_torrent_added)
+      "TorrentAddedEvent", self.on_torrent_added)
     component.get("EventManager").register_event_handler(
-        "PreTorrentRemovedEvent", self.on_torrent_removed)
+      "PreTorrentRemovedEvent", self.on_torrent_removed)
 
     component.get("AlertManager").register_handler(
-        "torrent_finished_alert", self.on_torrent_finished)
+      "torrent_finished_alert", self.on_torrent_finished)
 
     self._initialized = True
 
