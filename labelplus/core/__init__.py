@@ -184,10 +184,11 @@ class Core(CorePluginBase):
 
     self._torrents = component.get("TorrentManager").torrents
 
-    self._remove_reserved_ids()
+    self._normalize_data()
     self._build_index()
-    self._initialize_data()
     self._remove_orphans()
+    self._init_full_name_index()
+    self._apply_label_options()
 
     component.get("FilterManager").register_filter(
       labelplus.common.STATUS_ID, self.filter_by_label)
@@ -212,11 +213,18 @@ class Core(CorePluginBase):
     log.debug("Core initialized")
 
 
-  def _remove_reserved_ids(self):
+  def _normalize_data(self):
+
+    self._normalize_options(self._prefs["options"])
+    self._normalize_label_options(self._prefs["defaults"])
 
     for id in labelplus.common.label.RESERVED_IDS:
       if id in self._labels:
         del self._labels[id]
+
+    for id in self._labels:
+      self._normalize_label_options(self._labels[id]["data"],
+        self._prefs["defaults"])
 
 
   def _build_index(self):
@@ -238,7 +246,6 @@ class Core(CorePluginBase):
           torrents.append(id)
 
       label_entry = {
-        "full_name": self._resolve_full_name(id),
         "children": children,
         "torrents": torrents,
       }
@@ -260,31 +267,14 @@ class Core(CorePluginBase):
     self._shared_limit_index = shared_limit_index
 
 
-  def _normalize_data(self):
-
-    self._normalize_options(self._prefs["options"])
-    self._normalize_label_options(self._prefs["defaults"])
-
-    for id in self._labels:
-      self._normalize_label_options(self._labels[id]["data"],
-        self._prefs["defaults"])
-
-
-  def _apply_all_torrent_options(self):
-    for id in self._mappings.keys():
-      if id in self._torrents and self._mappings[id] in self._labels:
-        self._apply_torrent_options(id)
-      else:
-        self._remove_torrent_label(id)
-
-
   def _remove_orphans(self):
 
     removals = []
 
     for id in self._labels:
       parent_id = labelplus.common.get_parent_id(id)
-      if parent_id != NULL_PARENT and parent_id not in self._labels:
+      if (parent_id != labelplus.common.label.NULL_PARENT and
+          parent_id not in self._labels):
         removals.append(id)
 
     for id in removals:
@@ -295,6 +285,15 @@ class Core(CorePluginBase):
 
     for id in self._labels:
       self._index[id]["full_name"] = self._resolve_full_name(id)
+
+
+  def _apply_label_options(self):
+
+    for id in self._mappings.keys():
+      if id in self._torrents and self._mappings[id] in self._labels:
+        self._apply_torrent_options(id)
+      else:
+        self._remove_torrent_label(id)
 
 
   # Section: Deinitialization
