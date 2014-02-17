@@ -34,8 +34,8 @@
 #
 
 
-import labelplus.common
-import labelplus.common.autolabel
+import labelplus.common.label
+import labelplus.common.config.autolabel
 import labelplus.core.config
 
 
@@ -44,12 +44,12 @@ def convert_v1_v2(spec, dict_in):
   def convert_auto_queries(dict_in, op):
 
     rules = []
-    case = labelplus.common.autolabel.CASE_MATCH
+    case = labelplus.common.config.autolabel.CASE_MATCH
 
     if dict_in["auto_tracker"]:
-      prop = labelplus.common.autolabel.PROP_TRACKER
+      prop = labelplus.common.config.autolabel.PROP_TRACKER
     else:
-      prop = labelplus.common.autolabel.PROP_NAME
+      prop = labelplus.common.config.autolabel.PROP_NAME
 
     for line in dict_in["auto_queries"]:
       rules.append([prop, op, case, line])
@@ -63,14 +63,14 @@ def convert_v1_v2(spec, dict_in):
 
   labels = dict_in["labels"]
 
-  op = labelplus.common.autolabel.OP_CONTAINS_WORDS
+  op = labelplus.common.config.autolabel.OP_CONTAINS_WORDS
   if option_defaults.get("autolabel_uses_regex"):
-    op = labelplus.common.autolabel.OP_MATCHES_REGEX
+    op = labelplus.common.config.autolabel.OP_MATCHES_REGEX
 
   convert_auto_queries(label_defaults, op)
 
   for label in labels:
-    if label in labelplus.common.RESERVED_IDS:
+    if label in labelplus.common.label.RESERVED_IDS:
       continue
 
     convert_auto_queries(labels[label]["data"], op)
