@@ -277,10 +277,14 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   def _apply_label_options(self):
 
     for id in self._mappings.keys():
-      if id in self._torrents and self._mappings[id] in self._labels:
-        self._apply_torrent_options(id)
-      else:
-        self._remove_torrent_label(id)
+      if id in self._torrents:
+        if self._mappings[id] in self._labels:
+          self._apply_torrent_options(id)
+          continue
+        else:
+          self._reset_torrent_options(id)
+
+      self._remove_torrent_label(id)
 
 
   # Section: Deinitialization
