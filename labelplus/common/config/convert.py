@@ -105,7 +105,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     key_in = parts_in[pos_in]
     key_out = parts_out[pos_out]
     # Since number of "*" is required to be the same, either both keys are "*"
-    # or are both the last keys in their respective paths
+    # or the last keys in their respective paths
 
     if key_in != "*":
     # Both keys are last keys; just copy value
