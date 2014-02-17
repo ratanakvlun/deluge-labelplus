@@ -150,7 +150,8 @@ class Core(CorePluginBase):
 
       spec = labelplus.core.config.convert.CONFIG_SPECS.get(key)
       if spec:
-        labelplus.common.config.convert(spec, config, strict_paths=True)
+        labelplus.common.config.convert.convert(spec,
+          config, strict_paths=True)
         ver = labelplus.common.config.get_version(config)
       else:
         raise ValueError("Config file conversion v%s->v%s unsupported" % key)
@@ -223,7 +224,7 @@ class Core(CorePluginBase):
         if id == label_id:
           continue
 
-        if labelplus.common.get_parent_id(id) == label_id:
+        if labelplus.common.label.get_parent_id(id) == label_id:
           children.append(id)
 
       for id in self._mappings:
@@ -257,7 +258,7 @@ class Core(CorePluginBase):
     removals = []
 
     for id in self._labels:
-      parent_id = labelplus.common.get_parent_id(id)
+      parent_id = labelplus.common.label.get_parent_id(id)
       if (parent_id != labelplus.common.label.NULL_PARENT and
           parent_id not in self._labels):
         removals.append(id)
@@ -654,7 +655,7 @@ class Core(CorePluginBase):
 
   def _get_parent_move_path(self, label_id):
 
-    parent_id = labelplus.common.get_parent_id(label_id)
+    parent_id = labelplus.common.label.get_parent_id(label_id)
     if parent_id == labelplus.common.label.NULL_PARENT:
       path = self._get_deluge_move_path()
     else:
@@ -783,7 +784,8 @@ class Core(CorePluginBase):
     except (TypeError, UnicodeDecodeError):
       pass
 
-    self._validate_name(labelplus.common.get_parent_id(label_id), label_name)
+    self._validate_name(labelplus.common.label.get_parent_id(label_id),
+      label_name)
 
     label = self._labels[label_id]
     label["name"] = label_name
@@ -798,7 +800,7 @@ class Core(CorePluginBase):
 
   def _remove_label(self, label_id):
 
-    parent_id = labelplus.common.get_parent_id(label_id)
+    parent_id = labelplus.common.label.get_parent_id(label_id)
     if parent_id in self._index:
       self._index[parent_id]["children"].remove(label_id)
 
@@ -909,7 +911,7 @@ class Core(CorePluginBase):
 
     while id and id != labelplus.common.label.NULL_PARENT:
       parts.append(self._labels[id]["name"])
-      id = labelplus.common.get_parent_id(id)
+      id = labelplus.common.label.get_parent_id(id)
 
     full_name = "/".join(reversed(parts))
 
