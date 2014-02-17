@@ -303,7 +303,7 @@ class Core(CorePluginBase):
     log.debug("Deinitializing Core...")
 
     component.get("EventManager").deregister_event_handler(
-        "SessionStartedEvent", self._initialize)
+      "SessionStartedEvent", self._initialize)
 
     self._initialized = False
 
@@ -311,19 +311,22 @@ class Core(CorePluginBase):
     deluge.configmanager.close(CORE_CONFIG)
 
     component.get("EventManager").deregister_event_handler(
-        "TorrentAddedEvent", self.on_torrent_added)
+      "TorrentAddedEvent", self.on_torrent_added)
     component.get("EventManager").deregister_event_handler(
-        "PreTorrentRemovedEvent", self.on_torrent_removed)
+      "PreTorrentRemovedEvent", self.on_torrent_removed)
 
     component.get("AlertManager").deregister_handler(
-        self.on_torrent_finished)
+      self.on_torrent_finished)
 
-    component.get("CorePluginManager").deregister_status_field(STATUS_ID)
-    component.get("CorePluginManager").deregister_status_field(STATUS_NAME)
+    component.get("CorePluginManager").deregister_status_field(
+      labelplus.common.STATUS_ID)
+    component.get("CorePluginManager").deregister_status_field(
+      labelplus.common.STATUS_NAME)
 
-    component.get("FilterManager").deregister_filter(STATUS_ID)
+    component.get("FilterManager").deregister_filter(
+      labelplus.common.STATUS_ID)
 
-    self._rpc_deregister(PLUGIN_NAME)
+    self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
     log.debug("Core deinitialized")
 
