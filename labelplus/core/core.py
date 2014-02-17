@@ -1,5 +1,5 @@
 #
-# __init__.py
+# core.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
@@ -595,7 +595,7 @@ class Core(CorePluginBase):
       if key not in labelplus.core.config.OPTION_DEFAULTS:
         del options[key]
       elif (type(options[key]) !=
-          type(labelplus.core.config.OPTION_DEFAULTS[key]):
+          type(labelplus.core.config.OPTION_DEFAULTS[key])):
         options[key] = copy.deepcopy(
           labelplus.core.config.OPTION_DEFAULTS[key])
 
