@@ -46,13 +46,13 @@ import cPickle
 import datetime
 import re
 
-from twisted.internet import reactor
+import twisted.internet.reactor
 
 import deluge.common
 import deluge.configmanager
-from deluge import component
-from deluge.core.rpcserver import export
-from deluge.plugins.pluginbase import CorePluginBase
+import deluge.component
+import deluge.core.rpcserver
+import deluge.plugins.pluginbase
 
 import labelplus.common
 import labelplus.common.label
@@ -79,7 +79,7 @@ def cmp_length_then_value(x, y):
   return cmp(x, y)
 
 
-def init_check(func):
+def check_init(func):
 
   def wrap(*args, **kwargs):
 
@@ -94,7 +94,7 @@ def init_check(func):
   return wrap
 
 
-class Core(CorePluginBase):
+class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   # Section: Initialization
 
@@ -123,8 +123,8 @@ class Core(CorePluginBase):
       "labels_sorted": datetime.datetime(1, 1, 1),
     }
 
-    if not component.get("TorrentManager").session_started:
-      component.get("EventManager").register_event_handler(
+    if not deluge.component.get("TorrentManager").session_started:
+      deluge.component.get("EventManager").register_event_handler(
         "SessionStartedEvent", self._initialize)
       log.debug("Waiting for session to start...")
     else:
@@ -165,10 +165,10 @@ class Core(CorePluginBase):
 
   def _initialize(self):
 
-    component.get("EventManager").deregister_event_handler(
+    deluge.component.get("EventManager").deregister_event_handler(
       "SessionStartedEvent", self._initialize)
 
-    self._torrents = component.get("TorrentManager").torrents
+    self._torrents = deluge.component.get("TorrentManager").torrents
 
     self._normalize_data()
     self._build_index()
@@ -176,25 +176,25 @@ class Core(CorePluginBase):
     self._init_full_name_index()
     self._apply_label_options()
 
-    component.get("FilterManager").register_filter(
+    deluge.component.get("FilterManager").register_filter(
       labelplus.common.STATUS_ID, self.filter_by_label)
 
-    component.get("CorePluginManager").register_status_field(
+    deluge.component.get("CorePluginManager").register_status_field(
       labelplus.common.STATUS_NAME, self.get_torrent_label_name)
-    component.get("CorePluginManager").register_status_field(
+    deluge.component.get("CorePluginManager").register_status_field(
       labelplus.common.STATUS_ID, self.get_torrent_label_id)
 
-    component.get("EventManager").register_event_handler(
+    deluge.component.get("EventManager").register_event_handler(
       "TorrentAddedEvent", self.on_torrent_added)
-    component.get("EventManager").register_event_handler(
+    deluge.component.get("EventManager").register_event_handler(
       "PreTorrentRemovedEvent", self.on_torrent_removed)
 
-    component.get("AlertManager").register_handler(
+    deluge.component.get("AlertManager").register_handler(
       "torrent_finished_alert", self.on_torrent_finished)
 
     self._initialized = True
 
-    reactor.callLater(1, self._shared_limit_update_loop)
+    twisted.internet.reactor.callLater(1, self._shared_limit_update_loop)
 
     log.debug("Core initialized")
 
@@ -288,7 +288,7 @@ class Core(CorePluginBase):
 
     log.debug("Deinitializing Core...")
 
-    component.get("EventManager").deregister_event_handler(
+    deluge.component.get("EventManager").deregister_event_handler(
       "SessionStartedEvent", self._initialize)
 
     self._initialized = False
@@ -296,20 +296,20 @@ class Core(CorePluginBase):
     self._config.save()
     deluge.configmanager.close(CORE_CONFIG)
 
-    component.get("EventManager").deregister_event_handler(
+    deluge.component.get("EventManager").deregister_event_handler(
       "TorrentAddedEvent", self.on_torrent_added)
-    component.get("EventManager").deregister_event_handler(
+    deluge.component.get("EventManager").deregister_event_handler(
       "PreTorrentRemovedEvent", self.on_torrent_removed)
 
-    component.get("AlertManager").deregister_handler(
+    deluge.component.get("AlertManager").deregister_handler(
       self.on_torrent_finished)
 
-    component.get("CorePluginManager").deregister_status_field(
+    deluge.component.get("CorePluginManager").deregister_status_field(
       labelplus.common.STATUS_ID)
-    component.get("CorePluginManager").deregister_status_field(
+    deluge.component.get("CorePluginManager").deregister_status_field(
       labelplus.common.STATUS_NAME)
 
-    component.get("FilterManager").deregister_filter(
+    deluge.component.get("FilterManager").deregister_filter(
       labelplus.common.STATUS_ID)
 
     self._rpc_deregister(labelplus.common.PLUGIN_NAME)
@@ -319,7 +319,7 @@ class Core(CorePluginBase):
 
   def _rpc_deregister(self, name):
 
-    server = component.get("RPCServer")
+    server = deluge.component.get("RPCServer")
     name = name.lower()
 
     for d in dir(self):
@@ -334,13 +334,13 @@ class Core(CorePluginBase):
 
   # Section: Public API: General
 
-  @export
+  @deluge.core.rpcserver.export
   def is_initialized(self):
 
     return self._initialized
 
 
-  @export
+  @deluge.core.rpcserver.export
   def get_daemon_info(self):
 
     return self._get_daemon_info()
@@ -348,15 +348,15 @@ class Core(CorePluginBase):
 
   # Section: Public API: Preferences
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def get_preferences(self):
 
     return self._prefs
 
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def set_preferences(self, prefs):
 
     self._normalize_options(prefs["options"])
@@ -370,8 +370,8 @@ class Core(CorePluginBase):
 
   # Section: Public API: Label: Queries
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def get_label_bandwidth_usages(self, label_ids):
 
     usages = {}
@@ -383,8 +383,8 @@ class Core(CorePluginBase):
     return usages
 
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def get_labels_summary(self, timestamp):
 
     if timestamp:
@@ -403,8 +403,8 @@ class Core(CorePluginBase):
 
   # Section: Public API: Label: Modifiers
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def add_label(self, parent_id, label_name):
 
     if (parent_id != labelplus.common.label.NULL_PARENT and
@@ -418,8 +418,8 @@ class Core(CorePluginBase):
     return id
 
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def rename_label(self, label_id, label_name):
 
     if label_id not in self._labels:
@@ -430,8 +430,8 @@ class Core(CorePluginBase):
     self._timestamp["labels_changed"] = datetime.datetime.now()
 
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def remove_label(self, label_id):
 
     if label_id not in self._labels:
@@ -448,8 +448,8 @@ class Core(CorePluginBase):
 
   # Section: Public API: Label: Options
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def get_label_options(self, label_id):
 
     if label_id not in self._labels:
@@ -458,8 +458,8 @@ class Core(CorePluginBase):
     return self._labels[label_id]["data"]
 
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def set_label_options(self, label_id, options_in, apply_to_all=None):
 
     if label_id not in self._labels:
@@ -471,8 +471,8 @@ class Core(CorePluginBase):
 
   # Section: Public API: Torrent-Label
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def get_torrent_labels(self, torrent_ids):
 
     mappings = {}
@@ -487,8 +487,8 @@ class Core(CorePluginBase):
     return mappings
 
 
-  @export
-  @init_check
+  @deluge.core.rpcserver.export
+  @check_init
   def set_torrent_labels(self, torrent_ids, label_id):
 
     if (label_id != labelplus.common.label.ID_NONE and
@@ -506,7 +506,7 @@ class Core(CorePluginBase):
 
   # Section: Public Callbacks
 
-  @init_check
+  @check_init
   def on_torrent_added(self, torrent_id):
 
     label_id = self._find_autolabel_match(torrent_id)
@@ -517,7 +517,7 @@ class Core(CorePluginBase):
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
-  @init_check
+  @check_init
   def on_torrent_removed(self, torrent_id):
 
     if torrent_id in self._mappings:
@@ -528,7 +528,7 @@ class Core(CorePluginBase):
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
-  @init_check
+  @check_init
   def on_torrent_finished(self, alert):
 
     torrent_id = str(alert.handle.info_hash())
@@ -541,19 +541,19 @@ class Core(CorePluginBase):
         self._do_move_completed([torrent_id])
 
 
-  @init_check
+  @check_init
   def get_torrent_label_id(self, torrent_id):
 
     return self._get_torrent_label_id(torrent_id)
 
 
-  @init_check
+  @check_init
   def get_torrent_label_name(self, torrent_id):
 
     return self._get_torrent_label_name(torrent_id)
 
 
-  @init_check
+  @check_init
   def filter_by_label(self, torrent_ids, label_ids):
 
     return self._filter_by_label(torrent_ids, label_ids)
@@ -956,7 +956,7 @@ class Core(CorePluginBase):
         if id in self._labels:
           self._do_update_shared_limit(id)
 
-      reactor.callLater(
+      twisted.internet.reactor.callLater(
         self._prefs["options"]["shared_limit_update_interval"],
         self._shared_limit_update_loop)
 
