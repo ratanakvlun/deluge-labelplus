@@ -1,5 +1,5 @@
 #
-# __init__.py
+# label.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
@@ -34,37 +34,41 @@
 #
 
 
-import os
-import pkg_resources
-import gettext
+import re
 
 
-# General
+NULL_PARENT = "-"
+ID_ALL = "All"
+ID_NONE = "None"
+RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
 
-_ = gettext.gettext
-
-PLUGIN_NAME = "LabelPlus"
-MODULE_NAME = "labelplus"
-DISPLAY_NAME = _("LabelPlus")
-
-STATUS_ID = "%s_id" % MODULE_NAME
-STATUS_NAME = "%s_name" % MODULE_NAME
+RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
 
 
-def get_resource(filename):
+def get_parent_id(label_id):
 
-  return pkg_resources.resource_filename(
-      MODULE_NAME, os.path.join("data", filename))
-
-
-# Logging
-
-class PluginPrefixFilter(object):
-
-  def filter(self, record):
-
-    record.msg = "[%s] %s" % (PLUGIN_NAME, record.msg)
-    return True
+  return label_id.rpartition(":")[0]
 
 
-LOG_FILTER = PluginPrefixFilter()
+def is_ancestor(ancestor_id, label_id):
+
+  prefix = "%s:" % ancestor_id
+
+  return ancestor_id != label_id and label_id.startswith(prefix)
+
+
+def get_name_by_depth(full_name, depth=0):
+
+  if depth < 1:
+    return full_name
+
+  return "/".join(name.split("/")[-depth:])
+
+
+def validate_name(label_name):
+
+  if not label_name:
+    raise ValueError("Empty label")
+
+  if RE_INVALID_CHARS.search(label_name):
+    raise ValueError("Invalid characters")
