@@ -63,21 +63,6 @@ import labelplus.common.config.autolabel
 import labelplus.core.config
 import labelplus.core.config.convert
 
-from labelplus.common import (
-  PLUGIN_NAME, MODULE_NAME,
-  STATUS_ID, STATUS_NAME,
-)
-
-from labelplus.common.label import (
-  NULL_PARENT, ID_ALL, ID_NONE, RESERVED_IDS,
-)
-
-from labelplus.core.config import (
-  CONFIG_DEFAULTS,
-  OPTION_DEFAULTS,
-  LABEL_DEFAULTS,
-)
-
 
 CORE_CONFIG = "%s.conf" % labelplus.common.MODULE_NAME
 DELUGE_CORE_CONFIG = "core.conf"
@@ -391,7 +376,7 @@ class Core(CorePluginBase):
     usages = {}
 
     for id in set(label_ids):
-      if id == ID_NONE or id in self._labels:
+      if id == labelplus.common.label.ID_NONE or id in self._labels:
         usages[id] = self._get_label_bandwidth_usage(id)
 
     return usages
@@ -421,7 +406,8 @@ class Core(CorePluginBase):
   @init_check
   def add_label(self, parent_id, label_name):
 
-    if parent_id != NULL_PARENT and parent_id not in self._labels:
+    if (parent_id != labelplus.common.label.NULL_PARENT and
+        parent_id not in self._labels):
       raise ValueError("Unknown label: %r" % parent_id)
 
     id = self._add_label(parent_id, label_name)
@@ -504,7 +490,8 @@ class Core(CorePluginBase):
   @init_check
   def set_torrent_labels(self, torrent_ids, label_id):
 
-    if label_id != ID_NONE and label_id not in self._labels:
+    if (label_id != labelplus.common.label.ID_NONE and
+        label_id not in self._labels):
       raise ValueError("Unknown label: %r" % label_id)
 
     torrent_ids = [x for x in torrent_ids if x in self._torrents]
@@ -605,14 +592,17 @@ class Core(CorePluginBase):
   def _normalize_options(self, options):
 
     for key in options.keys():
-      if key not in OPTION_DEFAULTS:
+      if key not in labelplus.core.config.OPTION_DEFAULTS:
         del options[key]
-      elif type(options[key]) != type(OPTION_DEFAULTS[key]):
-        options[key] = copy.deepcopy(OPTION_DEFAULTS[key])
+      elif (type(options[key]) !=
+          type(labelplus.core.config.OPTION_DEFAULTS[key]):
+        options[key] = copy.deepcopy(
+          labelplus.core.config.OPTION_DEFAULTS[key])
 
-    for key in OPTION_DEFAULTS:
+    for key in labelplus.core.config.OPTION_DEFAULTS:
       if key not in options:
-        options[key] = copy.deepcopy(OPTION_DEFAULTS[key])
+        options[key] = copy.deepcopy(
+          labelplus.core.config.OPTION_DEFAULTS[key])
 
     if options["shared_limit_update_interval"] < 1:
       options["shared_limit_update_interval"] = 1
@@ -665,7 +655,7 @@ class Core(CorePluginBase):
   def _get_parent_move_path(self, label_id):
 
     parent_id = labelplus.common.get_parent_id(label_id)
-    if parent_id == NULL_PARENT:
+    if parent_id == labelplus.common.label.NULL_PARENT:
       path = self._get_deluge_move_path()
     else:
       path = self._labels[parent_id]["data"]["move_data_completed_path"]
@@ -681,10 +671,10 @@ class Core(CorePluginBase):
     mode = options["move_data_completed_mode"]
     path = options["move_data_completed_path"]
 
-    if mode != labelplus.core.config.MOVE_FOLDER:
+    if mode != labelplus.common.config.MOVE_FOLDER:
       path = self._get_parent_move_path(label_id)
 
-      if mode == labelplus.core.config.MOVE_SUBFOLDER:
+      if mode == labelplus.common.config.MOVE_SUBFOLDER:
         path = os.path.join(path, name)
 
     return path
@@ -694,7 +684,7 @@ class Core(CorePluginBase):
 
     torrent_ids = []
 
-    if label_id == ID_NONE:
+    if label_id == labelplus.common.label.ID_NONE:
       torrent_ids = self._get_unlabeled_torrents()
     else:
       for id in self._index[id]["torrents"]:
@@ -739,13 +729,13 @@ class Core(CorePluginBase):
       }
 
     total = len(self._torrents)
-    counts[ID_ALL] = {
-      "name": ID_ALL,
+    counts[labelplus.common.label.ID_ALL] = {
+      "name": labelplus.common.label.ID_ALL,
       "count": total,
     }
 
-    counts[ID_NONE] = {
-      "name": ID_NONE,
+    counts[labelplus.common.label.ID_NONE] = {
+      "name": labelplus.common.label.ID_NONE,
       "count": total-label_count,
     }
 
@@ -832,7 +822,8 @@ class Core(CorePluginBase):
 
   # Section: Label: Options
 
-  def _normalize_label_options(self, options, spec=LABEL_DEFAULTS):
+  def _normalize_label_options(self, options,
+      spec=labelplus.core.config.LABEL_DEFAULTS):
 
     for key in options.keys():
       if key not in spec:
@@ -848,22 +839,24 @@ class Core(CorePluginBase):
       options["move_data_completed_path"].strip()
 
     if not options["move_data_completed_path"]:
-      options["move_data_completed_mode"] = labelplus.core.config.MOVE_FOLDER
+      options["move_data_completed_mode"] = \
+        labelplus.common.config.MOVE_FOLDER
       options["move_data_completed_path"] = self._get_deluge_move_path()
 
     if (options["move_data_completed_mode"] not in
-        labelplus.core.config.MOVE_MODES):
-      options["move_data_completed_mode"] = labelplus.core.config.MOVE_FOLDER
+        labelplus.common.config.MOVE_MODES):
+      options["move_data_completed_mode"] = \
+        labelplus.common.config.MOVE_FOLDER
 
     for rule in list(options["autolabel_rules"]):
-      if len(rule) != labelplus.common.autolabel.NUM_FIELDS:
+      if len(rule) != labelplus.common.config.autolabel.NUM_FIELDS:
         options["autolabel_rules"].remove(rule)
         continue
 
       prop, op, case, query = rule
-      if (prop not in labelplus.common.autolabel.PROPS or
-          op not in labelplus.common.autolabel.OPS or
-          case not in labelplus.common.autolabel.CASES or
+      if (prop not in labelplus.common.config.autolabel.PROPS or
+          op not in labelplus.common.config.autolabel.OPS or
+          case not in labelplus.common.config.autolabel.CASES or
           not query):
         options["autolabel_rules"].remove(rule)
 
@@ -914,7 +907,7 @@ class Core(CorePluginBase):
     parts = []
     id = label_id
 
-    while id and id != NULL_PARENT:
+    while id and id != labelplus.common.label.NULL_PARENT:
       parts.append(self._labels[id]["name"])
       id = labelplus.common.get_parent_id(id)
 
@@ -1115,9 +1108,9 @@ class Core(CorePluginBase):
 
   def _apply_torrent_options(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id, ID_NONE)
+    label_id = self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
 
-    if label_id == ID_NONE:
+    if label_id == labelplus.common.label.ID_NONE:
       self._reset_torrent_options(torrent_id)
       return
 
@@ -1161,13 +1154,13 @@ class Core(CorePluginBase):
 
   def _get_torrent_label_id(self, torrent_id):
 
-    return self._mappings.get(torrent_id, ID_NONE)
+    return self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
 
 
   def _get_torrent_label_name(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id, ID_NONE)
-    if label_id == ID_NONE:
+    label_id = self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
+    if label_id == labelplus.common.label.ID_NONE:
       return ""
 
     if self._prefs["options"]["show_full_name"]:
@@ -1183,7 +1176,7 @@ class Core(CorePluginBase):
     filtered = []
 
     for id in torrent_ids:
-      label_id = self._mappings.get(id, ID_NONE)
+      label_id = self._mappings.get(id, labelplus.common.label.ID_NONE)
       if label_id in label_ids:
         filtered.append(id)
 
@@ -1194,7 +1187,7 @@ class Core(CorePluginBase):
 
   def _remove_torrent_label(self, torrent_id):
 
-    label_id = self._mappings.get(torrent_id, ID_NONE)
+    label_id = self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
 
@@ -1206,7 +1199,7 @@ class Core(CorePluginBase):
     if torrent_id in self._mappings:
       self._remove_torrent_label(torrent_id)
 
-    if label_id == ID_NONE:
+    if label_id == labelplus.common.label.ID_NONE:
       self._reset_torrent_options(torrent_id)
     else:
       self._mappings[torrent_id] = label_id
@@ -1223,15 +1216,16 @@ class Core(CorePluginBase):
     trackers = [x["url"] for x in status["trackers"]]
 
     props = {
-      labelplus.common.autolabel.PROP_NAME: [name],
-      labelplus.common.autolabel.PROP_TRACKER: trackers,
+      labelplus.common.config.autolabel.PROP_NAME: [name],
+      labelplus.common.config.autolabel.PROP_TRACKER: trackers,
     }
 
     options = self._labels[label_id]["data"]
     rules = options["autolabel_rules"]
     match_all = options["autolabel_match_all"]
 
-    return labelplus.common.autolabel.find_match(props, rules, match_all)
+    return labelplus.common.config.autolabel.find_match(
+      props, rules, match_all)
 
 
   def _find_autolabel_match(self, torrent_id):
@@ -1243,7 +1237,7 @@ class Core(CorePluginBase):
         if self._has_autolabel_match(torrent_id, id):
           return id
 
-    return ID_NONE
+    return labelplus.common.label.ID_NONE
 
 
   def _do_autolabel_torrents(self, label_id, apply_to_all=False):
@@ -1287,8 +1281,8 @@ class Core(CorePluginBase):
       status = torrent.get_status(
         ["save_path", "move_completed_path", "is_finished"])
 
-      label_id = self._mappings.get(id, ID_NONE)
-      if label_id == ID_NONE:
+      label_id = self._mappings.get(id, labelplus.common.label.ID_NONE)
+      if label_id == labelplus.common.label.ID_NONE:
         dest_path = status["move_completed_path"]
       else:
         options = self._labels[label_id]["data"]
