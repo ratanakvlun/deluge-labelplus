@@ -174,7 +174,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._normalize_data()
     self._build_index()
     self._remove_orphans()
-    self._init_full_name_index()
+    self._build_full_name_index()
     self._apply_label_options()
 
     deluge.component.get("FilterManager").register_filter(
@@ -268,7 +268,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._remove_label(id)
 
 
-  def _init_full_name_index(self):
+  def _build_full_name_index(self):
 
     for id in self._labels:
       self._index[id]["full_name"] = self._resolve_full_name(id)
@@ -929,12 +929,12 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     return full_name
 
 
-  def _build_full_name_index(self, label_id):
+  def _build_full_name_index_from_label(self, label_id):
 
     self._index[label_id]["full_name"] = self._resolve_full_name(label_id)
 
     for id in self._index[label_id]["children"]:
-      self._build_full_name_index(id)
+      self._build_full_name_index_from_label(id)
 
 
   def _remove_full_name_from_index(self, label_id, sublabels=False):
