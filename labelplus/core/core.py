@@ -245,6 +245,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     index = {}
     shared_limit_index = []
 
+    index[NULL_PARENT] = build_label_entry(NULL_PARENT)
+
     for id in self._labels:
       index[id] = build_label_entry(id)
 
