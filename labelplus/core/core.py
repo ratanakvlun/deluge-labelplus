@@ -640,6 +640,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     i = 0
     label_obj = {}
+
     while label_obj is not None:
       id = "%s:%s" % (parent_id, i)
       label_obj = self._labels.get(id)
@@ -740,8 +741,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_labels_summary(self):
 
+    total = len(self._torrents)
     label_count = 0
     counts = {}
+
     label_ids = self._get_sorted_labels(cmp_length_then_value)
 
     for id in label_ids:
@@ -753,7 +756,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         "count": count,
       }
 
-    total = len(self._torrents)
     counts[labelplus.common.label.ID_ALL] = {
       "name": labelplus.common.label.ID_ALL,
       "count": total,
@@ -849,17 +851,17 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   # Section: Label: Options
 
   def _normalize_label_options(self, options,
-      spec=labelplus.common.config.LABEL_DEFAULTS):
+      template=labelplus.common.config.LABEL_DEFAULTS):
 
     for key in options.keys():
-      if key not in spec:
+      if key not in template:
         del options[key]
-      elif type(options[key]) != type(spec[key]):
-        options[key] = copy.deepcopy(spec[key])
+      elif type(options[key]) != type(template[key]):
+        options[key] = copy.deepcopy(template[key])
 
-    for key in spec:
+    for key in template:
       if key not in options:
-        options[key] = copy.deepcopy(spec[key])
+        options[key] = copy.deepcopy(template[key])
 
     options["move_data_completed_path"] = \
       options["move_data_completed_path"].strip()
