@@ -364,6 +364,17 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         self._save_config_update_loop)
 
 
+  def _shared_limit_update_loop(self):
+
+    if self._initialized:
+      for id in self._shared_limit_index:
+        self._do_update_shared_limit(id)
+
+      twisted.internet.reactor.callLater(
+        self._prefs["options"]["shared_limit_update_interval"],
+        self._shared_limit_update_loop)
+
+
   # Section: Public API: General
 
   @deluge.core.rpcserver.export
@@ -1004,17 +1015,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   # Section: Label: Shared Limit
-
-  def _shared_limit_update_loop(self):
-
-    if self._initialized:
-      for id in self._shared_limit_index:
-        self._do_update_shared_limit(id)
-
-      twisted.internet.reactor.callLater(
-        self._prefs["options"]["shared_limit_update_interval"],
-        self._shared_limit_update_loop)
-
 
   def _do_update_shared_limit(self, label_id):
 
