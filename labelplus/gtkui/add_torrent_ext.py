@@ -1,7 +1,7 @@
 #
 # add_torrent_ext.py
 #
-# Copyright (C) 2013 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
 # Deluge is free software.
 #
@@ -39,11 +39,9 @@ import gtk
 from deluge import component
 from deluge.ui.client import client
 
-from labelplus.common.constant import DISPLAY_NAME
-from labelplus.common.constant import RESERVED_IDS
-from labelplus.common.constant import ID_NONE
-
 from labelplus.common.debug import debug
+from labelplus.common import DISPLAY_NAME
+from labelplus.common.label import RESERVED_IDS, ID_NONE
 
 from label_selection_menu import LabelSelectionMenu
 
