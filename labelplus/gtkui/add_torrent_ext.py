@@ -33,21 +33,25 @@
 #
 
 
+import logging
+
 import pango
 import gtk
 
 from deluge import component
 from deluge.ui.client import client
 
-from labelplus.common.debug import debug
 from labelplus.common import DISPLAY_NAME
 from labelplus.common.label import RESERVED_IDS, ID_NONE
 
 from label_selection_menu import LabelSelectionMenu
 
 
-class AddTorrentExt(object):
+log = logging.getLogger(__name__)
+log.addFilter(labelplus.common.LOG_FILTER)
 
+
+class AddTorrentExt(object):
 
   def __init__(self):
 
@@ -143,8 +147,9 @@ class AddTorrentExt(object):
     box.pack_start(self.btn_select, expand=False)
 
 
-  @debug()
   def _install_ext_block(self):
+
+    log.debug("Adding field to add torrent dialog")
 
     dialog = component.get("AddTorrentDialog")
     widget = dialog.glade.get_widget("button_revert")
@@ -155,8 +160,9 @@ class AddTorrentExt(object):
     vbox.child_set(self.blk_ext, "position", pos)
 
 
-  @debug()
   def _uninstall_ext_block(self):
+
+    log.debug("Removing field from add torrent dialog")
 
     dialog = component.get("AddTorrentDialog")
     widget = dialog.glade.get_widget("button_revert")
@@ -166,8 +172,9 @@ class AddTorrentExt(object):
     dialog.dialog.resize(1, 1)
 
 
-  @debug(show_args=True)
   def _do_set_mapping(self, widget, label_id):
+
+    log.debug("Setting selected torrents to label %r", label_id)
 
     self.cur_label = None
 
@@ -247,15 +254,16 @@ class AddTorrentExt(object):
       widget.disconnect(handler)
 
 
-  @debug()
   def _do_revert(self, widget):
+
+    log.debug("Resetting selected torrents to no label")
 
     self._do_set_mapping(None, None)
 
 
-  @debug()
   def _do_apply_to_all(self, widget):
 
+    log.debug("Setting label setting to all torrents")
 
     def set_mapping(model, path, row):
 
@@ -271,15 +279,17 @@ class AddTorrentExt(object):
     self._do_update_label_text(self.lv.get_selection())
 
 
-  @debug()
   def _do_clear(self, widget):
+
+    log.debug("Clearing all label settings")
 
     self.mappings.clear()
     self._do_update_label_text(self.lv.get_selection())
 
 
-  @debug()
   def _do_remove(self, widget):
+
+    log.debug("Removing label settings for removed torrents")
 
     dialog = component.get("AddTorrentDialog")
 
@@ -291,8 +301,9 @@ class AddTorrentExt(object):
     self._do_update_label_text(self.lv.get_selection())
 
 
-  @debug()
   def _do_add(self, widget):
+
+    log.debug("Applying label settings to added torrents")
 
     reverse_map = {}
     for torrent_id, label_tup in self.mappings.iteritems():
