@@ -51,6 +51,7 @@ from labelplus.common import PLUGIN_NAME
 from labelplus.common.config import LABEL_DEFAULTS
 
 from labelplus.common import get_resource
+from labelplus.common.label import get_name_by_segments
 
 from util import textview_set_text
 from util import textview_get_text
@@ -71,13 +72,13 @@ log = logging.getLogger(__name__)
 class LabelOptionsDialog(object):
 
 
-  def __init__(self, label_id, label_name, page=0):
+  def __init__(self, label_id, full_name, page=0):
 
     self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
 
     self.label_id = label_id
-    self.label_name = label_name
-    self.base_name = label_name.rpartition("/")[2]
+    self.full_name = full_name
+    self.base_name = get_name_by_segments(full_name, 1)
     self.daemon_is_local = client.is_localhost()
 
     self.close_func = None
@@ -101,7 +102,7 @@ class LabelOptionsDialog(object):
 
     self.we.lbl_header.set_markup("<b>%s</b>" % self.we.lbl_header.get_text())
     self.we.lbl_selected_label.set_text(self.base_name)
-    self.we.lbl_selected_label.set_tooltip_text(self.label_name)
+    self.we.lbl_selected_label.set_tooltip_text(self.full_name)
 
     self.we.nb_tabs.set_current_page(page)
 
@@ -159,9 +160,9 @@ class LabelOptionsDialog(object):
     )
 
     defers = []
-    defers.append(client.labelplus.get_daemon_vars())
-    defers.append(client.labelplus.get_parent_path(self.label_id))
-    defers.append(client.labelplus.get_options(self.label_id))
+    defers.append(client.labelplus.get_daemon_info())
+    defers.append(client.labelplus.get_parent_move_path(self.label_id))
+    defers.append(client.labelplus.get_label_options(self.label_id))
     defers.append(client.labelplus.get_preferences())
 
     deferred = defer.DeferredList(defers)
@@ -175,7 +176,7 @@ class LabelOptionsDialog(object):
         raise RuntimeError("Could not load dialog options")
 
     try:
-      self.daemon_path_module = __import__(result[0][1]["os_path_module"])
+      self.daemon_path_module = __import__(result[0][1]["os.path"])
     except ImportError as e:
       self.daemon_path_module = os.path
 
