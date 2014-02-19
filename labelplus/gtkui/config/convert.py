@@ -1,5 +1,5 @@
 #
-# __init__.py
+# convert.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
@@ -34,46 +34,23 @@
 #
 
 
-import labelplus.common.label
-from labelplus.common import MODULE_NAME
+import labelplus.gtkui.config
 
 
-GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
-
-GTKUI_DEFAULTS_V1 = {
-  "name_input_size": None,
-  "name_input_pos": None,
-  "label_options_size": None,
-  "label_options_pos": None,
-  "prefs_state": [],
-  "sidebar_state": {
-    "selected": labelplus.common.label.ID_ALL,
-    "expanded": [],
-  },
-  "show_label_bandwidth": False,
-}
-
-DAEMON_DEFAULTS_V1 = {
-  "sidebar_state": {
-    "selected": labelplus.common.label.ID_ALL,
-    "expanded": [],
+GTKUI_SPEC_V1_V2 = {
+  "version_in": 1,
+  "version_out": 2,
+  "defaults": labelplus.gtkui.config.GTKUI_DEFAULTS_V2,
+  "map": {
+    "name_input_size": "common/name_input_size",
+    "name_input_pos": "common/name_input_pos",
+    "label_options_size": "common/label_options_size",
+    "label_options_pos": "common/label_options_pos",
+    "prefs_state": "common/prefs_state",
+    "show_label_bandwidth": "common/show_label_bandwidth",
   },
 }
 
-GTKUI_DEFAULTS_V2 = {
-  "version": 2,
-  "common": {
-    "name_input_size": None,
-    "name_input_pos": None,
-    "label_options_size": None,
-    "label_options_pos": None,
-    "prefs_state": [],
-    "show_label_bandwidth": False,
-    "status_include_sublabel": False,
-  },
-  "daemon": {},
+GTKUI_SPECS = {
+  (1, 2): GTKUI_SPEC_V1_V2,
 }
-
-CONFIG_VERSION = 2
-GTKUI_DEFAULTS = GTKUI_DEFAULTS_V2
-DAEMON_DEFAULTS = DAEMON_DEFAULTS_V1
