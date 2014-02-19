@@ -314,6 +314,6 @@ class AddTorrentExt(object):
       reverse_map[label_id].append(torrent_id)
 
     for label_id, torrent_ids in reverse_map.iteritems():
-      client.labelplus.set_torrent_labels(label_id, torrent_ids)
+      client.labelplus.set_torrent_labels(torrent_ids, label_id)
 
     self._do_clear(widget)
