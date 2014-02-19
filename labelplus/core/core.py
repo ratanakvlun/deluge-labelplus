@@ -832,12 +832,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     except (TypeError, UnicodeDecodeError):
       pass
 
-    self._validate_name(labelplus.common.label.get_parent_id(label_id),
-      label_name)
-
-    label = self._labels[label_id]
-    label["name"] = label_name
-    options = label["data"]
+    parent_id = labelplus.common.label.get_parent_id(label_id)
+    self._validate_name(parent_id, label_name)
+    self._labels[label_id]["name"] = label_name
 
     self._build_full_name_index(label_id)
     self._update_move_completed_paths(label_id)
