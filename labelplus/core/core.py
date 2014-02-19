@@ -421,6 +421,16 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   @deluge.core.rpcserver.export
   @check_init
+  def get_parent_move_path(self, label_id):
+
+    if label_id not in self._labels:
+      raise ValueError("Invalid label: %r" % label_id)
+
+    return self._get_parent_move_path(label_id)
+
+
+  @deluge.core.rpcserver.export
+  @check_init
   def get_label_bandwidth_usages(self, label_ids):
 
     usages = {}
