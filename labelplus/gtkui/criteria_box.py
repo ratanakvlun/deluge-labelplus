@@ -148,8 +148,8 @@ class CriteriaBox(gtk.VBox):
       entry = gtk.Entry()
       entry.set_text(default_text)
 
-      entry._Setter = gtk.Entry.set_text
-      entry._Getter = gtk.Entry.get_text
+      entry._setter = gtk.Entry.set_text
+      entry._getter = gtk.Entry.get_text
 
       return entry
 
@@ -168,8 +168,8 @@ class CriteriaBox(gtk.VBox):
       if len(model) > 0:
         combo.set_active(0)
 
-      combo._Setter = gtk.ComboBox.set_active
-      combo._Getter = gtk.ComboBox.get_active
+      combo._setter = gtk.ComboBox.set_active
+      combo._getter = gtk.ComboBox.get_active
 
       return combo
 
@@ -192,7 +192,7 @@ class CriteriaBox(gtk.VBox):
       row.pack_start(child, expand)
 
       if args and i in indices:
-        child._Setter(child, values[indices.index(i)])
+        child._setter(child, values[indices.index(i)])
 
     button = gtk.Button("-")
     button.set_size_request(25, -1)
@@ -221,7 +221,7 @@ class CriteriaBox(gtk.VBox):
 
     for i in range(len(self._columns)):
       child = row.get_children()[i]
-      value = child._Getter(child)
+      value = child._getter(child)
       pairs.append(i)
       pairs.append(value)
 
@@ -237,4 +237,4 @@ class CriteriaBox(gtk.VBox):
       child = row.get_children()[i]
 
       if i in indices:
-        child._Setter(child, values[indices.index(i)])
+        child._setter(child, values[indices.index(i)])
