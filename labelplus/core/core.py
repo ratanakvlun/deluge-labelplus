@@ -492,13 +492,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if label_id not in self._labels:
       raise ValueError("Invalid label: %r" % label_id)
 
-    count = len(self._index[label_id]["torrents"])
-
     self._remove_label(label_id)
 
     self._timestamp["labels_changed"] = datetime.datetime.now()
-    if count:
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
+    self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   # Section: Public API: Label: Options
