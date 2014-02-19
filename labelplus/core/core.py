@@ -66,6 +66,8 @@ import labelplus.core.config.convert
 CORE_CONFIG = "%s.conf" % labelplus.common.MODULE_NAME
 DELUGE_CORE_CONFIG = "core.conf"
 
+CONFIG_SAVE_INTERVAL = 60*5
+
 log = logging.getLogger(__name__)
 log.addFilter(labelplus.common.LOG_FILTER)
 
@@ -140,6 +142,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       "labels_changed": datetime.datetime.now(),
       "mappings_changed": datetime.datetime.now(),
       "labels_sorted": datetime.datetime(1, 1, 1),
+      "last_saved": datetime.datetime(1, 1, 1),
     }
 
     self._torrents = deluge.component.get("TorrentManager").torrents
@@ -168,6 +171,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     self._initialized = True
 
+    twisted.internet.reactor.callLater(1, self._save_config_update_loop)
     twisted.internet.reactor.callLater(1, self._shared_limit_update_loop)
 
     log.debug("Core enabled")
@@ -344,6 +348,22 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
           del server.factory.methods[method]
 
 
+  # Section: Update Loops
+
+  def _save_config_update_loop(self):
+
+    if self._initialized:
+      last_changed = max(self._timestamp["labels_changed"],
+        self._timestamp["mappings_changed"])
+
+      if self._timestamp["last_saved"] < last_changed:
+        self._config.save()
+        self._timestamp["last_saved"] = datetime.datetime.now()
+
+      twisted.internet.reactor.callLater(CONFIG_SAVE_INTERVAL,
+        self._save_config_update_loop)
+
+
   # Section: Public API: General
 
   @deluge.core.rpcserver.export
@@ -382,6 +402,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._prefs["defaults"].update(prefs["defaults"])
 
     self._config.save()
+    self._timestamp["last_saved"] = datetime.datetime.now()
 
 
   # Section: Public API: Label: Queries
