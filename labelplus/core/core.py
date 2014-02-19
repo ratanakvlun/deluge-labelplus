@@ -727,14 +727,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(label_id == labelplus.common.label.ID_NONE or
       label_id in self._labels)
 
-    torrent_ids = []
-
     if label_id == labelplus.common.label.ID_NONE:
       torrent_ids = self._get_unlabeled_torrents()
     else:
-      for id in self._index[id]["torrents"]:
-        if id in self._torrents:
-          torrent_ids.append(id)
+      torrent_ids = self._index[label_id]["torrents"]
 
     return self._get_torrent_bandwidth_usage(torrent_ids)
 
@@ -851,8 +847,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._index[parent_id]["children"].remove(label_id)
 
     for id in list(self._index[label_id]["children"]):
-      if id in self._labels:
-        self._remove_label(id)
+      self._remove_label(id)
 
     torrent_ids = []
 
@@ -942,11 +937,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if options["move_data_completed_path"] != old["move_data_completed_path"]:
     # Path was modified; make sure descendent paths are updated
       for id in self._index[label_id]["children"]:
-        if id in self._labels:
-          self._update_move_completed_paths(id)
+        self._update_move_completed_paths(id)
 
-          if self._prefs["options"]["move_on_changes"]:
-            self._do_move_completed_by_label(id, True)
+        if self._prefs["options"]["move_on_changes"]:
+          self._do_move_completed_by_label(id, True)
 
     if options["auto_settings"] and apply_to_all is not None:
       self._do_autolabel_torrents(label_id, apply_to_all)
@@ -989,8 +983,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     if self._initialized:
       for id in self._shared_limit_index:
-        if id in self._labels:
-          self._do_update_shared_limit(id)
+        self._do_update_shared_limit(id)
 
       twisted.internet.reactor.callLater(
         self._prefs["options"]["shared_limit_update_interval"],
@@ -1008,10 +1001,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if shared_download_limit < 0.0 and shared_upload_limit < 0.0:
       return
 
-    torrent_ids = []
-    for id in self._index[label_id]["torrents"]:
-      if id in self._torrents:
-        torrent_ids.append(id)
+    torrent_ids = self._index[label_id]["torrents"]
 
     statuses = self._get_torrent_statuses(
       torrent_ids, {"state": ["Seeding", "Downloading"]},
@@ -1364,16 +1354,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(label_id in self._labels)
 
     options = self._labels[label_id]["data"]
+
     if options["download_settings"] and options["move_data_completed"]:
-      torrent_ids = []
-
-      for id in self._index[label_id]["torrents"]:
-        if id in self._torrents:
-          torrent_ids.append(id)
-
-      self._do_move_completed(torrent_ids)
+      self._do_move_completed(self._index[label_id]["torrents"])
 
     if sublabels:
       for id in self._index[label_id]["children"]:
-        if id in self._labels:
-          self._do_move_completed_by_label(id, sublabels)
+        self._do_move_completed_by_label(id, sublabels)
