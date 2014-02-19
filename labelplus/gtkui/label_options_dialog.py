@@ -33,8 +33,10 @@
 #
 
 
+import logging
 import copy
 import os.path
+
 import gtk
 
 from twisted.internet import defer
@@ -49,7 +51,6 @@ from labelplus.common import PLUGIN_NAME
 from labelplus.common.config import LABEL_DEFAULTS
 
 from labelplus.common import get_resource
-from labelplus.common.debug import debug
 
 from util import textview_set_text
 from util import textview_get_text
@@ -62,6 +63,9 @@ OP_MAP = {
   gtk.SpinButton: ("set_value", "get_value"),
   gtk.Label: ("set_text", "get_text"),
 }
+
+
+log = logging.getLogger(__name__)
 
 
 class LabelOptionsDialog(object):
@@ -164,11 +168,11 @@ class LabelOptionsDialog(object):
     deferred.addCallback(self.cb_get_options_ok)
 
 
-  @debug()
   def cb_get_options_ok(self, result):
 
     for item in result:
-      require(item[0], "Could not load dialog options")
+      if not item[0]:
+        raise RuntimeError("Could not load dialog options")
 
     try:
       self.daemon_path_module = __import__(result[0][1]["os_path_module"])
@@ -197,7 +201,6 @@ class LabelOptionsDialog(object):
     self.close_func = func
 
 
-  @debug()
   def cb_do_close(self, widget, event=None):
 
     self.config["common"]["label_options_pos"] = \
@@ -212,7 +215,6 @@ class LabelOptionsDialog(object):
     self.we.wnd_label_options.destroy()
 
 
-  @debug()
   def on_btn_ok_clicked(self, widget):
 
     self._save_options()
@@ -299,8 +301,9 @@ class LabelOptionsDialog(object):
     })
 
 
-  @debug()
   def _load_options(self, opts):
+
+    log.debug("Loading label options")
 
     options = copy.deepcopy(LABEL_DEFAULTS)
     options.update(opts)
@@ -360,8 +363,9 @@ class LabelOptionsDialog(object):
       self.cb_toggle_dependents(widget)
 
 
-  @debug()
   def _save_options(self):
+
+    log.debug("Saving label options")
 
     options = copy.deepcopy(LABEL_DEFAULTS)
 
