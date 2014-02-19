@@ -105,7 +105,27 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def enable(self):
 
-    log.debug("Initializing Core...")
+    log.debug("Enabling Core...")
+
+    if not deluge.component.get("TorrentManager").session_started:
+      deluge.component.get("EventManager").register_event_handler(
+        "SessionStartedEvent", self._on_session_started)
+      log.debug("Waiting for session to start...")
+    else:
+      twisted.internet.reactor.callLater(0.1, self._initialize)
+
+
+  def _on_session_started(self):
+
+    log.debug("Resuming initialization...")
+
+    deluge.component.get("EventManager").deregister_event_handler(
+      "SessionStartedEvent", self._on_session_started)
+
+    twisted.internet.reactor.callLater(0.1, self._initialize)
+
+
+  def _initialize(self):
 
     self._core = deluge.configmanager.ConfigManager(DELUGE_CORE_CONFIG)
     self._config = self._load_config()
@@ -121,26 +141,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       "mappings_changed": datetime.datetime.now(),
       "labels_sorted": datetime.datetime(1, 1, 1),
     }
-
-    if not deluge.component.get("TorrentManager").session_started:
-      deluge.component.get("EventManager").register_event_handler(
-        "SessionStartedEvent", self._initialize)
-      log.debug("Waiting for session to start...")
-    else:
-      self._initialize()
-
-
-
-
-
-
-
-  def _initialize(self):
-
-    log.debug("Resuming initialization...")
-
-    deluge.component.get("EventManager").deregister_event_handler(
-      "SessionStartedEvent", self._initialize)
 
     self._torrents = deluge.component.get("TorrentManager").torrents
 
@@ -170,7 +170,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     twisted.internet.reactor.callLater(1, self._shared_limit_update_loop)
 
-    log.debug("Core initialized")
+    log.debug("Core enabled")
 
 
   def _load_config(self):
@@ -197,7 +197,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
           config, strict_paths=True)
         ver = labelplus.common.config.get_version(config)
       else:
-        raise ValueError("Config file conversion v%s->v%s not supported" %
+        raise ValueError("Config file conversion v%s -> v%s not supported" %
           (file_ver, labelplus.common.config.CONFIG_VERSION))
 
     for key in config.config.keys():
@@ -295,38 +295,38 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def disable(self):
 
-    log.debug("Deinitializing Core...")
+    log.debug("Disabling Core...")
 
     deluge.component.get("EventManager").deregister_event_handler(
-      "SessionStartedEvent", self._initialize)
+      "SessionStartedEvent", self._on_session_started)
 
     if getattr(self, "_config", None):
-      if self._initialized:
-        self._config.save()
+      if self._initialized: self._config.save()
       deluge.configmanager.close(CORE_CONFIG)
 
-    if self._initialized:
-      self._initialized = False
+    self._initialized = False
 
-      deluge.component.get("EventManager").deregister_event_handler(
-        "TorrentAddedEvent", self.on_torrent_added)
-      deluge.component.get("EventManager").deregister_event_handler(
-        "PreTorrentRemovedEvent", self.on_torrent_removed)
+    deluge.component.get("EventManager").deregister_event_handler(
+      "TorrentAddedEvent", self.on_torrent_added)
+    deluge.component.get("EventManager").deregister_event_handler(
+      "PreTorrentRemovedEvent", self.on_torrent_removed)
 
-      deluge.component.get("AlertManager").deregister_handler(
-        self.on_torrent_finished)
+    deluge.component.get("AlertManager").deregister_handler(
+      self.on_torrent_finished)
 
-      deluge.component.get("CorePluginManager").deregister_status_field(
-        labelplus.common.STATUS_ID)
-      deluge.component.get("CorePluginManager").deregister_status_field(
-        labelplus.common.STATUS_NAME)
+    deluge.component.get("CorePluginManager").deregister_status_field(
+      labelplus.common.STATUS_ID)
+    deluge.component.get("CorePluginManager").deregister_status_field(
+      labelplus.common.STATUS_NAME)
 
+    if (labelplus.common.STATUS_ID in
+        deluge.component.get("FilterManager").registered_filters):
       deluge.component.get("FilterManager").deregister_filter(
         labelplus.common.STATUS_ID)
 
-      self._rpc_deregister(labelplus.common.PLUGIN_NAME)
+    self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
-    log.debug("Core deinitialized")
+    log.debug("Core disabled")
 
 
   def _rpc_deregister(self, name):
