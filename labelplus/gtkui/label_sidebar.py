@@ -35,26 +35,34 @@
 #
 
 
+import logging
+
 import gobject
 import gtk
 
 from deluge import component
-from deluge.log import LOG as log
 from deluge.ui.client import client
 import deluge.configmanager
 
-from labelplus.common.constant import PLUGIN_NAME, DISPLAY_NAME, MODULE_NAME
-from labelplus.common.constant import RESERVED_IDS
-from labelplus.common.constant import NULL_PARENT, ID_ALL, ID_NONE
-from labelplus.common.constant import STATUS_ID
+import labelplus.common.label
 
-import labelplus.common.label as Label
+from labelplus.common import (
+  PLUGIN_NAME, DISPLAY_NAME, MODULE_NAME, STATUS_ID
+)
+
+from labelplus.common.label import (
+  RESERVED_IDS, NULL_PARENT, ID_ALL, ID_NONE,
+)
+
 from labelplus.common.debug import debug
 from labelplus.common.validation import require
 
 from util import treemodel_subtree_op
 from name_input_dialog import NameInputDialog
 from label_options_dialog import LabelOptionsDialog
+
+
+log = logging.getLogger(__name__)
 
 
 class LabelSidebarMenu(gtk.Menu):
@@ -276,7 +284,7 @@ class LabelSidebar(object):
         if id in RESERVED_IDS:
           parent_id = NULL_PARENT
         else:
-          parent_id = Label.get_parent(id)
+          parent_id = labelplus.common.label.get_parent(id)
 
         if parent_id in self.row_map:
           parent = self.row_map.get(parent_id)
@@ -382,7 +390,7 @@ class LabelSidebar(object):
     id = widget.get_model()[path][0]
 
     for item in list(self.state["expanded"]):
-      if Label.is_ancestor(id, item):
+      if labelplus.common.label.is_ancestor(id, item):
         self.state["expanded"].remove(item)
 
       if id in self.state["expanded"]:
