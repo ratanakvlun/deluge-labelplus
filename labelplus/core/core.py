@@ -1206,12 +1206,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if label_id == labelplus.common.label.ID_NONE:
       return ""
 
-    if self._prefs["options"]["show_full_name"]:
-      name = self._index[label_id]["full_name"]
-    else:
-      name = self._labels[label_id]["name"]
-
-    return name
+    return self._index[label_id]["full_name"]
 
 
   def _filter_by_label(self, torrent_ids, label_ids):
