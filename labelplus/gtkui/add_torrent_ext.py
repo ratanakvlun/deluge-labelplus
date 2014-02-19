@@ -48,7 +48,6 @@ from label_selection_menu import LabelSelectionMenu
 
 
 log = logging.getLogger(__name__)
-log.addFilter(labelplus.common.LOG_FILTER)
 
 
 class AddTorrentExt(object):
