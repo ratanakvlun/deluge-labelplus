@@ -636,8 +636,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   # Section: Label: Queries
 
-
   def _get_unused_id(self, parent_id):
+
+    assert(parent_id == labelplus.common.label.NULL_PARENT or
+      parent_id in self._labels)
 
     i = 0
     label_obj = {}
@@ -652,7 +654,11 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_children_names(self, parent_id):
 
+    assert(parent_id == labelplus.common.label.NULL_PARENT or
+      parent_id in self._labels)
+
     names = []
+
     for id in self._index[parent_id]["children"]:
       names.append(self._labels[id]["name"])
 
@@ -661,7 +667,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _validate_name(self, parent_id, label_name):
 
-    labelplus.common.validate_name(label_name)
+    assert(parent_id == labelplus.common.label.NULL_PARENT or
+      parent_id in self._labels)
+
+    labelplus.common.label.validate_name(label_name)
 
     names = self._get_children_names(parent_id)
     if label_name in names:
@@ -669,6 +678,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _get_descendent_labels(self, label_id):
+
+    assert(label_id == labelplus.common.label.NULL_PARENT or
+      label_id in self._labels)
 
     descendents = []
 
@@ -681,6 +693,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_parent_move_path(self, label_id):
 
+    assert(label_id in self._labels)
+
     parent_id = labelplus.common.label.get_parent_id(label_id)
     if parent_id == labelplus.common.label.NULL_PARENT:
       path = self._get_deluge_move_path()
@@ -691,6 +705,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _resolve_move_path(self, label_id):
+
+    assert(label_id in self._labels)
 
     name = self._labels[label_id]["name"]
     options = self._labels[label_id]["data"]
@@ -708,6 +724,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _get_label_bandwidth_usage(self, label_id):
+
+    assert(label_id == labelplus.common.label.ID_NONE or
+      label_id in self._labels)
 
     torrent_ids = []
 
@@ -774,6 +793,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _add_label(self, parent_id, label_name):
 
+    assert(parent_id == labelplus.common.label.NULL_PARENT or
+      parent_id in self._labels)
+
     label_name = label_name.strip()
 
     try:
@@ -804,6 +826,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _rename_label(self, label_id, label_name):
 
+    assert(label_id in self._labels)
+
     label_name = label_name.strip()
 
     try:
@@ -826,6 +850,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _remove_label(self, label_id):
+
+    assert(label_id in self._labels)
 
     parent_id = labelplus.common.label.get_parent_id(label_id)
     if parent_id in self._index:
@@ -892,7 +918,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _set_label_options(self, label_id, options_in, apply_to_all=None):
 
+    assert(label_id in self._labels)
+
     options = self._labels[label_id]["data"]
+
     old = {
       "download_settings": options["download_settings"],
       "move_data_completed": options["move_data_completed"],
@@ -933,6 +962,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _resolve_full_name(self, label_id):
 
+    assert(label_id == labelplus.common.label.NULL_PARENT or
+      label_id in self._labels)
+
     parts = []
     id = label_id
 
@@ -948,8 +980,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   def _build_full_name_index(self,
     label_id=labelplus.common.label.NULL_PARENT):
 
-    assert(label_id in self._labels or
-      label_id == labelplus.common.label.NULL_PARENT)
+    assert(label_id == labelplus.common.label.NULL_PARENT or
+      label_id in self._labels)
 
     self._index[label_id]["full_name"] = self._resolve_full_name(label_id)
 
@@ -972,6 +1004,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _do_update_shared_limit(self, label_id):
+
+    assert(label_id in self._labels)
 
     options = self._labels[label_id]["data"]
     shared_download_limit = options["max_download_speed"]
@@ -1050,6 +1084,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_torrent_statuses(self, torrent_ids, filters, fields):
 
+    assert(all(x in self._torrents for x in torrent_ids))
+
     statuses = {}
 
     for filter in filters:
@@ -1077,6 +1113,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_torrent_bandwidth_usage(self, torrent_ids):
 
+    assert(all(x in self._torrents for x in torrent_ids))
+
     statuses = self._get_torrent_statuses(
       torrent_ids, {"state": ["Seeding", "Downloading"]},
       ["download_payload_rate", "upload_payload_rate"])
@@ -1095,6 +1133,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   # Section: Torrent: Modifiers
 
   def _reset_torrent_options(self, torrent_id):
+
+    assert(torrent_id in self._torrents)
 
     torrent = self._torrents[torrent_id]
 
@@ -1119,6 +1159,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _apply_torrent_options(self, torrent_id):
+
+    assert(torrent_id in self._torrents)
 
     label_id = self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
 
@@ -1199,6 +1241,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _remove_torrent_label(self, torrent_id):
 
+    assert(torrent_id in self._torrents)
+
     label_id = self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
@@ -1207,6 +1251,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _set_torrent_label(self, torrent_id, label_id):
+
+    assert(torrent_id in self._torrents)
+    assert(label_id == labelplus.common.label.ID_NONE or
+      label_id in self._labels)
 
     if torrent_id in self._mappings:
       self._remove_torrent_label(torrent_id)
@@ -1222,6 +1270,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   # Section: Torrent-Label: Autolabel
 
   def _has_autolabel_match(self, torrent_id, label_id):
+
+    assert(torrent_id in self._torrents)
+    assert(label_id in self._labels)
 
     status = self._torrents[torrent_id].get_status(["name", "trackers"])
     name = status["name"]
@@ -1242,9 +1293,11 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _find_autolabel_match(self, torrent_id):
 
-    labels = self._get_sorted_labels(cmp_length_then_value)
+    assert(torrent_id in self._torrents)
 
-    for id in labels:
+    label_ids = self._get_sorted_labels(cmp_length_then_value)
+
+    for id in label_ids:
       if self._labels[id]["data"]["auto_settings"]:
         if self._has_autolabel_match(torrent_id, id):
           return id
@@ -1253,6 +1306,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _do_autolabel_torrents(self, label_id, apply_to_all=False):
+
+    assert(label_id in self._labels)
 
     for id in self._torrents:
       if apply_to_all or id not in self._mappings:
@@ -1264,12 +1319,16 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _apply_move_completed_path(self, label_id):
 
+    assert(label_id in self._labels)
+
     for id in self._index[label_id]["torrents"]:
       self._torrents[id].set_move_completed_path(
           self._labels[label_id]["data"]["move_data_completed_path"])
 
 
   def _update_move_completed_paths(self, label_id):
+
+    assert(label_id in self._labels)
 
     options = self._labels[label_id]["data"]
 
@@ -1288,6 +1347,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _do_move_completed(self, torrent_ids):
 
+    assert(all(x in self._torrents for x in torrent_ids))
+
     for id in torrent_ids:
       torrent = self._torrents[id]
       status = torrent.get_status(
@@ -1305,6 +1366,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
   def _do_move_completed_by_label(self, label_id, sublabels=False):
+
+    assert(label_id in self._labels)
 
     options = self._labels[label_id]["data"]
     if options["download_settings"] and options["move_data_completed"]:
