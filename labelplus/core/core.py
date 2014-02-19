@@ -742,10 +742,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_sorted_labels(self, cmp_func=None, reverse=False):
 
-    last_sorted = self._timestamp["labels_sorted"]
-    last_changed = self._timestamp["labels_changed"]
-
-    if last_sorted < last_changed:
+    if self._timestamp["labels_sorted"] < self._timestamp["labels_changed"]:
       self._sorted_labels.clear()
 
     key = (cmp_func, reverse)
