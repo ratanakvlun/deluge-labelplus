@@ -57,12 +57,12 @@ def is_ancestor(ancestor_id, label_id):
   return ancestor_id != label_id and label_id.startswith(prefix)
 
 
-def get_name_by_depth(full_name, depth=0):
+def get_name_by_segments(full_name, segments=0):
 
-  if depth < 1:
+  if segments < 1:
     return full_name
 
-  return "/".join(name.split("/")[-depth:])
+  return "/".join(name.split("/")[-segments:])
 
 
 def validate_name(label_name):
