@@ -67,6 +67,7 @@ CORE_CONFIG = "%s.conf" % labelplus.common.MODULE_NAME
 DELUGE_CORE_CONFIG = "core.conf"
 
 CONFIG_SAVE_INTERVAL = 60*2
+DATETIME_BEGINNING = datetime.datetime(1, 1, 1)
 
 log = logging.getLogger(__name__)
 log.addFilter(labelplus.common.LOG_FILTER)
@@ -139,10 +140,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._sorted_labels = {}
 
     self._timestamp = {
-      "labels_changed": datetime.datetime.now(),
-      "mappings_changed": datetime.datetime.now(),
-      "labels_sorted": datetime.datetime(1, 1, 1),
-      "last_saved": datetime.datetime(1, 1, 1),
+      "labels_changed": DATETIME_BEGINNING,
+      "mappings_changed": DATETIME_BEGINNING,
+      "labels_sorted": DATETIME_BEGINNING,
+      "last_saved": DATETIME_BEGINNING,
     }
 
     self._torrents = deluge.component.get("TorrentManager").torrents
@@ -438,7 +439,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if timestamp:
       t = cPickle.loads(timestamp)
     else:
-      t = datetime.datetime(1, 1, 1)
+      t = DATETIME_BEGINNING
 
     last_changed = max(self._timestamp["labels_changed"],
       self._timestamp["mappings_changed"])
