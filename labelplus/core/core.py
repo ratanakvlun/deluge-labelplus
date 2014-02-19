@@ -130,38 +130,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._initialize()
 
 
-  def _load_config(self):
 
-    config = deluge.configmanager.ConfigManager(CORE_CONFIG)
 
-    if not config.config:
-      config.config.update(copy.deepcopy(
-        labelplus.common.config.CONFIG_DEFAULTS))
-      labelplus.common.config.set_version(config,
-        labelplus.common.config.CONFIG_VERSION)
 
-    file_ver = labelplus.common.config.get_version(config)
-    ver = file_ver
-    while ver != labelplus.common.config.CONFIG_VERSION:
-      if ver < labelplus.common.config.CONFIG_VERSION:
-        key = (ver, ver+1)
-      else:
-        key = (ver, ver-1)
-
-      spec = labelplus.core.config.convert.CONFIG_SPECS.get(key)
-      if spec:
-        labelplus.common.config.convert.convert(spec,
-          config, strict_paths=True)
-        ver = labelplus.common.config.get_version(config)
-      else:
-        raise ValueError("Config file conversion v%s->v%s not supported" %
-          (file_ver, labelplus.common.config.CONFIG_VERSION))
-
-    for key in config.config.keys():
-      if key not in labelplus.common.config.CONFIG_DEFAULTS:
-        del config.config[key]
-
-    return config
 
 
   def _initialize(self):
@@ -200,6 +171,40 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     twisted.internet.reactor.callLater(1, self._shared_limit_update_loop)
 
     log.debug("Core initialized")
+
+
+  def _load_config(self):
+
+    config = deluge.configmanager.ConfigManager(CORE_CONFIG)
+
+    if not config.config:
+      config.config.update(copy.deepcopy(
+        labelplus.common.config.CONFIG_DEFAULTS))
+      labelplus.common.config.set_version(config,
+        labelplus.common.config.CONFIG_VERSION)
+
+    file_ver = labelplus.common.config.get_version(config)
+    ver = file_ver
+    while ver != labelplus.common.config.CONFIG_VERSION:
+      if ver < labelplus.common.config.CONFIG_VERSION:
+        key = (ver, ver+1)
+      else:
+        key = (ver, ver-1)
+
+      spec = labelplus.core.config.convert.CONFIG_SPECS.get(key)
+      if spec:
+        labelplus.common.config.convert.convert(spec,
+          config, strict_paths=True)
+        ver = labelplus.common.config.get_version(config)
+      else:
+        raise ValueError("Config file conversion v%s->v%s not supported" %
+          (file_ver, labelplus.common.config.CONFIG_VERSION))
+
+    for key in config.config.keys():
+      if key not in labelplus.common.config.CONFIG_DEFAULTS:
+        del config.config[key]
+
+    return config
 
 
   def _normalize_data(self):
