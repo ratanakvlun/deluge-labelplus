@@ -66,7 +66,7 @@ import labelplus.core.config.convert
 CORE_CONFIG = "%s.conf" % labelplus.common.MODULE_NAME
 DELUGE_CORE_CONFIG = "core.conf"
 
-CONFIG_SAVE_INTERVAL = 60*5
+CONFIG_SAVE_INTERVAL = 60*2
 
 log = logging.getLogger(__name__)
 log.addFilter(labelplus.common.LOG_FILTER)
