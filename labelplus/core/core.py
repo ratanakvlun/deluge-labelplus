@@ -486,7 +486,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if label_id not in self._labels:
       raise ValueError("Invalid label: %r" % label_id)
 
-    self._normalize_label_options(options_in, self._prefs["defaults"])
     self._set_label_options(label_id, options_in, apply_to_all)
 
 
@@ -921,8 +920,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       "move_data_completed": options["move_data_completed"],
       "move_data_completed_path": options["move_data_completed_path"],
     }
-    options.update(options_in)
 
+    self._normalize_label_options(options_in, self._prefs["defaults"])
+    options.update(options_in)
 
     if label_id in self._shared_limit_index:
       self._shared_limit_index.remove(label_id)
