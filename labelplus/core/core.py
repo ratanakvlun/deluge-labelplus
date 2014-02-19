@@ -758,32 +758,32 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_labels_summary(self):
 
-    total = len(self._torrents)
-    label_count = 0
-    counts = {}
+    total_count = len(self._torrents)
+    labeled_count = 0
+    summary = {}
 
     label_ids = self._get_sorted_labels(cmp_length_then_value)
 
     for id in label_ids:
       count = len(self._index[id]["torrents"])
-      label_count += count
+      labeled_count += count
 
-      counts[id] = {
+      summary[id] = {
         "name": self._index[id]["full_name"],
         "count": count,
       }
 
-    counts[labelplus.common.label.ID_ALL] = {
+    summary[labelplus.common.label.ID_ALL] = {
       "name": labelplus.common.label.ID_ALL,
-      "count": total,
+      "count": total_count,
     }
 
-    counts[labelplus.common.label.ID_NONE] = {
+    summary[labelplus.common.label.ID_NONE] = {
       "name": labelplus.common.label.ID_NONE,
-      "count": total-label_count,
+      "count": total_count-labeled_count,
     }
 
-    return counts
+    return summary
 
 
   # Section: Label: Modifiers
