@@ -73,6 +73,10 @@ from add_torrent_ext import AddTorrentExt
 
 import dnd
 
+import labelplus.common
+
+
+GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
 STATUS_UPDATE_INTERVAL = 2.0
 

@@ -35,10 +35,7 @@
 
 
 import labelplus.common.label
-from labelplus.common import MODULE_NAME
 
-
-GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
 
 GTKUI_DEFAULTS_V1 = {
   "name_input_size": None,
