@@ -45,12 +45,11 @@ from deluge import component
 from deluge.ui.client import client
 import deluge.configmanager
 
-from labelplus.common.constant import PLUGIN_NAME
-from labelplus.common.constant import LABEL_DEFAULTS
+from labelplus.common import PLUGIN_NAME
+from labelplus.common.config import LABEL_DEFAULTS
 
-from labelplus.common.file import get_resource
+from labelplus.common import get_resource
 from labelplus.common.debug import debug
-from labelplus.common.validation import require
 
 from util import textview_set_text
 from util import textview_get_text
