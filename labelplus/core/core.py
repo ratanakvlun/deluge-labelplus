@@ -356,7 +356,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       last_changed = max(self._timestamp["labels_changed"],
         self._timestamp["mappings_changed"])
 
-      if self._timestamp["last_saved"] < last_changed:
+      if self._timestamp["last_saved"] <= last_changed:
         self._config.save()
         self._timestamp["last_saved"] = datetime.datetime.now()
 
@@ -440,10 +440,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     else:
       t = datetime.datetime(1, 1, 1)
 
-    latest = max(
-      self._timestamp["labels_changed"], self._timestamp["mappings_changed"])
+    last_changed = max(self._timestamp["labels_changed"],
+      self._timestamp["mappings_changed"])
 
-    if t < latest:
+    if t <= last_changed:
       return self._get_labels_summary()
     else:
       return None
@@ -774,7 +774,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_sorted_labels(self, cmp_func=None, reverse=False):
 
-    if self._timestamp["labels_sorted"] < self._timestamp["labels_changed"]:
+    if self._timestamp["labels_sorted"] <= self._timestamp["labels_changed"]:
       self._sorted_labels.clear()
 
     key = (cmp_func, reverse)
