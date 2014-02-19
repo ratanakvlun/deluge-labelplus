@@ -923,15 +923,15 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     }
     options.update(options_in)
 
-    for id in self._index[label_id]["torrents"]:
-      if id in self._torrents:
-        self._apply_torrent_options(id)
 
     if label_id in self._shared_limit_index:
       self._shared_limit_index.remove(label_id)
 
     if options["bandwidth_settings"] and options["shared_limit_on"]:
       self._shared_limit_index.append(label_id)
+
+    for id in self._index[label_id]["torrents"]:
+      self._apply_torrent_options(id)
 
     # If move completed was just turned on and move on changes enabled...
     if (options["download_settings"] and options["move_data_completed"] and
