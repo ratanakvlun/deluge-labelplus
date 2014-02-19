@@ -1281,8 +1281,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     rules = options["autolabel_rules"]
     match_all = options["autolabel_match_all"]
 
-    return labelplus.common.config.autolabel.find_match(
-      props, rules, match_all)
+    return labelplus.common.config.autolabel.find_match(props,
+      rules, match_all)
 
 
   def _find_autolabel_match(self, torrent_id):
