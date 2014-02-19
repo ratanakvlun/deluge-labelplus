@@ -1212,7 +1212,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       return ""
 
     if self._prefs["options"]["show_full_name"]:
-      name = self._get_full_label_name(label_id)
+      name = self._index[label_id]["full_name"]
     else:
       name = self._labels[label_id]["name"]
 
