@@ -88,8 +88,12 @@ UNITS = [
   ("B", 1.0),
 ]
 
-class GtkUI(GtkPluginBase):
 
+log = logging.getLogger(__name__)
+log.addFilter(labelplus.common.LOG_FILTER)
+
+
+class GtkUI(GtkPluginBase):
 
   def __init__(self, plugin_name):
 
