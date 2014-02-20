@@ -51,19 +51,15 @@ from deluge.plugins.pluginbase import GtkPluginBase
 from deluge.ui.client import client
 import deluge.configmanager
 
-from labelplus.common.constant import DISPLAY_NAME, PLUGIN_NAME
-from labelplus.common.constant import STATUS_NAME
-from labelplus.common.constant import STATUS_ID
-from labelplus.common.constant import RESERVED_IDS, ID_ALL, ID_NONE
+from labelplus.common import (
+  DISPLAY_NAME, PLUGIN_NAME, MODULE_NAME,
+  STATUS_NAME, STATUS_ID,
+)
 
-from common.constant import GTKUI_CONFIG
-from common.constant import GTKUI_DEFAULTS
-from common.constant import DAEMON_DEFAULTS
-from common.constant import GTKUI_MAPS
+from labelplus.common.label import RESERVED_IDS, ID_ALL, ID_NONE
 
-from labelplus.common.file import get_resource
-from labelplus.common.config import get_version, convert
-from labelplus.common.label import get_parent
+from config import GTKUI_DEFAULTS, DAEMON_DEFAULTS
+from config.convert import GTKUI_SPECS
 
 from label_options_dialog import LabelOptionsDialog
 from label_selection_menu import LabelSelectionMenu
@@ -73,10 +69,13 @@ from add_torrent_ext import AddTorrentExt
 
 import dnd
 
-import labelplus.common
+from labelplus.common import get_resource
+from labelplus.common.config import get_version
+from labelplus.common.label import get_parent_id
+from config.convert import convert
 
 
-GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
+GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
 
 STATUS_UPDATE_INTERVAL = 2.0
 
@@ -262,7 +261,7 @@ class GtkUI(GtkPluginBase):
 
       id = self.get_selected_torrent_label()
       if id:
-        parent = get_parent(id)
+        parent = get_parent_id(id)
         if parent and parent not in RESERVED_IDS:
           if getattr(parent_item, "handler", None):
             parent_item.disconnect(parent_item.handler)
@@ -316,7 +315,7 @@ class GtkUI(GtkPluginBase):
         id = self.label_sidebar.get_selected_label()
 
       if id:
-        parent = get_parent(id)
+        parent = get_parent_id(id)
         if parent and parent not in RESERVED_IDS:
           if getattr(parent_item, "handler", None):
             parent_item.disconnect(parent_item.handler)
@@ -391,7 +390,7 @@ class GtkUI(GtkPluginBase):
       self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
     else:
       if source != target:
-        map = GTKUI_MAPS.get((source, target), None)
+        map = GTKUI_SPECS.get((source, target), None)
         if map:
           self._config._Config__config = convert(self._config.config, map)
         else:
