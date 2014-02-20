@@ -78,6 +78,7 @@ from config.convert import convert
 GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
 
 STATUS_UPDATE_INTERVAL = 2.0
+INIT_POLLING_INTERVAL = 3.0
 
 UNITS = [
   ("TiB", 1024.0**4),
@@ -110,7 +111,7 @@ class GtkUI(GtkPluginBase):
     if result == True:
       client.labelplus.get_label_data(None).addCallback(self.cb_finish_init)
     else:
-      reactor.callLater(1, self.enable)
+      reactor.callLater(INIT_POLLING_INTERVAL, self.enable)
 
 
   def cb_finish_init(self, data):
