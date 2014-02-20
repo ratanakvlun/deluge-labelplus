@@ -95,6 +95,8 @@ log.addFilter(labelplus.common.LOG_FILTER)
 
 class GtkUI(GtkPluginBase):
 
+  # Section: Initialization
+
   def __init__(self, plugin_name):
 
     super(GtkUI, self).__init__(plugin_name)
@@ -150,25 +152,7 @@ class GtkUI(GtkPluginBase):
     self.initialized = True
 
 
-  def on_tv_button_press(self, widget, event):
-
-    x, y = event.get_coords()
-    path_info = widget.get_path_at_pos(int(x), int(y))
-    if not path_info:
-      if event.button == 3:
-        self._popup_jump_menu(widget, event)
-      else:
-        return
-
-    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-      if path_info[1] and path_info[1].get_title() == DISPLAY_NAME:
-        id = self.get_selected_torrent_label()
-        if (self.label_sidebar.page_selected() and
-           id == self.label_sidebar.get_selected_label()):
-          self._do_open_label_options(widget, event)
-        else:
-          self._do_go_to_label(widget)
-
+  # Section: Deinitialization
 
   def disable(self):
 
@@ -195,6 +179,172 @@ class GtkUI(GtkPluginBase):
 
       component.get("TorrentView").remove_column(DISPLAY_NAME)
 
+
+  # Section: Update Loops
+
+  def update(self):
+
+    if self.initialized:
+      client.labelplus.get_label_data(self.timestamp).addCallback(
+        self.cb_update_data)
+
+      if self._config["common"]["show_label_bandwidth"]:
+        if not self.status_item:
+          self._add_status_bar_item()
+          reactor.callLater(1, self._status_bar_update)
+      else:
+        self._remove_status_bar_item()
+
+
+  def cb_update_data(self, data):
+
+    if data is not None:
+      self.timestamp = data[0]
+      self.label_data = data[1]
+
+      self.label_data[ID_ALL]["name"] = _(ID_ALL)
+      self.label_data[ID_NONE]["name"] = _(ID_NONE)
+
+      self.label_sidebar.update_counts(self.label_data)
+
+
+  def _status_bar_update(self):
+
+    if self.status_item:
+      id = self.get_selected_torrent_label()
+      if not id and self.label_sidebar.page_selected():
+        id = self.label_sidebar.get_selected_label()
+
+      if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
+        self.status_item._ebox.show_all()
+
+        tooltip = "Bandwidth Used By: %s" % self.label_data[id]["full_name"]
+        include_sublabels = self._config["common"]["status_include_sublabel"]
+        if include_sublabels and id != ID_NONE:
+          tooltip += "/*"
+
+        self.status_item.set_tooltip(tooltip)
+
+        client.labelplus.get_label_bandwidth_usage(
+          id, include_sublabels).addCallbacks(
+            self._do_status_bar_update, self._err_status_bar_update)
+      else:
+        self.status_item._ebox.hide_all()
+        reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
+
+
+  # Section: Config
+
+  def load_config(self):
+
+    self._config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+
+    source = get_version(self._config.config)
+    target = get_version(GTKUI_DEFAULTS)
+
+    if len(self._config.config) == 0:
+      self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
+    else:
+      if source != target:
+        map = GTKUI_SPECS.get((source, target), None)
+        if map:
+          self._config._Config__config = convert(self._config.config, map)
+        else:
+          self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
+      else:
+        self.normalize_config()
+
+    if target >= 2:
+      daemons = self._config["daemon"]
+      if self._daemon not in daemons:
+        daemons[self._daemon] = copy.deepcopy(DAEMON_DEFAULTS)
+
+
+  def normalize_config(self):
+
+    commons = dict(GTKUI_DEFAULTS["common"])
+    commons.update(self._config.config["common"])
+    self._config.config["common"] = commons
+
+    saved_daemons = component.get("ConnectionManager").config["hosts"]
+    if not saved_daemons:
+      self._config["daemon"] = {}
+    else:
+      daemons = ["%s@%s:%s" % (x[3], x[1], x[2]) for x in saved_daemons]
+
+      for daemon in self._config["daemon"].keys():
+        if "@localhost:" in daemon or "@127.0.0.1:" in daemon:
+          continue
+
+        if daemon != self._daemon and daemon not in daemons:
+          del self._config["daemon"][daemon]
+
+
+  # Section: Label: Queries
+
+  def get_labels(self):
+
+    data = self.label_data
+    labels = []
+    for id in data:
+      if id not in RESERVED_IDS:
+        labels.append((id, data[id]["name"]))
+
+    return labels
+
+
+  def get_label_counts(self):
+
+    return self.label_data
+
+
+  # Section: Torrent View
+
+  def on_tv_button_press(self, widget, event):
+
+    x, y = event.get_coords()
+    path_info = widget.get_path_at_pos(int(x), int(y))
+    if not path_info:
+      if event.button == 3:
+        self._popup_jump_menu(widget, event)
+      else:
+        return
+
+    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
+      if path_info[1] and path_info[1].get_title() == DISPLAY_NAME:
+        id = self.get_selected_torrent_label()
+        if (self.label_sidebar.page_selected() and
+           id == self.label_sidebar.get_selected_label()):
+          self._do_open_label_options(widget, event)
+        else:
+          self._do_go_to_label(widget)
+
+
+  def get_selected_torrent_label(self):
+
+    label_id = None
+    tv = component.get("TorrentView")
+    torrents = tv.get_selected_torrents()
+
+    if len(torrents) > 0:
+      id = torrents[0]
+      status = tv.get_torrent_status(id)
+
+      if STATUS_ID in status:
+        label_id = status[STATUS_ID] or ID_NONE
+
+        for t in torrents:
+          status = tv.get_torrent_status(t)
+          t_label_id = status[STATUS_ID] or ID_NONE
+
+          if t_label_id != label_id:
+            label_id = None
+            break
+
+    return label_id
+
+
+  # Section: Torrent View: Context Menu
 
   def _create_context_menu(self):
 
@@ -228,6 +378,14 @@ class GtkUI(GtkPluginBase):
     return menu
 
 
+  def _destroy_menu(self):
+
+    self.menu.destroy()
+    del self.menu
+
+
+  # Section: Torrent View: Context Menu: Label Options
+
   def _create_label_options_item(self):
 
 
@@ -246,6 +404,8 @@ class GtkUI(GtkPluginBase):
 
     return item
 
+
+  # Section: Torrent View: Context Menu: Set Label
 
   def _create_set_label_menu(self):
 
@@ -289,6 +449,8 @@ class GtkUI(GtkPluginBase):
 
     return menu
 
+
+  # Section: Torrent View: Context Menu: Jump
 
   def _create_jump_menu(self):
 
@@ -365,12 +527,6 @@ class GtkUI(GtkPluginBase):
     top.popup(None, None, None, event.button, event.time)
 
 
-  def _destroy_menu(self):
-
-    self.menu.destroy()
-    del self.menu
-
-
   def _do_go_to_label(self, widget, id=None):
 
     if not id:
@@ -380,92 +536,85 @@ class GtkUI(GtkPluginBase):
       self.label_sidebar.select_label(id)
 
 
-  def load_config(self):
+  # Section: Status Bar
 
-    self._config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+  def _add_status_bar_item(self):
 
-    source = get_version(self._config.config)
-    target = get_version(GTKUI_DEFAULTS)
+    self.status_item = component.get("StatusBar").add_item(
+      image=get_resource("labelplus_icon.png"),
+      text="",
+      callback=self._do_open_label_options_bandwidth,
+      tooltip="")
 
-    if len(self._config.config) == 0:
-      self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
-    else:
-      if source != target:
-        map = GTKUI_SPECS.get((source, target), None)
-        if map:
-          self._config._Config__config = convert(self._config.config, map)
-        else:
-          self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
-      else:
-        self.normalize_config()
-
-    if target >= 2:
-      daemons = self._config["daemon"]
-      if self._daemon not in daemons:
-        daemons[self._daemon] = copy.deepcopy(DAEMON_DEFAULTS)
+    self.status_item._ebox.hide_all()
 
 
-  def normalize_config(self):
+  def _remove_status_bar_item(self):
 
-    commons = dict(GTKUI_DEFAULTS["common"])
-    commons.update(self._config.config["common"])
-    self._config.config["common"] = commons
-
-    saved_daemons = component.get("ConnectionManager").config["hosts"]
-    if not saved_daemons:
-      self._config["daemon"] = {}
-    else:
-      daemons = ["%s@%s:%s" % (x[3], x[1], x[2]) for x in saved_daemons]
-
-      for daemon in self._config["daemon"].keys():
-        if "@localhost:" in daemon or "@127.0.0.1:" in daemon:
-          continue
-
-        if daemon != self._daemon and daemon not in daemons:
-          del self._config["daemon"][daemon]
+    if self.status_item:
+      component.get("StatusBar").remove_item(self.status_item)
+      self.status_item = None
 
 
-  def update(self):
+  def _err_status_bar_update(self, result):
 
-    if self.initialized:
-      client.labelplus.get_label_data(self.timestamp).addCallback(
-        self.cb_update_data)
-
-      if self._config["common"]["show_label_bandwidth"]:
-        if not self.status_item:
-          self._add_status_bar_item()
-          reactor.callLater(1, self._status_bar_update)
-      else:
-        self._remove_status_bar_item()
+    reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
 
 
-  def cb_update_data(self, data):
+  def _do_status_bar_update(self, result):
 
-    if data is not None:
-      self.timestamp = data[0]
-      self.label_data = data[1]
+    if self.status_item:
+      download_rate = result[0]
+      download_unit = "B"
 
-      self.label_data[ID_ALL]["name"] = _(ID_ALL)
-      self.label_data[ID_NONE]["name"] = _(ID_NONE)
+      upload_rate = result[1]
+      upload_unit = "B"
 
-      self.label_sidebar.update_counts(self.label_data)
+      for (unit, bytes) in UNITS:
+        if download_rate >= bytes:
+          download_rate /= bytes
+          download_unit = unit
+          break
+
+      for (unit, bytes) in UNITS:
+        if upload_rate >= bytes:
+          upload_rate /= bytes
+          upload_unit = unit
+          break
+
+      self.status_item.set_text(
+        "%.1f %s/s | %.1f %s/s" % (
+          download_rate, download_unit, upload_rate, upload_unit))
+
+      reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
 
 
-  def get_labels(self):
+  def _do_open_label_options_bandwidth(self, widget, event):
 
-    data = self.label_data
-    labels = []
-    for id in data:
-      if id not in RESERVED_IDS:
-        labels.append((id, data[id]["name"]))
-
-    return labels
+    self._do_open_label_options(widget, event, 1)
 
 
-  def get_label_counts(self):
+  def _do_open_label_options(self, widget, event, page=0):
 
-    return self.label_data
 
+    def on_close(widget):
+
+      self.dialog = None
+
+
+    if self.dialog == None:
+      id = self.label_sidebar.get_selected_label()
+
+      if id == ID_ALL or not self.label_sidebar.page_selected():
+        id = self.get_selected_torrent_label()
+
+      if id not in RESERVED_IDS and id in self.label_data:
+        name = self.label_data[id]["full_name"]
+        self.dialog = LabelOptionsDialog(id, name, page)
+        self.dialog.register_close_func(on_close)
+
+
+  # Section: Drag and Drop
 
   def enable_dnd(self):
 
@@ -573,128 +722,3 @@ class GtkUI(GtkPluginBase):
 
     self.dest_proxy.unload()
     self.src_proxy.unload()
-
-
-  def _add_status_bar_item(self):
-
-    self.status_item = component.get("StatusBar").add_item(
-      image=get_resource("labelplus_icon.png"),
-      text="",
-      callback=self._do_open_label_options_bandwidth,
-      tooltip="")
-
-    self.status_item._ebox.hide_all()
-
-
-  def _remove_status_bar_item(self):
-
-    if self.status_item:
-      component.get("StatusBar").remove_item(self.status_item)
-      self.status_item = None
-
-
-  def get_selected_torrent_label(self):
-
-    label_id = None
-    tv = component.get("TorrentView")
-    torrents = tv.get_selected_torrents()
-
-    if len(torrents) > 0:
-      id = torrents[0]
-      status = tv.get_torrent_status(id)
-
-      if STATUS_ID in status:
-        label_id = status[STATUS_ID] or ID_NONE
-
-        for t in torrents:
-          status = tv.get_torrent_status(t)
-          t_label_id = status[STATUS_ID] or ID_NONE
-
-          if t_label_id != label_id:
-            label_id = None
-            break
-
-    return label_id
-
-
-  def _do_open_label_options_bandwidth(self, widget, event):
-
-    self._do_open_label_options(widget, event, 1)
-
-
-  def _do_open_label_options(self, widget, event, page=0):
-
-
-    def on_close(widget):
-
-      self.dialog = None
-
-
-    if self.dialog == None:
-      id = self.label_sidebar.get_selected_label()
-
-      if id == ID_ALL or not self.label_sidebar.page_selected():
-        id = self.get_selected_torrent_label()
-
-      if id not in RESERVED_IDS and id in self.label_data:
-        name = self.label_data[id]["full_name"]
-        self.dialog = LabelOptionsDialog(id, name, page)
-        self.dialog.register_close_func(on_close)
-
-
-  def _status_bar_update(self):
-
-    if self.status_item:
-      id = self.get_selected_torrent_label()
-      if not id and self.label_sidebar.page_selected():
-        id = self.label_sidebar.get_selected_label()
-
-      if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
-        self.status_item._ebox.show_all()
-
-        tooltip = "Bandwidth Used By: %s" % self.label_data[id]["full_name"]
-        include_sublabels = self._config["common"]["status_include_sublabel"]
-        if include_sublabels and id != ID_NONE:
-          tooltip += "/*"
-
-        self.status_item.set_tooltip(tooltip)
-
-        client.labelplus.get_label_bandwidth_usage(
-          id, include_sublabels).addCallbacks(
-            self._do_status_bar_update, self._err_status_bar_update)
-      else:
-        self.status_item._ebox.hide_all()
-        reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
-
-
-  def _err_status_bar_update(self, result):
-
-    reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
-
-
-  def _do_status_bar_update(self, result):
-
-    if self.status_item:
-      download_rate = result[0]
-      download_unit = "B"
-
-      upload_rate = result[1]
-      upload_unit = "B"
-
-      for (unit, bytes) in UNITS:
-        if download_rate >= bytes:
-          download_rate /= bytes
-          download_unit = unit
-          break
-
-      for (unit, bytes) in UNITS:
-        if upload_rate >= bytes:
-          upload_rate /= bytes
-          upload_unit = unit
-          break
-
-      self.status_item.set_text(
-        "%.1f %s/s | %.1f %s/s" % (
-          download_rate, download_unit, upload_rate, upload_unit))
-
-      reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
