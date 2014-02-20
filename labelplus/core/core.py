@@ -444,7 +444,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   @deluge.core.rpcserver.export
   @check_init
-  def get_labels_summary(self, timestamp):
+  def get_labels_summary(self, timestamp=None):
 
     if timestamp:
       t = cPickle.loads(timestamp)
