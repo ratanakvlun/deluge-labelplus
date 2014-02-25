@@ -1254,8 +1254,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _remove_torrent_label(self, torrent_id):
 
-    assert(torrent_id in self._torrents)
-
     label_id = self._mappings.get(torrent_id, labelplus.common.label.ID_NONE)
     if label_id in self._index:
       self._index[label_id]["torrents"].remove(torrent_id)
