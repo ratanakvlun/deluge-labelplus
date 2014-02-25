@@ -50,36 +50,36 @@ def textview_get_text(textview):
   return buff.get_text(buff.get_start_iter(), buff.get_end_iter())
 
 
-def treemodel_subtree_op(
-    model, root, pre_func=None, post_func=None, user_data=None):
+def treemodel_recurse(model, root, pre_func=None,
+    post_func=None, user_data=None):
 
-  path = model.get_path(root)
   abort = None
 
   if pre_func:
     if user_data:
-      abort = pre_func(model, path, root, user_data)
+      abort = pre_func(model, root, user_data)
     else:
-      abort = pre_func(model, path, root)
+      abort = pre_func(model, root)
 
   if abort:
     return abort
 
   children = []
-  child = model.iter_children(root)
-  while child is not None:
-    children.append(child)
-    child = model.iter_next(child)
+
+  iter = model.iter_children(root)
+  while iter is not None:
+    children.append(iter)
+    iter = model.iter_next(iter)
 
   for child in children:
-    abort = treemodel_subtree_op(model, child, pre_func, post_func, user_data)
+    abort = treemodel_recurse(model, child, pre_func, post_func, user_data)
     if abort:
       return abort
 
   if post_func:
     if user_data:
-      abort = post_func(model, path, root, user_data)
+      abort = post_func(model, root, user_data)
     else:
-      abort = post_func(model, path, root)
+      abort = post_func(model, root)
 
   return abort
