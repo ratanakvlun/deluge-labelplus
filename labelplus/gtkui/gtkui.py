@@ -41,684 +41,206 @@
 
 import copy
 import logging
+import datetime
+import cPickle
 
 import gtk
+import gobject
+import twisted.internet.reactor
 
-from twisted.internet import reactor
-
-from deluge import component
-from deluge.plugins.pluginbase import GtkPluginBase
-from deluge.ui.client import client
 import deluge.configmanager
+import deluge.component
+import deluge.plugins.pluginbase
+from deluge.ui.client import client
 
-from labelplus.common import (
-  DISPLAY_NAME, PLUGIN_NAME, MODULE_NAME,
-  STATUS_NAME, STATUS_ID,
-)
+import labelplus.common
+import labelplus.common.label
+import labelplus.common.config
+import labelplus.common.config.convert
 
-from labelplus.common.label import RESERVED_IDS, ID_ALL, ID_NONE
-
-from config import GTKUI_DEFAULTS, DAEMON_DEFAULTS
-from config.convert import GTKUI_SPECS
-
-from label_options_dialog import LabelOptionsDialog
-from label_selection_menu import LabelSelectionMenu
-from label_sidebar import LabelSidebar
-from preferences import Preferences
-from add_torrent_ext import AddTorrentExt
-
-import dnd
-
-from labelplus.common import get_resource
-from labelplus.common.config import get_version
-from labelplus.common.label import get_parent_id
-from config.convert import convert
+import labelplus.gtkui.config
+import labelplus.gtkui.config.convert
+import labelplus.gtkui.util
 
 
-GTKUI_CONFIG = "%s_ui.conf" % MODULE_NAME
+GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
-STATUS_UPDATE_INTERVAL = 2.0
 INIT_POLLING_INTERVAL = 3.0
-
-UNITS = [
-  ("TiB", 1024.0**4),
-  ("GiB", 1024.0**3),
-  ("MiB", 1024.0**2),
-  ("KiB", 1024.0),
-  ("B", 1.0),
-]
-
 
 log = logging.getLogger(__name__)
 log.addFilter(labelplus.common.LOG_FILTER)
 
 
-class GtkUI(GtkPluginBase):
+class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
   # Section: Initialization
 
   def __init__(self, plugin_name):
 
     super(GtkUI, self).__init__(plugin_name)
-    self.initialized = False
+    self._initialized = False
+    self._config = None
 
 
   def enable(self):
 
-    client.labelplus.is_initialized().addCallback(self.cb_check)
+    log.debug("Enabling GtkUI...")
+
+    self._poll_init()
 
 
-  def cb_check(self, result):
+  def _poll_init(self):
+
+    client.labelplus.is_initialized().addCallback(self._check_init)
+
+
+  def _check_init(self, result):
+
+    log.debug("Waiting for Core to be initialized...")
 
     if result == True:
-      client.labelplus.get_label_data(None).addCallback(self.cb_finish_init)
+      client.labelplus.get_labels_data().addCallback(self._finish_init)
     else:
-      reactor.callLater(INIT_POLLING_INTERVAL, self.enable)
+      twisted.internet.reactor.callLater(INIT_POLLING_INTERVAL,
+        self._poll_init)
 
 
-  def cb_finish_init(self, data):
+  def _finish_init(self, result):
 
-    self.dialog = None
-    self._config = None
+    log.debug("Resuming initialization...")
 
     info = client.connection_info()
     self._daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
-    self.timestamp = data[0]
-    self.label_data = data[1]
+    self._config = self._load_config()
 
-    self.label_data[ID_ALL]["name"] = _(ID_ALL)
-    self.label_data[ID_NONE]["name"] = _(ID_NONE)
+    self._store = None
+    self._store_map = None
+    self._sorted_store = None
 
-    self.load_config()
+    self._last_updated = None
+    self._update_labels(result)
 
-    component.get("TorrentView").add_text_column(DISPLAY_NAME,
-        col_type=[str, str], status_field=[STATUS_NAME, STATUS_ID])
+    self._initialized = True
 
-    component.get("TorrentView").treeview.connect(
-      "button-press-event", self.on_tv_button_press)
-
-    self.menu = self._create_context_menu()
-    self.sep = component.get("MenuBar").add_torrentmenu_separator()
-    component.get("MenuBar").torrentmenu.append(self.menu)
-
-    self.label_sidebar = LabelSidebar()
-    self.preferences = Preferences()
-    self.add_torrent_ext = AddTorrentExt()
-    self.status_item = None
-
-    self.enable_dnd()
-
-    self.initialized = True
+    log.debug("GtkUI enabled")
 
 
   # Section: Deinitialization
 
   def disable(self):
 
-    if self.initialized:
-      self.initialized = False
+    log.debug("Disabling GtkUI...")
 
+    self._initialized = False
+
+    if self._config:
       self._config.save()
       deluge.configmanager.close(GTKUI_CONFIG)
 
-      self._remove_status_bar_item()
-
-      self.disable_dnd()
-
-      component.get("MenuBar").torrentmenu.remove(self.sep)
-      component.get("MenuBar").torrentmenu.remove(self.menu)
-      self._destroy_menu()
-
-      self.label_sidebar.unload()
-      del self.label_sidebar
-
-      self.preferences.unload()
-
-      self.add_torrent_ext.unload()
-
-      component.get("TorrentView").remove_column(DISPLAY_NAME)
+    log.debug("GtkUI disabled")
 
 
   # Section: Update Loops
 
   def update(self):
 
-    if self.initialized:
-      client.labelplus.get_label_data(self.timestamp).addCallback(
-        self.cb_update_data)
-
-      if self._config["common"]["show_label_bandwidth"]:
-        if not self.status_item:
-          self._add_status_bar_item()
-          reactor.callLater(1, self._status_bar_update)
-      else:
-        self._remove_status_bar_item()
-
-
-  def cb_update_data(self, data):
-
-    if data is not None:
-      self.timestamp = data[0]
-      self.label_data = data[1]
-
-      self.label_data[ID_ALL]["name"] = _(ID_ALL)
-      self.label_data[ID_NONE]["name"] = _(ID_NONE)
-
-      self.label_sidebar.update_counts(self.label_data)
-
-
-  def _status_bar_update(self):
-
-    if self.status_item:
-      id = self.get_selected_torrent_label()
-      if not id and self.label_sidebar.page_selected():
-        id = self.label_sidebar.get_selected_label()
-
-      if id == ID_NONE or (id not in RESERVED_IDS and id in self.label_data):
-        self.status_item._ebox.show_all()
-
-        tooltip = "Bandwidth Used By: %s" % self.label_data[id]["full_name"]
-        include_sublabels = self._config["common"]["status_include_sublabel"]
-        if include_sublabels and id != ID_NONE:
-          tooltip += "/*"
-
-        self.status_item.set_tooltip(tooltip)
-
-        client.labelplus.get_label_bandwidth_usage(
-          id, include_sublabels).addCallbacks(
-            self._do_status_bar_update, self._err_status_bar_update)
-      else:
-        self.status_item._ebox.hide_all()
-        reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
+    if self._initialized:
+      client.labelplus.get_labels_data(self._last_updated).addCallback(
+        self._update_labels)
 
 
   # Section: Config
 
-  def load_config(self):
+  def _load_config(self):
 
-    self._config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
+    config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
-    source = get_version(self._config.config)
-    target = get_version(GTKUI_DEFAULTS)
+    # Workaround for versions that didn't use header
+    if config.config.get("version") == 2:
+      labelplus.common.config.set_version(config, 2)
 
-    if len(self._config.config) == 0:
-      self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
-    else:
-      if source != target:
-        map = GTKUI_SPECS.get((source, target), None)
-        if map:
-          self._config._Config__config = convert(self._config.config, map)
-        else:
-          self._config._Config__config = copy.deepcopy(GTKUI_DEFAULTS)
-      else:
-        self.normalize_config()
+    labelplus.common.config.init_config(config,
+      labelplus.gtkui.config.CONFIG_DEFAULTS,
+      labelplus.gtkui.config.CONFIG_VERSION,
+      labelplus.gtkui.config.convert.CONFIG_SPECS)
 
-    if target >= 2:
-      daemons = self._config["daemon"]
-      if self._daemon not in daemons:
-        daemons[self._daemon] = copy.deepcopy(DAEMON_DEFAULTS)
+    self._update_daemon_config(config)
+
+    return config
 
 
-  def normalize_config(self):
+  def _update_daemon_config(self, config):
 
-    commons = dict(GTKUI_DEFAULTS["common"])
-    commons.update(self._config.config["common"])
-    self._config.config["common"] = commons
-
-    saved_daemons = component.get("ConnectionManager").config["hosts"]
+    saved_daemons = deluge.component.get("ConnectionManager").config["hosts"]
     if not saved_daemons:
-      self._config["daemon"] = {}
+      config["daemon"] = {}
     else:
       daemons = ["%s@%s:%s" % (x[3], x[1], x[2]) for x in saved_daemons]
 
-      for daemon in self._config["daemon"].keys():
+      for daemon in config["daemon"].keys():
         if "@localhost:" in daemon or "@127.0.0.1:" in daemon:
           continue
 
         if daemon != self._daemon and daemon not in daemons:
-          del self._config["daemon"][daemon]
+          del config["daemon"][daemon]
+
+    if self._daemon not in config["daemon"]:
+      config["daemon"][self._daemon] = copy.deepcopy(
+        labelplus.gtkui.config.DAEMON_DEFAULTS)
 
 
-  # Section: Label: Queries
+  # Section: Label
 
-  def get_labels(self):
+  def _label_sort_asc(self, store, iter_a, iter_b):
 
-    data = self.label_data
-    labels = []
-    for id in data:
-      if id not in RESERVED_IDS:
-        labels.append((id, data[id]["name"]))
+    id_a, data_a = store.get(iter_a, 0, 1)
+    id_b, data_b = store.get(iter_b, 0, 1)
 
-    return labels
+    a_is_reserved = id_a in labelplus.common.label.RESERVED_IDS
+    b_is_reserved = id_b in labelplus.common.label.RESERVED_IDS
+
+    if a_is_reserved and b_is_reserved:
+      return cmp(id_a, id_b)
+    elif a_is_reserved:
+      return -1
+    elif b_is_reserved:
+      return 1
+
+    return cmp(data_a["name"], data_b["name"])
 
 
-  def get_label_counts(self):
+  def _update_labels(self, result):
 
-    return self.label_data
+    if not result:
+      return
 
+    self._last_updated = cPickle.dumps(datetime.datetime.now())
+    self._labels_data = result
 
-  # Section: Torrent View
+    name = self._labels_data[labelplus.common.label.ID_ALL]["name"]
+    self._labels_data[labelplus.common.label.ID_ALL]["name"] = _(name)
 
-  def on_tv_button_press(self, widget, event):
+    name = self._labels_data[labelplus.common.label.ID_NONE]["name"]
+    self._labels_data[labelplus.common.label.ID_NONE]["name"] = _(name)
 
-    x, y = event.get_coords()
-    path_info = widget.get_path_at_pos(int(x), int(y))
-    if not path_info:
-      if event.button == 3:
-        self._popup_jump_menu(widget, event)
+    store = gtk.TreeStore(str, gobject.TYPE_PYOBJECT)
+    store_map = {}
+
+    for id in sorted(self._labels_data):
+      if id in labelplus.common.label.RESERVED_IDS:
+        parent_id = labelplus.common.label.NULL_PARENT
       else:
-        return
-
-    if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-      if path_info[1] and path_info[1].get_title() == DISPLAY_NAME:
-        id = self.get_selected_torrent_label()
-        if (self.label_sidebar.page_selected() and
-           id == self.label_sidebar.get_selected_label()):
-          self._do_open_label_options(widget, event)
-        else:
-          self._do_go_to_label(widget)
-
-
-  def get_selected_torrent_label(self):
-
-    label_id = None
-    tv = component.get("TorrentView")
-    torrents = tv.get_selected_torrents()
-
-    if len(torrents) > 0:
-      id = torrents[0]
-      status = tv.get_torrent_status(id)
-
-      if STATUS_ID in status:
-        label_id = status[STATUS_ID] or ID_NONE
-
-        for t in torrents:
-          status = tv.get_torrent_status(t)
-          t_label_id = status[STATUS_ID] or ID_NONE
-
-          if t_label_id != label_id:
-            label_id = None
-            break
-
-    return label_id
-
-
-  # Section: Torrent View: Context Menu
-
-  def _create_context_menu(self):
-
-    menu = gtk.MenuItem(DISPLAY_NAME)
-    submenu = gtk.Menu()
-
-    jump_menu = self._create_jump_menu()
-    submenu.append(jump_menu)
-
-    set_label_menu = self._create_set_label_menu()
-    submenu.append(set_label_menu)
-
-    label_options_item = self._create_label_options_item()
-    submenu.append(label_options_item)
-
-
-    def on_activate(widget):
-
-      id = self.get_selected_torrent_label()
-      if id not in RESERVED_IDS and id in self.label_data:
-        label_options_item.show()
-      else:
-        label_options_item.hide()
-
-
-    menu.connect("activate", on_activate)
-
-    menu.set_submenu(submenu)
-    menu.show_all()
-
-    return menu
-
-
-  def _destroy_menu(self):
-
-    self.menu.destroy()
-    del self.menu
-
-
-  # Section: Torrent View: Context Menu: Label Options
-
-  def _create_label_options_item(self):
-
-
-    def on_activate(widget):
-
-      id = self.get_selected_torrent_label()
-      if id not in RESERVED_IDS and id in self.label_data:
-        name = self.label_data[id]["name"]
-        self.label_sidebar.menu.dialog = LabelOptionsDialog(id, name)
-        self.label_sidebar.menu.dialog.register_close_func(
-          self.label_sidebar.menu.close_func)
-
-
-    item = gtk.MenuItem(_("Label Options"))
-    item.connect("activate", on_activate)
-
-    return item
-
-
-  # Section: Torrent View: Context Menu: Set Label
-
-  def _create_set_label_menu(self):
-
-
-    def on_select_label(widget, label_id):
-
-      torrents = component.get("TorrentView").get_selected_torrents()
-      client.labelplus.set_torrent_labels(label_id, torrents)
-
-
-    def hide_unavailable(widget):
-
-      parent_item.hide()
-
-      id = self.get_selected_torrent_label()
-      if id:
-        parent = get_parent_id(id)
-        if parent and parent not in RESERVED_IDS:
-          if getattr(parent_item, "handler", None):
-            parent_item.disconnect(parent_item.handler)
-
-          handler = parent_item.connect("activate", on_select_label, parent)
-          parent_item.handler = handler
-          parent_item.show()
-
-
-    items = []
-
-    menu_item = gtk.MenuItem(_(ID_NONE))
-    menu_item.connect("activate", on_select_label, ID_NONE)
-    items.append(menu_item)
-
-    parent_item = gtk.MenuItem(_("Parent"))
-    items.append(parent_item)
-
-    menu_item = gtk.SeparatorMenuItem()
-    items.append(menu_item)
-
-    menu = LabelSelectionMenu(_("Set Label"), on_select_label, items)
-    menu.connect("activate", hide_unavailable)
-
-    return menu
-
-
-  # Section: Torrent View: Context Menu: Jump
-
-  def _create_jump_menu(self):
-
-
-    def on_select_label(widget, label_id):
-
-      self._do_go_to_label(widget, label_id)
-
-
-    def hide_unavailable(widget):
-
-      selected_item.hide()
-      parent_item.hide()
-
-      id = self.get_selected_torrent_label()
-      if id:
-        if getattr(selected_item, "handler", None):
-          selected_item.disconnect(selected_item.handler)
-
-        handler = selected_item.connect("activate", on_select_label, id)
-        selected_item.handler = handler
-        selected_item.show()
-
-      elif self.label_sidebar.page_selected():
-        id = self.label_sidebar.get_selected_label()
-
-      if id:
-        parent = get_parent_id(id)
-        if parent and parent not in RESERVED_IDS:
-          if getattr(parent_item, "handler", None):
-            parent_item.disconnect(parent_item.handler)
-
-          handler = parent_item.connect("activate", on_select_label, parent)
-          parent_item.handler = handler
-          parent_item.show()
-
-
-    items = []
-
-    menu_item = gtk.MenuItem(_(ID_ALL))
-    menu_item.connect("activate", on_select_label, ID_ALL)
-    items.append(menu_item)
-
-    menu_item = gtk.MenuItem(_(ID_NONE))
-    menu_item.connect("activate", on_select_label, ID_NONE)
-    items.append(menu_item)
-
-    selected_item = gtk.MenuItem(_("Selected"))
-    items.append(selected_item)
-
-    parent_item = gtk.MenuItem(_("Parent"))
-    items.append(parent_item)
-
-    menu_item = gtk.SeparatorMenuItem()
-    items.append(menu_item)
-
-    menu = LabelSelectionMenu(_("Jump To"), on_select_label, items)
-    menu.connect("activate", hide_unavailable)
-
-    return menu
-
-
-  def _popup_jump_menu(self, widget, event):
-
-    top = gtk.Menu()
-    menu = gtk.MenuItem(DISPLAY_NAME)
-    submenu = gtk.Menu()
-
-    submenu.append(self._create_jump_menu())
-    menu.set_submenu(submenu)
-    top.append(menu)
-
-    top.show_all()
-    top.popup(None, None, None, event.button, event.time)
-
-
-  def _do_go_to_label(self, widget, id=None):
-
-    if not id:
-      id = self.get_selected_torrent_label()
-
-    if id is not None:
-      self.label_sidebar.select_label(id)
-
-
-  # Section: Status Bar
-
-  def _add_status_bar_item(self):
-
-    self.status_item = component.get("StatusBar").add_item(
-      image=get_resource("labelplus_icon.png"),
-      text="",
-      callback=self._do_open_label_options_bandwidth,
-      tooltip="")
-
-    self.status_item._ebox.hide_all()
-
-
-  def _remove_status_bar_item(self):
-
-    if self.status_item:
-      component.get("StatusBar").remove_item(self.status_item)
-      self.status_item = None
-
-
-  def _err_status_bar_update(self, result):
-
-    reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
-
-
-  def _do_status_bar_update(self, result):
-
-    if self.status_item:
-      download_rate = result[0]
-      download_unit = "B"
-
-      upload_rate = result[1]
-      upload_unit = "B"
-
-      for (unit, bytes) in UNITS:
-        if download_rate >= bytes:
-          download_rate /= bytes
-          download_unit = unit
-          break
-
-      for (unit, bytes) in UNITS:
-        if upload_rate >= bytes:
-          upload_rate /= bytes
-          upload_unit = unit
-          break
-
-      self.status_item.set_text(
-        "%.1f %s/s | %.1f %s/s" % (
-          download_rate, download_unit, upload_rate, upload_unit))
-
-      reactor.callLater(STATUS_UPDATE_INTERVAL, self._status_bar_update)
-
-
-  def _do_open_label_options_bandwidth(self, widget, event):
-
-    self._do_open_label_options(widget, event, 1)
-
-
-  def _do_open_label_options(self, widget, event, page=0):
-
-
-    def on_close(widget):
-
-      self.dialog = None
-
-
-    if self.dialog == None:
-      id = self.label_sidebar.get_selected_label()
-
-      if id == ID_ALL or not self.label_sidebar.page_selected():
-        id = self.get_selected_torrent_label()
-
-      if id not in RESERVED_IDS and id in self.label_data:
-        name = self.label_data[id]["full_name"]
-        self.dialog = LabelOptionsDialog(id, name, page)
-        self.dialog.register_close_func(on_close)
-
-
-  # Section: Drag and Drop
-
-  def enable_dnd(self):
-
-
-    def get_drag_icon(widget, x, y):
-
-      num = widget.get_selection().count_selected_rows()
-
-      if num > 1:
-        pixbuf = self.icon_multiple
-      else:
-        pixbuf = self.icon_single
-
-      return (pixbuf, 0, 0)
-
-
-    def on_drag_end(widget, context):
-
-      if self.label_sidebar.page_selected():
-        self.label_sidebar.label_tree.get_selection().emit("changed")
-
-
-    def get_ids(widget, path, col, selection, *args):
-
-      selection.set("TEXT", 8, "OK")
-
-      return True
-
-
-    def receive_ids(widget, path, col, pos, selection, *args):
-
-      if selection.data == "OK":
-        model = widget.get_model()
-        id = model[path][0]
-
-        if id == ID_NONE:
-          id = None
-
-        if id not in RESERVED_IDS:
-          torrents = component.get("TorrentView").get_selected_torrents()
-          client.labelplus.set_torrent_labels(id, torrents)
-
-          return True
-
-
-    def peek_ids(widget, path, col, pos, selection, *args):
-
-      if selection.data == "OK":
-        model = widget.get_model()
-        id = model[path][0]
-
-        if id == ID_NONE:
-          id = None
-
-        if id not in RESERVED_IDS:
-          return True
-
-
-    class ModuleFilter(object):
-
-
-      def filter(self, record):
-
-        record.msg = "[%s] %s" % (PLUGIN_NAME, record.msg)
-
-        return True
-
-
-    dnd.log.setLevel(logging.INFO)
-    dnd.log.addFilter(ModuleFilter())
-
-    src_target = dnd.DragTarget(
-      name="torrent_ids",
-      scope=gtk.TARGET_SAME_APP,
-      action=gtk.gdk.ACTION_MOVE,
-      data_func=get_ids,
-    )
-
-    src_treeview = component.get("TorrentView").treeview
-
-    self.icon_single = \
-        src_treeview.render_icon(gtk.STOCK_DND, gtk.ICON_SIZE_DND)
-    self.icon_multiple = \
-        src_treeview.render_icon(gtk.STOCK_DND_MULTIPLE, gtk.ICON_SIZE_DND)
-
-    self.src_proxy = dnd.TreeViewDragSourceProxy(src_treeview,
-      get_drag_icon, on_drag_end)
-    self.src_proxy.add_target(src_target)
-
-    dest_target = dnd.DragTarget(
-      name="torrent_ids",
-      scope=gtk.TARGET_SAME_APP,
-      action=gtk.gdk.ACTION_MOVE,
-      pos=gtk.TREE_VIEW_DROP_INTO_OR_BEFORE,
-      data_func=receive_ids,
-      aux_func=peek_ids,
-    )
-
-    dest_treeview = self.label_sidebar.label_tree
-    self.dest_proxy = dnd.TreeViewDragDestProxy(dest_treeview)
-    self.dest_proxy.add_target(dest_target)
-
-
-  def disable_dnd(self):
-
-    self.dest_proxy.unload()
-    self.src_proxy.unload()
+        parent_id = labelplus.common.label.get_parent_id(id)
+
+      parent_iter = store_map.get(parent_id)
+      iter = store.append(parent_iter, [id, self._labels_data[id]])
+      store_map[id] = iter
+
+    sorted_store = gtk.TreeModelSort(store)
+    sorted_store.set_sort_func(1, self._label_sort_asc)
+    sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
+
+    self._store = store
+    self._store_map = store_map
+    self._sorted_store = sorted_store
