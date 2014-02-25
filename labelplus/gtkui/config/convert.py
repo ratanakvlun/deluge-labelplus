@@ -37,10 +37,10 @@
 import labelplus.gtkui.config
 
 
-GTKUI_SPEC_V1_V2 = {
+CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
-  "defaults": labelplus.gtkui.config.GTKUI_DEFAULTS_V2,
+  "defaults": labelplus.gtkui.config.CONFIG_DEFAULTS_V2,
   "map": {
     "name_input_size": "common/name_input_size",
     "name_input_pos": "common/name_input_pos",
@@ -51,6 +51,6 @@ GTKUI_SPEC_V1_V2 = {
   },
 }
 
-GTKUI_SPECS = {
-  (1, 2): GTKUI_SPEC_V1_V2,
+CONFIG_SPECS = {
+  (1, 2): CONFIG_SPEC_V1_V2,
 }

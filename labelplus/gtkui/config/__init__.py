@@ -37,7 +37,7 @@
 import labelplus.common.label
 
 
-GTKUI_DEFAULTS_V1 = {
+CONFIG_DEFAULTS_V1 = {
   "name_input_size": None,
   "name_input_pos": None,
   "label_options_size": None,
@@ -57,8 +57,7 @@ DAEMON_DEFAULTS_V1 = {
   },
 }
 
-GTKUI_DEFAULTS_V2 = {
-  "version": 2,
+CONFIG_DEFAULTS_V2 = {
   "common": {
     "name_input_size": None,
     "name_input_pos": None,
@@ -72,5 +71,5 @@ GTKUI_DEFAULTS_V2 = {
 }
 
 CONFIG_VERSION = 2
-GTKUI_DEFAULTS = GTKUI_DEFAULTS_V2
+CONFIG_DEFAULTS = CONFIG_DEFAULTS_V2
 DAEMON_DEFAULTS = DAEMON_DEFAULTS_V1
