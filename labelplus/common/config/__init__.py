@@ -34,6 +34,9 @@
 #
 
 
+import convert
+
+
 MOVE_PARENT = "parent"
 MOVE_SUBFOLDER = "subfolder"
 MOVE_FOLDER = "folder"
@@ -139,3 +142,30 @@ def get_version(config):
 def set_version(config, version):
 
   config._Config__version["file"] = version
+
+
+def init_config(config, defaults, version, specs):
+
+  if len(config.config) == 0:
+    config.config.update(copy.deepcopy(defaults))
+    set_version(config, version)
+
+  file_ver = get_version(config)
+  ver = file_ver
+  while ver != version:
+    if ver < version:
+      key = (ver, ver+1)
+    else:
+      key = (ver, ver-1)
+
+    spec = specs.get(key)
+    if spec:
+      convert.convert(spec, config, strict_paths=True)
+      ver = get_version(config)
+    else:
+      raise ValueError("Config file conversion v%s -> v%s not supported" %
+        (file_ver, version))
+
+  for key in config.config.keys():
+    if key not in defaults:
+      del config.config[key]
