@@ -444,7 +444,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   @deluge.core.rpcserver.export
   @check_init
-  def get_labels_summary(self, timestamp=None):
+  def get_labels_data(self, timestamp=None):
 
     if timestamp:
       t = cPickle.loads(timestamp)
@@ -455,7 +455,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._timestamp["mappings_changed"])
 
     if t <= last_changed:
-      return self._get_labels_summary()
+      return self._get_labels_data()
     else:
       return None
 
@@ -796,11 +796,11 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     return self._sorted_labels[key]
 
 
-  def _get_labels_summary(self):
+  def _get_labels_data(self):
 
     total_count = len(self._torrents)
     labeled_count = 0
-    summary = {}
+    data = {}
 
     label_ids = self._get_sorted_labels(cmp_length_then_value)
 
@@ -808,22 +808,22 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       count = len(self._index[id]["torrents"])
       labeled_count += count
 
-      summary[id] = {
+      data[id] = {
         "name": self._index[id]["full_name"],
         "count": count,
       }
 
-    summary[labelplus.common.label.ID_ALL] = {
+    data[labelplus.common.label.ID_ALL] = {
       "name": labelplus.common.label.ID_ALL,
       "count": total_count,
     }
 
-    summary[labelplus.common.label.ID_NONE] = {
+    data[labelplus.common.label.ID_NONE] = {
       "name": labelplus.common.label.ID_NONE,
       "count": total_count-labeled_count,
     }
 
-    return summary
+    return data
 
 
   # Section: Label: Modifiers
