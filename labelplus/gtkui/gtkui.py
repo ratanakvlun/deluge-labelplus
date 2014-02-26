@@ -207,6 +207,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     self.data[id]["name"] = _(id)
 
     self._build_store()
+    self._build_fullname_index()
 
 
   def _build_store(self):
@@ -247,3 +248,20 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
 
     self.store = sorted_store
+
+
+  def _build_fullname_index(self):
+
+    def resolve_fullname(id):
+
+      parts = []
+
+      while id:
+        parts.append(self.data[id]["name"])
+        id = labelplus.common.label.get_parent_id(id)
+
+      return "/".join(reversed(parts))
+
+
+    for id in self.data:
+      self.data[id]["fullname"] = resolve_fullname(id)
