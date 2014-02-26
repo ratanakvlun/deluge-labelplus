@@ -812,7 +812,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       labeled_count += count
 
       data[id] = {
-        "name": self._index[id]["full_name"],
+        "name": self._labels[id]["name"],
         "count": count,
       }
 
