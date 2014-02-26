@@ -148,7 +148,8 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
   def update(self):
 
     if self._initialized:
-      client.labelplus.get_labels_data(self._last_updated).addCallback(
+      pickled_time = cPickle.dumps(self._last_updated)
+      client.labelplus.get_labels_data(pickled_time).addCallback(
         self._update_labels)
 
 
