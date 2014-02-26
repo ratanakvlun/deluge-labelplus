@@ -41,6 +41,24 @@ import labelplus.common.config.autolabel
 
 def convert_v1_v2(spec, dict_in):
 
+  def remove_v1_prefix(dict_in):
+
+    labels = dict_in["labels"]
+    for id in labels.keys():
+      if id.startswith("-:"):
+        data = labels[id]
+        del labels[id]
+
+        new_id = id.partition(":")[2]
+        labels[new_id] = data
+
+    mappings = dict_in["mappings"]
+    for id in mappings:
+      label_id = mappings[id]
+      if label_id.startswith("-:"):
+        mappings[id] = label_id.partition(":")[2]
+
+
   def convert_auto_queries(dict_in, op):
 
     rules = []
@@ -61,6 +79,7 @@ def convert_v1_v2(spec, dict_in):
   label_defaults = dict_in["prefs"]["defaults"]
   option_defaults = dict_in["prefs"]["options"]
 
+  remove_v1_prefix(dict_in)
 
   op = labelplus.common.config.autolabel.OP_CONTAINS_WORDS
   if option_defaults.get("autolabel_uses_regex"):
