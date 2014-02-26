@@ -61,7 +61,6 @@ def convert_v1_v2(spec, dict_in):
   label_defaults = dict_in["prefs"]["defaults"]
   option_defaults = dict_in["prefs"]["options"]
 
-  labels = dict_in["labels"]
 
   op = labelplus.common.config.autolabel.OP_CONTAINS_WORDS
   if option_defaults.get("autolabel_uses_regex"):
@@ -69,11 +68,13 @@ def convert_v1_v2(spec, dict_in):
 
   convert_auto_queries(label_defaults, op)
 
-  for label in labels:
-    if label in labelplus.common.label.RESERVED_IDS:
+  labels = dict_in["labels"]
+  for id in labels.keys():
+    if id in labelplus.common.label.RESERVED_IDS:
+      del labels[id]
       continue
 
-    convert_auto_queries(labels[label]["data"], op)
+    convert_auto_queries(labels[id]["data"], op)
 
   return dict_in
 
