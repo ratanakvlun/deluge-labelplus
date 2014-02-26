@@ -132,11 +132,13 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
     log.debug("Disabling GtkUI...")
 
-    self._initialized = False
-
     if self._config:
-      self._config.save()
+      if self._initialized:
+        self._config.save()
+
       deluge.configmanager.close(GTKUI_CONFIG)
+
+    self._initialized = False
 
     log.debug("GtkUI disabled")
 
