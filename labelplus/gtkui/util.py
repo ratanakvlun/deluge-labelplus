@@ -50,19 +50,10 @@ def textview_get_text(textview):
   return buff.get_text(buff.get_start_iter(), buff.get_end_iter())
 
 
-def treemodel_recurse(model, root, pre_func=None,
-    post_func=None, user_data=None):
-
-  abort = None
+def treemodel_recurse(model, root, pre_func=None, post_func=None, **kwargs):
 
   if pre_func:
-    if user_data:
-      abort = pre_func(model, root, user_data)
-    else:
-      abort = pre_func(model, root)
-
-  if abort:
-    return abort
+    pre_func(model, root, **kwargs)
 
   children = []
 
@@ -72,14 +63,7 @@ def treemodel_recurse(model, root, pre_func=None,
     iter = model.iter_next(iter)
 
   for child in children:
-    abort = treemodel_recurse(model, child, pre_func, post_func, user_data)
-    if abort:
-      return abort
+    treemodel_recurse(model, child, pre_func, post_func, **kwargs)
 
   if post_func:
-    if user_data:
-      abort = post_func(model, root, user_data)
-    else:
-      abort = post_func(model, root)
-
-  return abort
+    post_func(model, root, **kwargs)
