@@ -37,10 +37,10 @@
 import re
 
 
-NULL_PARENT = "-"
+ID_NULL = ""
 ID_ALL = "All"
 ID_NONE = "None"
-RESERVED_IDS = (NULL_PARENT, ID_ALL, ID_NONE)
+RESERVED_IDS = (ID_NULL, ID_ALL, ID_NONE)
 
 RE_INVALID_CHARS = re.compile("[\x00-\x1f\x7f\x22\*/:<>\?|\\\\]")
 
@@ -52,7 +52,10 @@ def get_parent_id(label_id):
 
 def is_ancestor(ancestor_id, label_id):
 
-  prefix = "%s:" % ancestor_id
+  if ancestor_id == ID_NULL:
+    prefix = ""
+  else:
+    prefix = "%s:" % ancestor_id
 
   return ancestor_id != label_id and label_id.startswith(prefix)
 
