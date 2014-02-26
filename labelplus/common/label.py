@@ -65,7 +65,7 @@ def get_name_by_segments(full_name, segments=0):
   if segments < 1:
     return full_name
 
-  return "/".join(name.split("/")[-segments:])
+  return "/".join(full_name.split("/")[-segments:])
 
 
 def validate_name(label_name):
