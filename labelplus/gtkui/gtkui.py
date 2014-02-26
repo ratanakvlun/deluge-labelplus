@@ -44,9 +44,9 @@ import logging
 import datetime
 import cPickle
 
-import gtk
-import gobject
 import twisted.internet.reactor
+import gobject
+import gtk
 
 import deluge.configmanager
 import deluge.component
@@ -56,11 +56,9 @@ from deluge.ui.client import client
 import labelplus.common
 import labelplus.common.label
 import labelplus.common.config
-import labelplus.common.config.convert
 
 import labelplus.gtkui.config
 import labelplus.gtkui.config.convert
-import labelplus.gtkui.util
 
 
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
@@ -78,8 +76,12 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
   def __init__(self, plugin_name):
 
     super(GtkUI, self).__init__(plugin_name)
-    self._initialized = False
-    self._config = None
+
+    self.initialized = False
+    self.config = None
+    self.data = None
+    self.store = None
+    self.last_updated = None
 
 
   def enable(self):
@@ -110,18 +112,12 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     log.debug("Resuming initialization...")
 
     info = client.connection_info()
-    self._daemon = "%s@%s:%s" % (info[2], info[0], info[1])
+    self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
-    self._config = self._load_config()
-
-    self._store = None
-    self._store_map = None
-    self._sorted_store = None
-
-    self._last_updated = None
+    self.config = self._load_config()
     self._update_labels(result)
 
-    self._initialized = True
+    self.initialized = True
 
     log.debug("GtkUI enabled")
 
@@ -132,13 +128,13 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
     log.debug("Disabling GtkUI...")
 
-    if self._config:
-      if self._initialized:
-        self._config.save()
+    if self.config:
+      if self.initialized:
+        self.config.save()
 
       deluge.configmanager.close(GTKUI_CONFIG)
 
-    self._initialized = False
+    self.initialized = False
 
     log.debug("GtkUI disabled")
 
@@ -147,8 +143,8 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
   def update(self):
 
-    if self._initialized:
-      pickled_time = cPickle.dumps(self._last_updated)
+    if self.initialized:
+      pickled_time = cPickle.dumps(self.last_updated)
       client.labelplus.get_labels_data(pickled_time).addCallback(
         self._update_labels)
 
@@ -159,7 +155,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
     config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
-    # Workaround for versions that didn't use header
+    # Workaround for version that didn't use header
     if config.config.get("version") == 2:
       labelplus.common.config.set_version(config, 2)
 
@@ -181,69 +177,73 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     else:
       daemons = ["%s@%s:%s" % (x[3], x[1], x[2]) for x in saved_daemons]
 
+      # Remove daemons from config if not in ConnectionManager hosts
       for daemon in config["daemon"].keys():
         if "@localhost:" in daemon or "@127.0.0.1:" in daemon:
           continue
 
-        if daemon != self._daemon and daemon not in daemons:
+        if daemon not in daemons and daemon != self.daemon:
           del config["daemon"][daemon]
 
-    if self._daemon not in config["daemon"]:
-      config["daemon"][self._daemon] = copy.deepcopy(
+    if self.daemon not in config["daemon"]:
+      config["daemon"][self.daemon] = copy.deepcopy(
         labelplus.gtkui.config.DAEMON_DEFAULTS)
 
 
-  # Section: Label
-
-  def _label_sort_asc(self, store, iter_a, iter_b):
-
-    id_a, data_a = store.get(iter_a, 0, 1)
-    id_b, data_b = store.get(iter_b, 0, 1)
-
-    a_is_reserved = id_a in labelplus.common.label.RESERVED_IDS
-    b_is_reserved = id_b in labelplus.common.label.RESERVED_IDS
-
-    if a_is_reserved and b_is_reserved:
-      return cmp(id_a, id_b)
-    elif a_is_reserved:
-      return -1
-    elif b_is_reserved:
-      return 1
-
-    return cmp(data_a["name"], data_b["name"])
-
+  # Section: Label: Updates
 
   def _update_labels(self, result):
 
     if not result:
       return
 
-    self._last_updated = cPickle.dumps(datetime.datetime.now())
-    self._labels_data = result
+    self.last_updated = datetime.datetime.now()
+    self.data = result
 
-    name = self._labels_data[labelplus.common.label.ID_ALL]["name"]
-    self._labels_data[labelplus.common.label.ID_ALL]["name"] = _(name)
+    id = labelplus.common.label.ID_ALL
+    self.data[id]["name"] = _(id)
 
-    name = self._labels_data[labelplus.common.label.ID_NONE]["name"]
-    self._labels_data[labelplus.common.label.ID_NONE]["name"] = _(name)
+    id = labelplus.common.label.ID_NONE
+    self.data[id]["name"] = _(id)
+
+    self._build_store()
+
+
+  def _build_store(self):
+
+    def label_sort_asc(model, iter1, iter2):
+
+      id1, data1 = model[iter1]
+      id2, data2 = model[iter2]
+
+      is_reserved1 = id1 in labelplus.common.label.RESERVED_IDS
+      is_reserved2 = id2 in labelplus.common.label.RESERVED_IDS
+
+      if is_reserved1 and is_reserved2:
+        return cmp(id1, id2)
+      elif is_reserved1:
+        return -1
+      elif is_reserved2:
+        return 1
+
+      return cmp(data1["name"], data2["name"])
+
 
     store = gtk.TreeStore(str, gobject.TYPE_PYOBJECT)
     store_map = {}
 
-    for id in sorted(self._labels_data):
+    for id in sorted(self.data):
       if id in labelplus.common.label.RESERVED_IDS:
-        parent_id = labelplus.common.label.NULL_PARENT
+        parent_id = labelplus.common.label.ID_NULL
       else:
         parent_id = labelplus.common.label.get_parent_id(id)
 
       parent_iter = store_map.get(parent_id)
-      iter = store.append(parent_iter, [id, self._labels_data[id]])
+      iter = store.append(parent_iter, [id, self.data[id]])
       store_map[id] = iter
 
     sorted_store = gtk.TreeModelSort(store)
-    sorted_store.set_sort_func(1, self._label_sort_asc)
+    sorted_store.set_sort_func(1, label_sort_asc)
     sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
 
-    self._store = store
-    self._store_map = store_map
-    self._sorted_store = sorted_store
+    self.store = sorted_store
