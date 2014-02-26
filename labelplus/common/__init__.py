@@ -37,6 +37,7 @@
 import os
 import pkg_resources
 import gettext
+import datetime
 
 
 # General
@@ -49,6 +50,8 @@ DISPLAY_NAME = _("LabelPlus")
 
 STATUS_ID = "%s_id" % MODULE_NAME
 STATUS_NAME = "%s_name" % MODULE_NAME
+
+DATETIME_010101 = datetime.datetime(1, 1, 1)
 
 
 def get_resource(filename):
