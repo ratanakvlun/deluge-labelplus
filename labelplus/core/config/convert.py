@@ -45,7 +45,7 @@ def convert_v1_v2(spec, dict_in):
 
     labels = dict_in["labels"]
     for id in labels.keys():
-      if id.startswith("-:"):
+      if id.startswith("-"):
         data = labels[id]
         del labels[id]
 
