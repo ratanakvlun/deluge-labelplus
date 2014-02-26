@@ -859,7 +859,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       "torrents": [],
     }
 
-    options["move_data_completed_path"] = self._resolve_move_path(id)
+    self._labels[id]["data"]["move_data_completed_path"] = \
+      self._resolve_move_path(id)
 
     return id
 
