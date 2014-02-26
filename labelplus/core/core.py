@@ -253,8 +253,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     index = {}
     shared_limit_index = []
 
-    index[labelplus.common.label.NULL_PARENT] = build_label_entry(
-      labelplus.common.label.NULL_PARENT)
+    index[labelplus.common.label.ID_NULL] = build_label_entry(
+      labelplus.common.label.ID_NULL)
 
     for id in self._labels:
       index[id] = build_label_entry(id)
@@ -273,7 +273,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     for id in self._labels:
       parent_id = labelplus.common.label.get_parent_id(id)
-      if (parent_id != labelplus.common.label.NULL_PARENT and
+      if (parent_id != labelplus.common.label.ID_NULL and
           parent_id not in self._labels):
         removals.append(id)
 
@@ -466,7 +466,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     log.debug("Adding %r to label %r", label_name, parent_id)
 
-    if (parent_id != labelplus.common.label.NULL_PARENT and
+    if (parent_id != labelplus.common.label.ID_NULL and
         parent_id not in self._labels):
       raise ValueError("Invalid label: %r" % parent_id)
 
@@ -680,14 +680,19 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_unused_id(self, parent_id):
 
-    assert(parent_id == labelplus.common.label.NULL_PARENT or
+    assert(parent_id == labelplus.common.label.ID_NULL or
       parent_id in self._labels)
 
     i = 0
     label_obj = {}
 
+    if parent_id == labelplus.common.label.ID_NULL:
+      prefix = ""
+    else:
+      prefix = "%s:" % parent_id
+
     while label_obj is not None:
-      id = "%s:%s" % (parent_id, i)
+      id = "%s%s" % (prefix, i)
       label_obj = self._labels.get(id)
       i += 1
 
@@ -696,7 +701,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_children_names(self, parent_id):
 
-    assert(parent_id == labelplus.common.label.NULL_PARENT or
+    assert(parent_id == labelplus.common.label.ID_NULL or
       parent_id in self._labels)
 
     names = []
@@ -709,7 +714,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _validate_name(self, parent_id, label_name):
 
-    assert(parent_id == labelplus.common.label.NULL_PARENT or
+    assert(parent_id == labelplus.common.label.ID_NULL or
       parent_id in self._labels)
 
     labelplus.common.label.validate_name(label_name)
@@ -721,7 +726,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _get_descendent_labels(self, label_id):
 
-    assert(label_id == labelplus.common.label.NULL_PARENT or
+    assert(label_id == labelplus.common.label.ID_NULL or
       label_id in self._labels)
 
     descendents = []
@@ -738,7 +743,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(label_id in self._labels)
 
     parent_id = labelplus.common.label.get_parent_id(label_id)
-    if parent_id == labelplus.common.label.NULL_PARENT:
+    if parent_id == labelplus.common.label.ID_NULL:
       path = self._get_deluge_move_path()
     else:
       path = self._labels[parent_id]["data"]["move_data_completed_path"]
@@ -828,7 +833,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _add_label(self, parent_id, label_name):
 
-    assert(parent_id == labelplus.common.label.NULL_PARENT or
+    assert(parent_id == labelplus.common.label.ID_NULL or
       parent_id in self._labels)
 
     label_name = label_name.strip()
@@ -993,13 +998,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def _resolve_full_name(self, label_id):
 
-    assert(label_id == labelplus.common.label.NULL_PARENT or
+    assert(label_id == labelplus.common.label.ID_NULL or
       label_id in self._labels)
 
     parts = []
     id = label_id
 
-    while id and id != labelplus.common.label.NULL_PARENT:
+    while id != labelplus.common.label.ID_NULL:
       parts.append(self._labels[id]["name"])
       id = labelplus.common.label.get_parent_id(id)
 
@@ -1008,10 +1013,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     return full_name
 
 
-  def _build_full_name_index(self,
-    label_id=labelplus.common.label.NULL_PARENT):
+  def _build_full_name_index(self, label_id=labelplus.common.label.ID_NULL):
 
-    assert(label_id == labelplus.common.label.NULL_PARENT or
+    assert(label_id == labelplus.common.label.ID_NULL or
       label_id in self._labels)
 
     self._index[label_id]["full_name"] = self._resolve_full_name(label_id)
