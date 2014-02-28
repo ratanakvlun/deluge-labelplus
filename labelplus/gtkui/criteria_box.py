@@ -177,14 +177,14 @@ class CriteriaBox(gtk.VBox):
     return self._add_column(create, [model, text_column], pos, expand)
 
 
-  def add_new_row(self, *args):
+  def add_new_row(self, pairs=None):
 
     def remove_row(widget):
       self.remove(widget.get_parent())
 
-    if args:
-      indices = args[::2]
-      values = args[1::2]
+    if pairs:
+      indices = pairs[::2]
+      values = pairs[1::2]
 
     row = gtk.HBox(spacing=self._column_spacing)
 
@@ -193,7 +193,7 @@ class CriteriaBox(gtk.VBox):
       child = create_func(*create_args)
       row.pack_start(child, expand)
 
-      if args and i in indices:
+      if pairs and i in indices:
         child._setter(child, values[indices.index(i)])
 
     button = gtk.Button("-")
