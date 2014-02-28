@@ -38,16 +38,16 @@ import gtk.glade
 
 class WidgetEncapsulator(object):
 
-
   def __init__(self, filename):
 
-    self.model = gtk.glade.XML(filename)
-    self._widgets = self.model.get_widget_prefix("")
+    self._model = gtk.glade.XML(filename)
+    self._widgets = self._model.get_widget_prefix("")
 
     for widget in self._widgets:
-      setattr(self, widget.get_name(), widget)
+      if not hasattr(self, widget.get_name()):
+        setattr(self, widget.get_name(), widget)
 
 
-  def get_widgets(self):
+  def get_widgets(self, prefix=""):
 
-    return list(self._widgets)
+    return [x for x in self._widgets if x.get_name().startswith(prefix)]
