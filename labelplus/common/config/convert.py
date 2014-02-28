@@ -193,9 +193,9 @@ def process_spec(spec, dict_in, use_deepcopy=False, strict_paths=False):
   working_dict = {}
 
   # Mapping meant for excluding unused keys or rearranging keys
-  for path in spec["map"]:
-    mapped = get_path_mapped_dict(dict_in, path, spec["map"][path],
-      use_deepcopy, strict_paths)
+  for src, dest in sorted(spec["map"].items(), key=lambda x: x[1].count("/")):
+    mapped = get_path_mapped_dict(dict_in, src, dest, use_deepcopy,
+      strict_paths)
     working_dict.update(mapped)
 
   # Post function meant for altering values
