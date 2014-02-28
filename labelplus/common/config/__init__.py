@@ -87,18 +87,16 @@ CONFIG_DEFAULTS_V1 = {
 }
 
 OPTION_DEFAULTS_V2 = {
-  "include_children": False,
-  "show_full_name": False,
   "move_on_changes": False,
-  "shared_limit_update_interval": 5,
+  "shared_limit_interval": 5,
   "move_after_recheck": False,
 }
 
 LABEL_DEFAULTS_V2 = {
   "download_settings": False,
-  "move_data_completed": False,
-  "move_data_completed_path": "",
-  "move_data_completed_mode": MOVE_FOLDER,
+  "move_completed": False,
+  "move_completed_path": "",
+  "move_completed_mode": MOVE_FOLDER,
   "prioritize_first_last": False,
 
   "bandwidth_settings": False,
@@ -106,7 +104,7 @@ LABEL_DEFAULTS_V2 = {
   "max_upload_speed": -1.0,
   "max_connections": -1,
   "max_upload_slots": -1,
-  "shared_limit_on": False,
+  "shared_limit": False,
 
   "queue_settings": False,
   "auto_managed": False,
@@ -114,7 +112,7 @@ LABEL_DEFAULTS_V2 = {
   "stop_ratio": 1.0,
   "remove_at_ratio": False,
 
-  "auto_settings": False,
+  "autolabel_settings": False,
   "autolabel_match_all": False,
   "autolabel_rules": [],
 }
@@ -122,7 +120,7 @@ LABEL_DEFAULTS_V2 = {
 CONFIG_DEFAULTS_V2 = {
   "prefs": {
     "options": OPTION_DEFAULTS_V2,
-    "defaults": LABEL_DEFAULTS_V2,
+    "label": LABEL_DEFAULTS_V2,
   },
   "labels": {},   # "label_id": {"name": str, "data": dict}
   "mappings": {}, # "torrent_id": "label_id"
