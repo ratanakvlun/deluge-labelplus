@@ -86,7 +86,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
   def enable(self):
 
-    log.debug("Enabling GtkUI...")
+    log.debug("Initializing GtkUI...")
 
     self._poll_init()
 
@@ -117,16 +117,19 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     self.config = self._load_config()
     self._update_labels(result)
 
+    self._ext.append(TorrentViewExt(self))
+    self._ext.append(AddTorrentExt(self))
+
     self.initialized = True
 
-    log.debug("GtkUI enabled")
+    log.debug("GtkUI initialized")
 
 
   # Section: Deinitialization
 
   def disable(self):
 
-    log.debug("Disabling GtkUI...")
+    log.debug("Deinitializing GtkUI...")
 
     if self.config:
       if self.initialized:
@@ -136,7 +139,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
     self.initialized = False
 
-    log.debug("GtkUI disabled")
+    log.debug("GtkUI deinitialized")
 
 
   # Section: Update Loops
