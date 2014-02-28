@@ -178,7 +178,8 @@ class CriteriaBox(gtk.VBox):
 
   def add_new_row(self, *args):
 
-    def remove_row(widget): self.remove(widget.get_parent())
+    def remove_row(widget):
+      self.remove(widget.get_parent())
 
     if args:
       indices = args[::2]
