@@ -41,9 +41,10 @@ class CriteriaBox(gtk.VBox):
 
   def __init__(self, homogeneous=False, row_spacing=0, column_spacing=0):
 
-    def add_new_row(widget): self.add_new_row()
+    def add_new_row(widget):
+      self.add_new_row()
 
-    super(self.__class__, self).__init__(homogeneous, row_spacing)
+    super(CriteriaBox, self).__init__(homogeneous, row_spacing)
 
     self._column_spacing = column_spacing
 
@@ -68,7 +69,7 @@ class CriteriaBox(gtk.VBox):
     self.clear_rows()
     del self._columns
 
-    super(self.__class__, self).destroy()
+    super(CriteriaBox, self).destroy()
 
 
   def set_row_spacing(self, spacing):
@@ -87,7 +88,7 @@ class CriteriaBox(gtk.VBox):
   def remove(self, widget):
 
     if widget in self.get_children():
-      super(self.__class__, self).remove(widget)
+      super(CriteriaBox, self).remove(widget)
 
     if widget in self._rows:
       self._rows.remove(widget)
