@@ -1290,6 +1290,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(torrent_id in self._torrents)
     assert(label_id in self._labels)
 
+    options = self._labels[label_id]["data"]
+    rules = options["autolabel_rules"]
+    match_all = options["autolabel_match_all"]
+
+    if not rules:
+      return False
+
     status = self._torrents[torrent_id].get_status(["name", "trackers"])
     name = status["name"]
     trackers = [x["url"] for x in status["trackers"]]
@@ -1298,10 +1305,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       labelplus.common.config.autolabel.PROP_NAME: [name],
       labelplus.common.config.autolabel.PROP_TRACKER: trackers,
     }
-
-    options = self._labels[label_id]["data"]
-    rules = options["autolabel_rules"]
-    match_all = options["autolabel_match_all"]
 
     return labelplus.common.config.autolabel.find_match(props,
       rules, match_all)
