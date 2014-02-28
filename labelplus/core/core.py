@@ -920,6 +920,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     for key in options.keys():
       if key not in template:
         del options[key]
+      elif type(options[key]) == tuple:
+        options[key] = list(options[key])
       elif type(options[key]) != type(template[key]):
         options[key] = copy.deepcopy(template[key])
 
