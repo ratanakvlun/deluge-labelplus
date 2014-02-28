@@ -32,3 +32,25 @@
 # software, but you are not obligated to do so. If you do not wish to
 # do so, delete this exception statement from your version.
 #
+
+
+import labelplus.common.config
+
+
+def remove_invalid_keys(dict_in):
+
+  for key in dict_in.keys():
+    if key not in labelplus.common.config.CONFIG_DEFAULTS:
+      del dict_in[key]
+
+  for key in dict_in["prefs"].keys():
+    if key not in labelplus.common.config.CONFIG_DEFAULTS["prefs"]:
+      del dict_in["prefs"][key]
+
+  for key in dict_in["prefs"]["options"].keys():
+    if key not in labelplus.common.config.OPTION_DEFAULTS:
+      del dict_in["prefs"]["options"][key]
+
+  for key in dict_in["prefs"]["label"].keys():
+    if key not in labelplus.common.config.LABEL_DEFAULTS:
+      del dict_in["prefs"]["label"][key]
