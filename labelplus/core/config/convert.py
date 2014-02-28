@@ -103,7 +103,36 @@ CONFIG_SPEC_V1_V2 = {
   "version_out": 2,
   "defaults": labelplus.common.config.CONFIG_DEFAULTS_V2,
   "map": {
-    "*": "*",
+    "prefs/options": "prefs/options",
+    "prefs/options/shared_limit_update_interval":
+      "prefs/options/shared_limit_interval",
+
+    "prefs/defaults": "prefs/label",
+    "prefs/defaults/move_data_completed":
+      "prefs/label/move_completed",
+    "prefs/defaults/move_data_completed_path":
+      "prefs/label/move_completed_path",
+    "prefs/defaults/move_data_completed_mode":
+      "prefs/label/move_completed_mode",
+    "prefs/defaults/shared_limit_on":
+      "prefs/label/shared_limit",
+    "prefs/defaults/auto_settings":
+      "prefs/label/autolabel_settings",
+
+    "labels": "labels",
+    "labels/*/data": "labels/*/options",
+    "labels/*/data/move_data_completed":
+      "labels/*/options/move_completed",
+    "labels/*/data/move_data_completed_path":
+      "labels/*/options/move_completed_path",
+    "labels/*/data/move_data_completed_mode":
+      "labels/*/options/move_completed_mode",
+    "labels/*/data/shared_limit_on":
+      "labels/*/options/shared_limit",
+    "labels/*/data/auto_settings":
+      "labels/*/options/autolabel_settings",
+
+    "mappings": "mappings",
   },
   "post_func": convert_v1_v2,
 }
