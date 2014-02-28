@@ -62,7 +62,7 @@ class AddTorrentExt(object):
 
   def __init__(self, plugin):
 
-    log.debug("Initializing extension...")
+    log.debug("Initializing AddTorrentExt...")
 
     self._plugin = plugin
 
@@ -83,7 +83,7 @@ class AddTorrentExt(object):
 
     self._register_dialog_handlers()
 
-    log.debug("Extension initialized")
+    log.debug("AddTorrentExt initialized")
 
 
   def _build_ext_block(self):
@@ -191,7 +191,7 @@ class AddTorrentExt(object):
 
   def unload(self):
 
-    log.debug("Deinitializing extension...")
+    log.debug("Deinitializing AddTorrentExt...")
 
     self._deregister_handlers()
     self._uninstall_ext_block()
@@ -202,7 +202,7 @@ class AddTorrentExt(object):
     del self._ext_label
     del self._ext_block
 
-    log.debug("Extension deinitialized")
+    log.debug("AddTorrentExt deinitialized")
 
 
   def _deregister_handlers(self):
@@ -239,7 +239,7 @@ class AddTorrentExt(object):
     return None
 
 
-  # Section: Extension
+  # Section: Extension Widgets
 
   def _update_sensitivity(self):
 
