@@ -148,7 +148,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._torrents = deluge.component.get("TorrentManager").torrents
 
     self._normalize_data()
-    self._build_index()
+    self._build_label_index()
     self._remove_orphans()
     self._build_shared_limit_index()
     self._build_full_name_index()
@@ -224,7 +224,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         self._prefs["label"])
 
 
-  def _build_index(self):
+  def _build_label_index(self):
 
     def build_label_entry(label_id):
 
@@ -256,7 +256,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       labelplus.common.label.ID_NULL)
 
     for id in self._labels:
-      index[id] = build_label_entry(id)
+      if id not in labelplus.common.label.RESERVED_IDS:
+        index[id] = build_label_entry(id)
 
     self._index = index
 
