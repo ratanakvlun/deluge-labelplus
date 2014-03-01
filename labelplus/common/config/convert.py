@@ -36,6 +36,8 @@
 
 import copy
 
+import labelplus.common
+
 
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     strict_paths=False):
@@ -196,7 +198,7 @@ def process_spec(spec, dict_in):
   for src, dest in sorted(spec["map"].items(), key=lambda x: x[1].count("/")):
     mapped = get_path_mapped_dict(dict_in, src, dest, spec["deepcopy"],
       spec["strict"])
-    working_dict.update(mapped)
+    labelplus.common.update_dict(working_dict, mapped)
 
   # Post function meant for altering values
   post_func = spec.get("post_func")
@@ -205,7 +207,7 @@ def process_spec(spec, dict_in):
 
   # Make sure any missing keys are in the final dict
   dict_out = copy.deepcopy(spec["defaults"])
-  dict_out.update(working_dict)
+  labelplus.common.update_dict(dict_out, working_dict)
 
   return dict_out
 
