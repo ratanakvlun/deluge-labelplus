@@ -40,7 +40,7 @@ import labelplus.common
 
 
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
-    strict_paths=False):
+    strict=False):
 
   # Traverse dict path up to "*" or the end of parts, starts at pos
   def traverse_parts(dict_in, parts, pos, build=False):
@@ -73,7 +73,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     try:
       dict_in, pos_in = traverse_parts(dict_in, parts_in, pos_in)
     except KeyError:
-      if strict_paths:
+      if strict:
         raise
       else:
         return False
@@ -92,7 +92,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     if key_in != "*":
     # Both keys are last keys; just copy value
       if key_in not in dict_in:
-        if strict_paths:
+        if strict:
           raise KeyError("/".join(parts_in))
       else:
         copy_dict_value(dict_in, dict_out, key_in, key_out, use_deepcopy)
@@ -134,7 +134,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
             copy_dict_value(dict_in_end, dict_out, key_in, key, use_deepcopy)
             has_mapped = True
           except KeyError:
-            if strict_paths:
+            if strict:
               raise
             else:
               continue
@@ -166,10 +166,10 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     raise ValueError("Wildcard mismatch in path: %r -> %r" %
       (path_in, path_out))
 
-  buffer_out = {}
-  recurse(dict_in, buffer_out, 0, 0)
+  dict_out = {}
+  recurse(dict_in, dict_out, 0, 0)
 
-  return buffer_out
+  return dict_out
 
 
 def process_spec(spec, dict_in):
