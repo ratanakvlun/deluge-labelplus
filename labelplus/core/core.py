@@ -45,7 +45,7 @@ import os.path
 import cPickle
 import datetime
 
-import twisted.internet.reactor
+import twisted.internet
 
 import deluge.common
 import deluge.configmanager
@@ -151,7 +151,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._build_index()
     self._remove_orphans()
     self._build_full_name_index()
-    self._apply_label_options()
+    self._normalize_mappings()
     self._normalize_move_paths()
 
     deluge.component.get("FilterManager").register_filter(
@@ -280,7 +280,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._remove_label(id)
 
 
-  def _apply_label_options(self):
+  def _normalize_mappings(self):
 
     for id in self._mappings.keys():
       if id in self._torrents:
@@ -333,6 +333,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       deluge.component.get("FilterManager").deregister_filter(
         labelplus.common.STATUS_ID)
 
+    # Workaround for Deluge 1.3.6 bug
     self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
     log.debug("Core disabled")
@@ -753,10 +754,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(label_id in self._labels)
 
     parent_id = labelplus.common.label.get_parent_id(label_id)
-    if parent_id == labelplus.common.label.ID_NULL:
-      path = self._get_deluge_move_path()
-    else:
+    if parent_id in self._labels:
       path = self._labels[parent_id]["options"]["move_completed_path"]
+    else:
+      path = self._get_deluge_move_path()
 
     return path
 
