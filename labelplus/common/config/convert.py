@@ -42,8 +42,8 @@ import labelplus.common
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     strict_paths=False):
 
-  # Traverse dict path up to "*" or the end of parts, starting from pos
-  def traverse_parts(dict_in, parts, pos):
+  # Traverse dict path up to "*" or the end of parts, starts at pos
+  def traverse_parts(dict_in, parts, pos, build=False):
 
     while pos < len(parts)-1:
       key = parts[pos]
@@ -54,28 +54,16 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
         raise KeyError("/".join(parts[:pos+1]))
 
       if key not in dict_in:
-        raise KeyError("/".join(parts[:pos+1]))
+        if build:
+          dict_in[key] = {}
+        else:
+          raise KeyError("/".join(parts[:pos+1]))
 
       dict_in = dict_in[key]
       pos += 1
 
     if not isinstance(dict_in, dict):
       raise KeyError("/".join(parts[:pos+1]))
-
-    return dict_in, pos
-
-
-  # Build dict path up to "*" or the end of parts, starting from pos
-  def build_parts(dict_in, parts, pos):
-
-    while pos < len(parts)-1:
-      key = parts[pos]
-      if key == "*":
-        break
-
-      dict_in[key] = {}
-      dict_in = dict_in[key]
-      pos += 1
 
     return dict_in, pos
 
@@ -102,12 +90,12 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     # Set to True if at least one path was successfully mapped
 
     initial_dict_out = dict_out
-    dict_out, pos_out = build_parts(dict_out, parts_out, pos_out)
+    dict_out, pos_out = traverse_parts(dict_out, parts_out, pos_out, True)
 
     key_in = parts_in[pos_in]
     key_out = parts_out[pos_out]
-    # Since number of "*" is required to be the same, both keys are either "*"
-    # or the last keys in their respective paths
+    # Since number of "*" is required to be the same, both keys are
+    # either "*" or the last key in their respective paths
 
     if key_in != "*":
     # Both keys are last keys; just copy value
@@ -130,7 +118,9 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
       # Out has extra parts; for each child, build extra out parts, then copy
         for key in dict_in:
           dict_out[key] = {}
-          dict_out_end, pos = build_parts(dict_out[key], parts_out, pos_out+1)
+          dict_out_end, pos = traverse_parts(dict_out[key],
+            parts_out, pos_out+1, True)
+
           key_out = parts_out[pos]
           copy_value(dict_in, dict_out_end, key, key_out)
 
