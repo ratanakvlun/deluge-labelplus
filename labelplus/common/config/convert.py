@@ -194,6 +194,11 @@ def process_spec(spec, dict_in):
 
   working_dict = {}
 
+  # Pre function meant for mapping preparations
+  pre_func = spec.get("pre_func")
+  if pre_func:
+    dict_in = pre_func(spec, dict_in)
+
   # Mapping meant for excluding unused keys or rearranging keys
   for src, dest in sorted(spec["map"].items(), key=lambda x: x[1].count("/")):
     mapped = get_path_mapped_dict(dict_in, src, dest, spec["deepcopy"],
@@ -220,6 +225,7 @@ def process_spec(spec, dict_in):
 #   "defaults": dict of defaults for the target output version,
 #   "strict": whether or not invalid paths cause exceptions
 #   "deepcopy": whether or not to deepcopy when copying values
+#   "pre_func": called before mapping, pre_func(spec, dict),
 #   "post_func": called after mapping, post_func(spec, dict),
 #   "map": {
 #     "path/variable": "path/variable",
