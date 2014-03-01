@@ -153,7 +153,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     self._normalize_data()
     self._normalize_mappings()
-    self._normalize_move_paths()
+    self._normalize_move_modes()
     self._build_shared_limit_index()
 
     deluge.component.get("FilterManager").register_filter(
@@ -290,11 +290,12 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._remove_torrent_label(id)
 
 
-  def _normalize_move_paths(self):
+  def _normalize_move_modes(self):
 
     root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
     for id in root_ids:
-      self._update_move_completed_paths(id)
+      self._labels[id]["options"]["move_completed_mode"] = \
+        labelplus.common.config.MOVE_FOLDER
 
 
   def _build_shared_limit_index(self):
