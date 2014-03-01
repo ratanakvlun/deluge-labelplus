@@ -722,16 +722,20 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       raise ValueError("Label already exists: %r" % label_name)
 
 
-  def _get_descendent_labels(self, label_id):
+  def _get_descendent_labels(self, label_id, depth=-1):
 
     assert(label_id == labelplus.common.label.ID_NULL or
       label_id in self._labels)
 
     descendents = []
 
-    for id in self._index[label_id]["children"]:
-      descendents.append(id)
-      descendents += self._get_descendent_labels(id)
+    if depth == -1 or depth > 0:
+      if depth > 0:
+        depth -= 1
+
+      for id in self._index[label_id]["children"]:
+        descendents.append(id)
+        descendents += self._get_descendent_labels(id, depth)
 
     return descendents
 
