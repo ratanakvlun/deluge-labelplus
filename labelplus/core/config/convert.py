@@ -39,7 +39,7 @@ import labelplus.common.config
 import labelplus.common.config.autolabel
 
 
-def convert_v1_v2(spec, dict_in):
+def post_map_v1_v2(spec, dict_in):
 
   def remove_v1_prefix(dict_in):
 
@@ -55,7 +55,7 @@ def convert_v1_v2(spec, dict_in):
     mappings = dict_in["mappings"]
     for id in mappings:
       label_id = mappings[id]
-      if label_id.startswith("-:"):
+      if label_id.startswith("-"):
         mappings[id] = label_id.partition(":")[2]
 
 
@@ -76,7 +76,7 @@ def convert_v1_v2(spec, dict_in):
     dict_in["autolabel_match_all"] = False
 
 
-  label_defaults = dict_in["prefs"]["defaults"]
+  label_defaults = dict_in["prefs"]["label"]
   option_defaults = dict_in["prefs"]["options"]
 
   remove_v1_prefix(dict_in)
@@ -93,7 +93,7 @@ def convert_v1_v2(spec, dict_in):
       del labels[id]
       continue
 
-    convert_auto_queries(labels[id]["data"], op)
+    convert_auto_queries(labels[id]["options"], op)
 
   return dict_in
 
@@ -102,6 +102,9 @@ CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
   "defaults": labelplus.common.config.CONFIG_DEFAULTS_V2,
+  "strict": False,
+  "deepcopy": False,
+  "post_func": post_map_v1_v2,
   "map": {
     "prefs/options": "prefs/options",
     "prefs/options/shared_limit_update_interval":
@@ -119,7 +122,7 @@ CONFIG_SPEC_V1_V2 = {
     "prefs/defaults/auto_settings":
       "prefs/label/autolabel_settings",
 
-    "labels": "labels",
+    "labels/*/name": "labels/*/name",
     "labels/*/data": "labels/*/options",
     "labels/*/data/move_data_completed":
       "labels/*/options/move_completed",
@@ -134,7 +137,6 @@ CONFIG_SPEC_V1_V2 = {
 
     "mappings": "mappings",
   },
-  "post_func": convert_v1_v2,
 }
 
 CONFIG_SPECS = {
