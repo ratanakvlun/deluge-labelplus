@@ -119,7 +119,7 @@
                                         <property name="visible">True</property>
                                         <property name="orientation">vertical</property>
                                         <child>
-                                          <widget class="GtkCheckButton" id="chk_move_data_completed">
+                                          <widget class="GtkCheckButton" id="chk_move_completed">
                                             <property name="label" translatable="yes">Move completed to:</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
@@ -132,7 +132,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <widget class="GtkAlignment" id="blk_move_data_completed_group">
+                                          <widget class="GtkAlignment" id="blk_move_completed_group">
                                             <property name="visible">True</property>
                                             <property name="left_padding">16</property>
                                             <child>
@@ -150,7 +150,7 @@
                                                         <property name="left_padding">3</property>
                                                         <property name="right_padding">3</property>
                                                         <child>
-                                                          <widget class="GtkLabel" id="lbl_move_data_completed_path">
+                                                          <widget class="GtkLabel" id="lbl_move_completed_path">
                                                             <property name="visible">True</property>
                                                             <property name="xalign">0</property>
                                                             <property name="ypad">2</property>
@@ -170,7 +170,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="orientation">vertical</property>
                                                     <child>
-                                                      <widget class="GtkRadioButton" id="rb_move_data_completed_to_parent">
+                                                      <widget class="GtkRadioButton" id="rb_move_completed_to_parent">
                                                         <property name="label" translatable="yes">Parent folder</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -184,13 +184,13 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <widget class="GtkRadioButton" id="rb_move_data_completed_to_subfolder">
+                                                      <widget class="GtkRadioButton" id="rb_move_completed_to_subfolder">
                                                         <property name="label" translatable="yes">Label based subfolder</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="receives_default">False</property>
                                                         <property name="draw_indicator">True</property>
-                                                        <property name="group">rb_move_data_completed_to_parent</property>
+                                                        <property name="group">rb_move_completed_to_parent</property>
                                                         <signal name="toggled" handler="on_rb_toggled"/>
                                                       </widget>
                                                       <packing>
@@ -202,13 +202,13 @@
                                                         <property name="visible">True</property>
                                                         <property name="spacing">3</property>
                                                         <child>
-                                                          <widget class="GtkRadioButton" id="rb_move_data_completed_to_folder">
+                                                          <widget class="GtkRadioButton" id="rb_move_completed_to_folder">
                                                             <property name="label" translatable="yes">Folder:</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="draw_indicator">True</property>
-                                                            <property name="group">rb_move_data_completed_to_parent</property>
+                                                            <property name="group">rb_move_completed_to_parent</property>
                                                             <signal name="toggled" handler="on_rb_toggled"/>
                                                           </widget>
                                                           <packing>
@@ -217,7 +217,7 @@
                                                           </packing>
                                                         </child>
                                                         <child>
-                                                          <widget class="GtkFileChooserButton" id="fcb_move_data_completed_select">
+                                                          <widget class="GtkFileChooserButton" id="fcb_move_completed_select">
                                                             <property name="action">select-folder</property>
                                                             <property name="title" translatable="yes">Select A Folder</property>
                                                             <signal name="selection_changed" handler="on_fcb_selection_changed"/>
@@ -227,7 +227,7 @@
                                                           </packing>
                                                         </child>
                                                         <child>
-                                                          <widget class="GtkEntry" id="txt_move_data_completed_entry">
+                                                          <widget class="GtkEntry" id="txt_move_completed_entry">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="max_length">255</property>
@@ -357,7 +357,7 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <widget class="GtkRadioButton" id="rb_shared_limit_off">
+                                      <widget class="GtkRadioButton" id="rb_per_torrent_limit">
                                         <property name="label" translatable="yes">Per Torrent</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
@@ -371,13 +371,13 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <widget class="GtkRadioButton" id="rb_shared_limit_on">
+                                      <widget class="GtkRadioButton" id="rb_shared_limit">
                                         <property name="label" translatable="yes">Shared</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">False</property>
                                         <property name="draw_indicator">True</property>
-                                        <property name="group">rb_shared_limit_off</property>
+                                        <property name="group">rb_per_torrent_limit</property>
                                       </widget>
                                       <packing>
                                         <property name="expand">False</property>
@@ -723,7 +723,7 @@
                         <property name="visible">True</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <widget class="GtkCheckButton" id="chk_auto_settings">
+                          <widget class="GtkCheckButton" id="chk_autolabel_settings">
                             <property name="label" translatable="yes">Enable auto-label settings</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -738,7 +738,7 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkAlignment" id="blk_auto_settings_group">
+                          <widget class="GtkAlignment" id="blk_autolabel_settings_group">
                             <property name="visible">True</property>
                             <property name="left_padding">12</property>
                             <property name="right_padding">12</property>
