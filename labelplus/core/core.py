@@ -918,10 +918,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     for key in options.keys():
       if key not in template:
         del options[key]
-      elif type(options[key]) == tuple:
-        options[key] = list(options[key])
-      elif type(options[key]) != type(template[key]):
-        options[key] = copy.deepcopy(template[key])
 
     for key in template:
       if key not in options:
@@ -940,7 +936,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       options["move_completed_mode"] = \
         labelplus.common.config.MOVE_FOLDER
 
-    for rule in list(options["autolabel_rules"]):
+    rules = options["autolabel_rules"]
+    options["autolabel_rules"] = list(options["autolabel_rules"])
+    for rule in rules:
       if len(rule) != labelplus.common.config.autolabel.NUM_FIELDS:
         options["autolabel_rules"].remove(rule)
         continue
