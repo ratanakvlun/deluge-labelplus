@@ -211,15 +211,15 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
   def _normalize_data(self):
 
     self._normalize_options(self._prefs["options"])
-    self._normalize_label_options(self._prefs["defaults"])
+    self._normalize_label_options(self._prefs["label"])
 
     for id in labelplus.common.label.RESERVED_IDS:
       if id in self._labels:
         del self._labels[id]
 
     for id in self._labels:
-      self._normalize_label_options(self._labels[id]["data"],
-        self._prefs["defaults"])
+      self._normalize_label_options(self._labels[id]["options"],
+        self._prefs["label"])
 
 
   def _build_index(self):
@@ -257,8 +257,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     for id in self._labels:
       index[id] = build_label_entry(id)
 
-      if (self._labels[id]["data"]["bandwidth_settings"] and
-          self._labels[id]["data"]["shared_limit_on"]):
+      if (self._labels[id]["options"]["bandwidth_settings"] and
+          self._labels[id]["options"]["shared_limit"]):
         shared_limit_index.append(id)
 
     self._index = index
@@ -368,7 +368,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         self._do_update_shared_limit(id)
 
       twisted.internet.reactor.callLater(
-        self._prefs["options"]["shared_limit_update_interval"],
+        self._prefs["options"]["shared_limit_interval"],
         self._shared_limit_update_loop)
 
 
@@ -406,8 +406,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._normalize_options(prefs["options"])
     self._prefs["options"].update(prefs["options"])
 
-    self._normalize_label_options(prefs["defaults"])
-    self._prefs["defaults"].update(prefs["defaults"])
+    self._normalize_label_options(prefs["label"])
+    self._prefs["label"].update(prefs["label"])
 
     self._config.save()
     self._timestamp["last_saved"] = datetime.datetime.now()
@@ -515,7 +515,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if label_id not in self._labels:
       raise ValueError("Invalid label: %r" % label_id)
 
-    return self._labels[label_id]["data"]
+    return self._labels[label_id]["options"]
 
 
   @deluge.core.rpcserver.export
@@ -670,8 +670,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         options[key] = copy.deepcopy(
           labelplus.common.config.OPTION_DEFAULTS[key])
 
-    if options["shared_limit_update_interval"] < 1:
-      options["shared_limit_update_interval"] = 1
+    if options["shared_limit_interval"] < 1:
+      options["shared_limit_interval"] = 1
 
 
   # Section: Label: Queries
@@ -744,7 +744,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if parent_id == labelplus.common.label.ID_NULL:
       path = self._get_deluge_move_path()
     else:
-      path = self._labels[parent_id]["data"]["move_data_completed_path"]
+      path = self._labels[parent_id]["options"]["move_completed_path"]
 
     return path
 
@@ -754,10 +754,10 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(label_id in self._labels)
 
     name = self._labels[label_id]["name"]
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
 
-    mode = options["move_data_completed_mode"]
-    path = options["move_data_completed_path"]
+    mode = options["move_completed_mode"]
+    path = options["move_completed_path"]
 
     if mode != labelplus.common.config.MOVE_FOLDER:
       path = self._get_parent_move_path(label_id)
@@ -848,7 +848,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     self._labels[id] = {
       "name": label_name,
-      "data": copy.deepcopy(self._prefs["defaults"]),
+      "options": copy.deepcopy(self._prefs["label"]),
     }
 
     self._index[id] = {
@@ -857,7 +857,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       "torrents": [],
     }
 
-    self._labels[id]["data"]["move_data_completed_path"] = \
+    self._labels[id]["options"]["move_completed_path"] = \
       self._resolve_move_path(id)
 
     return id
@@ -927,17 +927,17 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       if key not in options:
         options[key] = copy.deepcopy(template[key])
 
-    options["move_data_completed_path"] = \
-      options["move_data_completed_path"].strip()
+    options["move_completed_path"] = \
+      options["move_completed_path"].strip()
 
-    if not options["move_data_completed_path"]:
-      options["move_data_completed_mode"] = \
+    if not options["move_completed_path"]:
+      options["move_completed_mode"] = \
         labelplus.common.config.MOVE_FOLDER
-      options["move_data_completed_path"] = self._get_deluge_move_path()
+      options["move_completed_path"] = self._get_deluge_move_path()
 
-    if (options["move_data_completed_mode"] not in
+    if (options["move_completed_mode"] not in
         labelplus.common.config.MOVE_MODES):
-      options["move_data_completed_mode"] = \
+      options["move_completed_mode"] = \
         labelplus.common.config.MOVE_FOLDER
 
     for rule in list(options["autolabel_rules"]):
@@ -957,33 +957,33 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     assert(label_id in self._labels)
 
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
 
     old = {
       "download_settings": options["download_settings"],
-      "move_data_completed": options["move_data_completed"],
-      "move_data_completed_path": options["move_data_completed_path"],
+      "move_completed": options["move_completed"],
+      "move_completed_path": options["move_completed_path"],
     }
 
-    self._normalize_label_options(options_in, self._prefs["defaults"])
+    self._normalize_label_options(options_in, self._prefs["label"])
     options.update(options_in)
 
     if label_id in self._shared_limit_index:
       self._shared_limit_index.remove(label_id)
 
-    if options["bandwidth_settings"] and options["shared_limit_on"]:
+    if options["bandwidth_settings"] and options["shared_limit"]:
       self._shared_limit_index.append(label_id)
 
     for id in self._index[label_id]["torrents"]:
       self._apply_torrent_options(id)
 
     # If move completed was just turned on and move on changes enabled...
-    if (options["download_settings"] and options["move_data_completed"] and
-        (not old["download_settings"] or not old["move_data_completed"]) and
+    if (options["download_settings"] and options["move_completed"] and
+        (not old["download_settings"] or not old["move_completed"]) and
         self._prefs["options"]["move_on_changes"]):
       self._do_move_completed_by_label(label_id)
 
-    if options["move_data_completed_path"] != old["move_data_completed_path"]:
+    if options["move_completed_path"] != old["move_completed_path"]:
     # Path was modified; make sure descendent paths are updated
       for id in self._index[label_id]["children"]:
         self._update_move_completed_paths(id)
@@ -991,7 +991,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
         if self._prefs["options"]["move_on_changes"]:
           self._do_move_completed_by_label(id, True)
 
-    if options["auto_settings"] and apply_to_all is not None:
+    if options["autolabel_settings"] and apply_to_all is not None:
       self._do_autolabel_torrents(label_id, apply_to_all)
 
 
@@ -1031,7 +1031,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     assert(label_id in self._labels)
 
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
     shared_download_limit = options["max_download_speed"]
     shared_upload_limit = options["max_upload_speed"]
 
@@ -1189,15 +1189,15 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._reset_torrent_options(torrent_id)
       return
 
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
     torrent = self._torrents[torrent_id]
 
     if options["download_settings"]:
-      torrent.set_move_completed(options["move_data_completed"])
+      torrent.set_move_completed(options["move_completed"])
       torrent.set_prioritize_first_last(options["prioritize_first_last"])
 
-      if options["move_data_completed"]:
-        torrent.set_move_completed_path(options["move_data_completed_path"])
+      if options["move_completed"]:
+        torrent.set_move_completed_path(options["move_completed_path"])
 
     if options["bandwidth_settings"]:
       torrent.set_max_download_speed(options["max_download_speed"])
@@ -1288,7 +1288,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     assert(torrent_id in self._torrents)
     assert(label_id in self._labels)
 
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
     rules = options["autolabel_rules"]
     match_all = options["autolabel_match_all"]
 
@@ -1315,7 +1315,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     label_ids = self._get_sorted_labels(cmp_length_then_value)
 
     for id in label_ids:
-      if self._labels[id]["data"]["auto_settings"]:
+      if self._labels[id]["options"]["autolabel_settings"]:
         if self._has_autolabel_match(torrent_id, id):
           return id
 
@@ -1340,22 +1340,22 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     for id in self._index[label_id]["torrents"]:
       self._torrents[id].set_move_completed_path(
-          self._labels[label_id]["data"]["move_data_completed_path"])
+          self._labels[label_id]["options"]["move_completed_path"])
 
 
   def _update_move_completed_paths(self, label_id):
 
     assert(label_id in self._labels)
 
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
 
     path = self._resolve_move_path(label_id)
-    if path == options["move_data_completed_path"]:
+    if path == options["move_completed_path"]:
       return
 
-    options["move_data_completed_path"] = path
+    options["move_completed_path"] = path
 
-    if options["download_settings"] and options["move_data_completed"]:
+    if options["download_settings"] and options["move_completed"]:
       self._apply_move_completed_path(label_id)
 
     for id in self._index[label_id]["children"]:
@@ -1375,8 +1375,8 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       if label_id == labelplus.common.label.ID_NONE:
         dest_path = status["move_completed_path"]
       else:
-        options = self._labels[label_id]["data"]
-        dest_path = options["move_data_completed_path"]
+        options = self._labels[label_id]["options"]
+        dest_path = options["move_completed_path"]
 
       if status["is_finished"] and dest_path != status["save_path"]:
         torrent.move_storage(dest_path)
@@ -1386,9 +1386,9 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     assert(label_id in self._labels)
 
-    options = self._labels[label_id]["data"]
+    options = self._labels[label_id]["options"]
 
-    if options["download_settings"] and options["move_data_completed"]:
+    if options["download_settings"] and options["move_completed"]:
       self._do_move_completed(self._index[label_id]["torrents"])
 
     if sublabels:
