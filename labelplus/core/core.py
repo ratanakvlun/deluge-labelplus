@@ -107,7 +107,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def enable(self):
 
-    log.debug("Enabling Core...")
+    log.debug("Initializing Core...")
 
     if not deluge.component.get("TorrentManager").session_started:
       deluge.component.get("EventManager").register_event_handler(
@@ -147,13 +147,14 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     self._torrents = deluge.component.get("TorrentManager").torrents
 
-    self._normalize_data()
     self._build_label_index()
     self._remove_orphans()
-    self._build_shared_limit_index()
     self._build_full_name_index()
+
+    self._normalize_data()
     self._normalize_mappings()
     self._normalize_move_paths()
+    self._build_shared_limit_index()
 
     deluge.component.get("FilterManager").register_filter(
       labelplus.common.STATUS_ID, self.filter_by_label)
@@ -176,7 +177,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     twisted.internet.reactor.callLater(1, self._save_config_update_loop)
     twisted.internet.reactor.callLater(1, self._shared_limit_update_loop)
 
-    log.debug("Core enabled")
+    log.debug("Core initialized")
 
 
   def _load_config(self):
@@ -208,20 +209,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     labelplus.core.config.remove_invalid_keys(config.config)
 
     return config
-
-
-  def _normalize_data(self):
-
-    self._normalize_options(self._prefs["options"])
-    self._normalize_label_options(self._prefs["label"])
-
-    for id in labelplus.common.label.RESERVED_IDS:
-      if id in self._labels:
-        del self._labels[id]
-
-    for id in self._labels:
-      self._normalize_label_options(self._labels[id]["options"],
-        self._prefs["label"])
 
 
   def _build_label_index(self):
@@ -276,6 +263,20 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       self._remove_label(id)
 
 
+  def _normalize_data(self):
+
+    self._normalize_options(self._prefs["options"])
+    self._normalize_label_options(self._prefs["label"])
+
+    for id in labelplus.common.label.RESERVED_IDS:
+      if id in self._labels:
+        del self._labels[id]
+
+    for id in self._labels:
+      self._normalize_label_options(self._labels[id]["options"],
+        self._prefs["label"])
+
+
   def _normalize_mappings(self):
 
     for id in self._mappings.keys():
@@ -287,6 +288,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
           self._reset_torrent_options(id)
 
       self._remove_torrent_label(id)
+
+
+  def _normalize_move_paths(self):
+
+    root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
+    for id in root_ids:
+      self._update_move_completed_paths(id)
 
 
   def _build_shared_limit_index(self):
@@ -301,18 +309,11 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._shared_limit_index = shared_limit_index
 
 
-  def _normalize_move_paths(self):
-
-    root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
-    for id in root_ids:
-      self._update_move_completed_paths(id)
-
-
   # Section: Deinitialization
 
   def disable(self):
 
-    log.debug("Disabling Core...")
+    log.debug("Deinitializing Core...")
 
     deluge.component.get("EventManager").deregister_event_handler(
       "SessionStartedEvent", self._on_session_started)
@@ -344,7 +345,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     # Workaround for Deluge 1.3.6 bug
     self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
-    log.debug("Core disabled")
+    log.debug("Core deinitialized")
 
 
   def _rpc_deregister(self, name):
