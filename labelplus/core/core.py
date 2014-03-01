@@ -922,7 +922,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     for id in list(self._index[label_id]["torrents"]):
       if id in self._torrents:
-        self._remove_torrent_label(id)
+        self._set_torrent_label(id, labelplus.common.label.ID_NONE)
         torrent_ids.append(id)
 
     del self._index[label_id]
