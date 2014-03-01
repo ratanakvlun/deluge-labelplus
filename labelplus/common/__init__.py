@@ -35,6 +35,7 @@
 
 
 import os
+import copy
 import pkg_resources
 import gettext
 import datetime
@@ -71,3 +72,24 @@ class PluginPrefixFilter(object):
 
 
 LOG_FILTER = PluginPrefixFilter()
+
+
+# Dictionary
+
+def copy_dict_value(src, dest, src_key, dest_key, use_deepcopy=False):
+
+  if use_deepcopy:
+    dest[dest_key] = copy.deepcopy(src[src_key])
+  else:
+    dest[dest_key] = src[src_key]
+
+
+def update_dict(dest, src, use_deepcopy=False):
+
+  for key in src.keys():
+    if key not in dest or not isinstance(src[key], dict):
+      copy_dict_value(src, dest, key, key, use_deepcopy)
+      continue
+
+    if src[key] is not dest[key]:
+      update_dict(dest[key], src[key], use_deepcopy)
