@@ -68,14 +68,6 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     return dict_in, pos
 
 
-  def copy_value(dict_in, dict_out, key_in, key_out):
-
-    if use_deepcopy:
-      dict_out[key_out] = copy.deepcopy(dict_in[key_in])
-    else:
-      dict_out[key_out] = dict_in[key_in]
-
-
   def recurse(dict_in, dict_out, pos_in, pos_out):
 
     try:
@@ -103,14 +95,14 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
         if strict_paths:
           raise KeyError("/".join(parts_in))
       else:
-        copy_value(dict_in, dict_out, key_in, key_out)
+        copy_dict_value(dict_in, dict_out, key_in, key_out, use_deepcopy)
         has_mapped = True
     else:
     # Both keys are wildcards
       if pos_in == len(parts_in)-1 and pos_out == len(parts_out)-1:
       # Both keys are last keys; for each child, copy value
         for key in dict_in:
-          copy_value(dict_in, dict_out, key, key)
+          copy_dict_value(dict_in, dict_out, key, key, use_deepcopy)
 
         if len(dict_in) > 0:
           has_mapped = True
@@ -122,7 +114,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
             parts_out, pos_out+1, True)
 
           key_out = parts_out[pos]
-          copy_value(dict_in, dict_out_end, key, key_out)
+          copy_dict_value(dict_in, dict_out_end, key, key_out, use_deepcopy)
 
         if len(dict_in) > 0:
           has_mapped = True
@@ -139,7 +131,7 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
             if key_in not in dict_in_end:
               raise KeyError("/".join(parts_in))
 
-            copy_value(dict_in_end, dict_out, key_in, key)
+            copy_dict_value(dict_in_end, dict_out, key_in, key, use_deepcopy)
             has_mapped = True
           except KeyError:
             if strict_paths:
