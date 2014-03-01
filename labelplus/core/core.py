@@ -149,11 +149,12 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
     self._build_label_index()
     self._remove_orphans()
-    self._build_full_name_index()
 
     self._normalize_data()
     self._normalize_mappings()
     self._normalize_move_modes()
+
+    self._build_fullname_index()
     self._build_shared_limit_index()
 
     deluge.component.get("FilterManager").register_filter(
@@ -875,7 +876,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     }
 
     self._index[id] = {
-      "full_name": self._resolve_full_name(id),
+      "fullname": self._resolve_fullname(id),
       "children": [],
       "torrents": [],
     }
@@ -901,7 +902,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._validate_name(parent_id, label_name)
     self._labels[label_id]["name"] = label_name
 
-    self._build_full_name_index(label_id)
+    self._build_fullname_index(label_id)
     self._update_move_completed_paths(label_id)
 
     if self._prefs["options"]["move_on_changes"]:
@@ -1018,7 +1019,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   # Section: Label: Full Name
 
-  def _resolve_full_name(self, label_id):
+  def _resolve_fullname(self, label_id):
 
     assert(label_id == labelplus.common.label.ID_NULL or
       label_id in self._labels)
@@ -1030,20 +1031,20 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
       parts.append(self._labels[id]["name"])
       id = labelplus.common.label.get_parent_id(id)
 
-    full_name = "/".join(reversed(parts))
+    fullname = "/".join(reversed(parts))
 
-    return full_name
+    return fullname
 
 
-  def _build_full_name_index(self, label_id=labelplus.common.label.ID_NULL):
+  def _build_fullname_index(self, label_id=labelplus.common.label.ID_NULL):
 
     assert(label_id == labelplus.common.label.ID_NULL or
       label_id in self._labels)
 
-    self._index[label_id]["full_name"] = self._resolve_full_name(label_id)
+    self._index[label_id]["fullname"] = self._resolve_fullname(label_id)
 
     for id in self._index[label_id]["children"]:
-      self._build_full_name_index(id)
+      self._build_fullname_index(id)
 
 
   # Section: Label: Shared Limit
@@ -1259,7 +1260,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     if label_id == labelplus.common.label.ID_NONE:
       return ""
 
-    return self._index[label_id]["full_name"]
+    return self._index[label_id]["fullname"]
 
 
   def _filter_by_label(self, torrent_ids, label_ids):
