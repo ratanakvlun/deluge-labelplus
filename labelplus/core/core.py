@@ -150,6 +150,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._normalize_data()
     self._build_index()
     self._remove_orphans()
+    self._build_shared_limit_index()
     self._build_full_name_index()
     self._normalize_mappings()
     self._normalize_move_paths()
@@ -250,7 +251,6 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
 
     index = {}
-    shared_limit_index = []
 
     index[labelplus.common.label.ID_NULL] = build_label_entry(
       labelplus.common.label.ID_NULL)
@@ -258,12 +258,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     for id in self._labels:
       index[id] = build_label_entry(id)
 
-      if (self._labels[id]["options"]["bandwidth_settings"] and
-          self._labels[id]["options"]["shared_limit"]):
-        shared_limit_index.append(id)
-
     self._index = index
-    self._shared_limit_index = shared_limit_index
 
 
   def _remove_orphans(self):
@@ -291,6 +286,18 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
           self._reset_torrent_options(id)
 
       self._remove_torrent_label(id)
+
+
+  def _build_shared_limit_index(self):
+
+    shared_limit_index = []
+
+    for id in self._labels:
+      if (self._labels[id]["options"]["bandwidth_settings"] and
+          self._labels[id]["options"]["shared_limit"]):
+        shared_limit_index.append(id)
+
+    self._shared_limit_index = shared_limit_index
 
 
   def _normalize_move_paths(self):
