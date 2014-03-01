@@ -152,6 +152,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     self._remove_orphans()
     self._build_full_name_index()
     self._apply_label_options()
+    self._normalize_move_paths()
 
     deluge.component.get("FilterManager").register_filter(
       labelplus.common.STATUS_ID, self.filter_by_label)
@@ -290,6 +291,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
           self._reset_torrent_options(id)
 
       self._remove_torrent_label(id)
+
+
+  def _normalize_move_paths(self):
+
+    root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
+    for id in root_ids:
+      self._update_move_completed_paths(id)
 
 
   # Section: Deinitialization
