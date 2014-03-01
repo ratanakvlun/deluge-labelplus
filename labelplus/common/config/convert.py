@@ -188,14 +188,14 @@ def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
   return buffer_out
 
 
-def process_spec(spec, dict_in, use_deepcopy=False, strict_paths=False):
+def process_spec(spec, dict_in):
 
   working_dict = {}
 
   # Mapping meant for excluding unused keys or rearranging keys
   for src, dest in sorted(spec["map"].items(), key=lambda x: x[1].count("/")):
-    mapped = get_path_mapped_dict(dict_in, src, dest, use_deepcopy,
-      strict_paths)
+    mapped = get_path_mapped_dict(dict_in, src, dest, spec["deepcopy"],
+      spec["strict"])
     working_dict.update(mapped)
 
   # Post function meant for altering values
@@ -203,7 +203,7 @@ def process_spec(spec, dict_in, use_deepcopy=False, strict_paths=False):
   if post_func:
     working_dict = post_func(spec, working_dict)
 
-  # Make sure any missing defaults are in the final dict
+  # Make sure any missing keys are in the final dict
   dict_out = copy.deepcopy(spec["defaults"])
   dict_out.update(working_dict)
 
@@ -216,14 +216,16 @@ def process_spec(spec, dict_in, use_deepcopy=False, strict_paths=False):
 #   "version_in": version of input config data,
 #   "version_out": version of output config data,
 #   "defaults": dict of defaults for the target output version,
+#   "strict": whether or not invalid paths cause exceptions
+#   "deepcopy": whether or not to deepcopy when copying values
+#   "post_func": called after mapping, post_func(spec, dict),
 #   "map": {
 #     "path/variable": "path/variable",
 #   },
-#   "post_func": after mapping, call post_func(spec, dict_in),
 # }
 #
 
-def convert(spec, config, use_deepcopy=False, strict_paths=False):
+def convert(spec, config):
 
   version_in = spec["version_in"]
   version_out = spec["version_out"]
@@ -232,7 +234,7 @@ def convert(spec, config, use_deepcopy=False, strict_paths=False):
     raise ValueError("Unable to convert because version mismatch")
 
   input = config.config
-  output = process_spec(spec, input, use_deepcopy, strict_paths)
+  output = process_spec(spec, input)
 
   config._Config__version["file"] = version_out
   config._Config__config = output
