@@ -59,6 +59,7 @@ import labelplus.common.config
 import labelplus.common.config.convert
 import labelplus.common.config.autolabel
 
+import labelplus.core.config
 import labelplus.core.config.convert
 
 
@@ -196,16 +197,13 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
       spec = labelplus.core.config.convert.CONFIG_SPECS.get(key)
       if spec:
-        labelplus.common.config.convert.convert(spec,
-          config, strict_paths=True)
+        labelplus.common.config.convert.convert(spec, config)
         ver = labelplus.common.config.get_version(config)
       else:
         raise ValueError("Config file conversion v%s -> v%s not supported" %
           (file_ver, labelplus.common.config.CONFIG_VERSION))
 
-    for key in config.config.keys():
-      if key not in labelplus.common.config.CONFIG_DEFAULTS:
-        del config.config[key]
+    labelplus.core.config.remove_invalid_keys(config.config)
 
     return config
 
