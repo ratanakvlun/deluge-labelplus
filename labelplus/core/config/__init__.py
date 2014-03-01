@@ -54,3 +54,9 @@ def remove_invalid_keys(dict_in):
   for key in dict_in["prefs"]["label"].keys():
     if key not in labelplus.common.config.LABEL_DEFAULTS:
       del dict_in["prefs"]["label"][key]
+
+  for id in dict_in["labels"]:
+    options = dict_in["labels"][id]["options"]
+    for key in options.keys():
+      if key not in labelplus.common.config.LABEL_DEFAULTS:
+        del options[key]
