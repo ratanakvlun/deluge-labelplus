@@ -41,8 +41,3 @@ import labelplus.common
 
 LOG = logging.getLogger(__name__)
 LOG.addHandler(labelplus.common.LOG_HANDLER)
-
-if __debug__:
-  LOG.setLevel(logging.DEBUG)
-else:
-  LOG.setLevel(logging.INFO)

@@ -44,9 +44,4 @@ from labelplus.common.reference_tracker import ReferenceTracker
 LOG = logging.getLogger(__name__)
 LOG.addHandler(labelplus.common.LOG_HANDLER)
 
-if __debug__:
-  LOG.setLevel(logging.DEBUG)
-else:
-  LOG.setLevel(logging.INFO)
-
 RT = ReferenceTracker(__name__)
