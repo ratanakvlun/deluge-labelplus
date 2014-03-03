@@ -95,6 +95,17 @@ def update_dict(dest, src, use_deepcopy=False):
       update_dict(dest[key], src[key], use_deepcopy)
 
 
+def normalize_dict(dict_in, template):
+
+  for key in dict_in.keys():
+    if key not in template:
+      del dict_in[key]
+
+  for key in template:
+    if key not in dict_in:
+      dict_in[key] = copy.deepcopy(template[key])
+
+
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
     strict=False):
 
