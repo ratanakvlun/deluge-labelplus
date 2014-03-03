@@ -44,23 +44,24 @@ import labelplus.common.label
 import labelplus.gtkui.util
 
 
-class LabelSelectionMenu(gtk.MenuItem):
+class LabelSelectionMenu(gtk.Menu):
 
-  def __init__(self, label, plugin, select_func, base_items=[]):
+  def __init__(self, plugin, on_activate, base_items=[]):
 
-    super(LabelSelectionMenu, self).__init__(label)
+    super(LabelSelectionMenu, self).__init__()
 
     self._plugin = plugin
-    self._select_func = select_func
+    self._on_activate = on_activate
     self._base_items = base_items
 
     self._last_updated = labelplus.common.DATETIME_010101
 
-    self.set_submenu(gtk.Menu())
-    self.connect("activate", self._on_activate)
+    self.connect("show", self._on_show)
+
+    self._on_show(self)
 
 
-  def _on_activate(self, widget):
+  def _on_show(self, widget):
 
     if self._last_updated <= self._plugin.last_updated:
       self._clear_menu()
@@ -72,8 +73,8 @@ class LabelSelectionMenu(gtk.MenuItem):
 
   def _clear_menu(self):
 
-    for item in list(self.get_submenu().get_children()):
-      self.get_submenu().remove(item)
+    for item in list(self.get_children()):
+      self.remove(item)
 
 
   def _build_menu(self, model):
@@ -92,10 +93,10 @@ class LabelSelectionMenu(gtk.MenuItem):
         menus[-1].append(item)
 
         if not model.iter_has_child(row):
-          item.connect("activate", self._select_func, id)
+          item.connect("activate", self._on_activate, id)
         else:
           sub_item = gtk.MenuItem(name)
-          sub_item.connect("activate", self._select_func, id)
+          sub_item.connect("activate", self._on_activate, id)
 
           item.set_submenu(gtk.Menu())
           item.get_submenu().append(sub_item)
@@ -105,14 +106,14 @@ class LabelSelectionMenu(gtk.MenuItem):
           menus.append(item.get_submenu())
 
 
-    def pop_menu(model, row, menus):
+    def pop_menu_stack(model, row, menus):
 
       if row and model.iter_has_child(row):
         menus.pop()
 
 
     for item in self._base_items:
-      self.get_submenu().append(item)
+      self.append(item)
 
     labelplus.gtkui.util.treemodel_recurse(model, None, create_item,
-      pop_menu, menus=[self.get_submenu()])
+      pop_menu_stack, menus=[self])
