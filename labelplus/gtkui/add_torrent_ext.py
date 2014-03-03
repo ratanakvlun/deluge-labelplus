@@ -64,7 +64,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def __init__(self, plugin):
 
-    log.info("Initializing %s...", self.__class__.__name__)
+    log.debug("Initializing %s...", self.__class__.__name__)
 
     try:
       super(AddTorrentExt, self).__init__(labelplus.common.get_resource(
@@ -89,7 +89,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
       log.info("%s initialized", self.__class__.__name__)
     except:
-      log.info("Error initializing %s", self.__class__.__name__)
+      log.error("Error initializing %s", self.__class__.__name__)
       traceback.print_exc()
       self.unload()
       raise
@@ -97,7 +97,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _setup_widgets(self):
 
-    log.info("Setting up widgets...")
+    log.debug("Setting up widgets...")
 
     def on_click(widget):
 
@@ -127,7 +127,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _install_widgets(self):
 
-    log.info("Installing widgets...")
+    log.debug("Installing widgets...")
 
     widget = self._dialog.glade.get_widget("button_revert")
 
@@ -142,7 +142,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _create_menu(self):
 
-    log.info("Creating menu...")
+    log.debug("Creating menu...")
 
     def on_activate(widget, label_id):
 
@@ -168,7 +168,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _register_handlers(self):
 
-    log.info("Registering handlers...")
+    log.debug("Registering handlers...")
 
     self._deinit.append(self._deregister_handlers)
 
@@ -195,7 +195,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def unload(self):
 
-    log.info("Deinitializing %s...", self.__class__.__name__)
+    log.debug("Deinitializing %s...", self.__class__.__name__)
 
     while len(self._deinit):
       try:
@@ -208,7 +208,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _deregister_handlers(self):
 
-    log.info("Deregistering handlers...")
+    log.debug("Deregistering handlers...")
 
     for widget, handle in self._handlers:
       widget.disconnect(handle)
@@ -216,7 +216,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _destroy_menu(self):
 
-    log.info("Destroying menu...")
+    log.debug("Destroying menu...")
 
     self._menu.destroy()
     del self._menu
@@ -224,7 +224,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _uninstall_widgets(self):
 
-    log.info("Uninstalling widgets...")
+    log.debug("Uninstalling widgets...")
 
     box = self.blk_add_torrent_ext.get_parent()
     box.remove(self.blk_add_torrent_ext)
@@ -232,7 +232,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
   def _destroy_widgets(self):
 
-    log.info("Destroying widgets...")
+    log.debug("Destroying widgets...")
 
     self.destroy()
 
