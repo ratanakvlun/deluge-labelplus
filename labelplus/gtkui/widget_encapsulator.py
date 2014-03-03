@@ -51,3 +51,15 @@ class WidgetEncapsulator(object):
   def get_widgets(self, prefix=""):
 
     return [x for x in self._widgets if x.get_name().startswith(prefix)]
+
+
+  def destroy(self):
+
+    while len(self._widgets):
+      widget = self._widgets.pop()
+
+      attr = getattr(self, widget.get_name(), None)
+      if attr is widget:
+        delattr(self, widget.get_name())
+
+      widget.destroy()
