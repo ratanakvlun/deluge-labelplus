@@ -69,7 +69,6 @@ DELUGE_CORE_CONFIG = "core.conf"
 CONFIG_SAVE_INTERVAL = 60*2
 
 log = logging.getLogger(__name__)
-log.addFilter(labelplus.common.LOG_FILTER)
 
 
 def cmp_length_then_value(x, y):
