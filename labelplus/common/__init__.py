@@ -39,6 +39,7 @@ import copy
 import pkg_resources
 import gettext
 import datetime
+import logging
 
 
 # General
@@ -63,15 +64,20 @@ def get_resource(filename):
 
 # Logging
 
-class PluginPrefixFilter(object):
+class PrefixHandler(logging.Handler):
 
-  def filter(self, record):
+  def __init__(self, prefix=""):
 
-    record.msg = "[%s] %s" % (PLUGIN_NAME, record.msg)
-    return True
+    logging.Handler.__init__(self)
+    self._prefix = prefix
 
 
-LOG_FILTER = PluginPrefixFilter()
+  def emit(self, record):
+
+    record.msg = "%s%s" % (self._prefix, record.msg)
+
+
+LOG_HANDLER = PrefixHandler("[%s] " % PLUGIN_NAME)
 
 
 # Dictionary
