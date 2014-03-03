@@ -41,6 +41,8 @@ CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
   "defaults": labelplus.gtkui.config.CONFIG_DEFAULTS_V2,
+  "strict": False,
+  "deepcopy": False,
   "map": {
     "name_input_size": "common/name_input_size",
     "name_input_pos": "common/name_input_pos",
