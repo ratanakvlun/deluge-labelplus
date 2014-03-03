@@ -35,6 +35,7 @@
 
 
 import logging
+import traceback
 
 import gtk
 
@@ -65,23 +66,33 @@ class AddTorrentExt(WidgetEncapsulator):
 
     log.info("Initializing %s...", self.__class__.__name__)
 
-    super(AddTorrentExt, self).__init__(labelplus.common.get_resource(
-      "blk_add_torrent_ext.glade"))
+    try:
+      super(AddTorrentExt, self).__init__(labelplus.common.get_resource(
+        "blk_add_torrent_ext.glade"))
 
-    self._plugin = plugin
+      self._plugin = plugin
+      self._dialog = deluge.component.get("AddTorrentDialog")
+      self._view = self._dialog.listview_torrents
 
-    self._dialog = deluge.component.get("AddTorrentDialog")
-    self._view = self._dialog.listview_torrents
+      self._menu = None
+      self._mappings = {}
+      self._handlers = []
 
-    self._menu = None
-    self._mappings = {}
-    self._handlers = []
+      self._deinit = []
+      self._setup_widgets()
+      self._install_widgets()
+      self._create_menu()
+      self._register_handlers()
 
-    self._setup_widgets()
-    self._install_widgets()
-    self._register_handlers()
+      self._update_label_text()
+      self._update_sensitivity()
 
-    log.info("%s initialized", self.__class__.__name__)
+      log.info("%s initialized", self.__class__.__name__)
+    except:
+      log.info("Error initializing %s", self.__class__.__name__)
+      traceback.print_exc()
+      self.unload()
+      raise
 
 
   def _setup_widgets(self):
@@ -99,6 +110,7 @@ class AddTorrentExt(WidgetEncapsulator):
       self._update_label_text(id)
 
 
+    self._deinit.append(self._destroy_widgets)
 
     self.blk_add_torrent_ext.get_parent().remove(self.blk_add_torrent_ext)
     self.blk_add_torrent_ext.show_all()
@@ -112,9 +124,6 @@ class AddTorrentExt(WidgetEncapsulator):
       self._plugin.config["common"]["add_torrent_ext_fullname"])
     self.tgb_fullname.connect("toggled", on_toggle)
 
-    self._update_label_text()
-    self._update_sensitivity()
-
 
   def _install_widgets(self):
 
@@ -124,6 +133,9 @@ class AddTorrentExt(WidgetEncapsulator):
 
     box = widget.get_ancestor(gtk.VBox)
     box.pack_start(self.blk_add_torrent_ext, expand=False)
+
+    self._deinit.append(self._uninstall_widgets)
+
     box.child_set_property(self.blk_add_torrent_ext, "position",
       box.child_get_property(self.blk_add_torrent_ext, "position")-1)
 
@@ -158,6 +170,8 @@ class AddTorrentExt(WidgetEncapsulator):
 
     log.info("Registering handlers...")
 
+    self._deinit.append(self._deregister_handlers)
+
     self._register_handler(self._view.get_selection(), "changed",
       self._on_selection_changed)
 
@@ -183,9 +197,11 @@ class AddTorrentExt(WidgetEncapsulator):
 
     log.info("Deinitializing %s...", self.__class__.__name__)
 
-    self._deregister_handlers()
-    self._uninstall_widgets()
-    self._destroy_widgets()
+    while len(self._deinit):
+      try:
+        self._deinit.pop()()
+      except:
+        traceback.print_exc()
 
     log.info("%s deinitialized", self.__class__.__name__)
 
@@ -196,6 +212,14 @@ class AddTorrentExt(WidgetEncapsulator):
 
     for widget, handle in self._handlers:
       widget.disconnect(handle)
+
+
+  def _destroy_menu(self):
+
+    log.info("Destroying menu...")
+
+    self._menu.destroy()
+    del self._menu
 
 
   def _uninstall_widgets(self):
@@ -211,9 +235,6 @@ class AddTorrentExt(WidgetEncapsulator):
     log.info("Destroying widgets...")
 
     self.destroy()
-
-    self._menu.destroy()
-    del self._menu
 
 
   # Section: General
