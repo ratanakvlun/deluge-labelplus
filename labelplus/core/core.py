@@ -39,25 +39,26 @@
 #
 
 
-import logging
-import copy
-import os.path
 import cPickle
+import copy
 import datetime
+import logging
+import os
 
 import twisted.internet
 
 import deluge.common
-import deluge.configmanager
 import deluge.component
+import deluge.configmanager
 import deluge.core.rpcserver
-import deluge.plugins.pluginbase
+
+from deluge.plugins.pluginbase import CorePluginBase
 
 import labelplus.common
-import labelplus.common.label
 import labelplus.common.config
 import labelplus.common.config.convert
 import labelplus.common.config.autolabel
+import labelplus.common.label
 
 import labelplus.core.config
 import labelplus.core.config.convert
@@ -94,19 +95,21 @@ def check_init(func):
   return wrap
 
 
-class Core(deluge.plugins.pluginbase.CorePluginBase):
+class Core(CorePluginBase):
 
   # Section: Initialization
 
   def __init__(self, plugin_name):
 
     super(Core, self).__init__(plugin_name)
+
     self._initialized = False
+    self._config = None
 
 
   def enable(self):
 
-    log.debug("Initializing Core...")
+    log.debug("Initializing %s...", self.__class__.__name__)
 
     if not deluge.component.get("TorrentManager").session_started:
       deluge.component.get("EventManager").register_event_handler(
@@ -177,34 +180,17 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     twisted.internet.reactor.callLater(1, self._save_config_update_loop)
     twisted.internet.reactor.callLater(1, self._shared_limit_update_loop)
 
-    log.debug("Core initialized")
+    log.debug("%s initialized", self.__class__.__name__)
 
 
   def _load_config(self):
 
     config = deluge.configmanager.ConfigManager(CORE_CONFIG)
 
-    if not config.config:
-      config.config.update(copy.deepcopy(
-        labelplus.common.config.CONFIG_DEFAULTS))
-      labelplus.common.config.set_version(config,
-        labelplus.common.config.CONFIG_VERSION)
-
-    file_ver = labelplus.common.config.get_version(config)
-    ver = file_ver
-    while ver != labelplus.common.config.CONFIG_VERSION:
-      if ver < labelplus.common.config.CONFIG_VERSION:
-        key = (ver, ver+1)
-      else:
-        key = (ver, ver-1)
-
-      spec = labelplus.core.config.convert.CONFIG_SPECS.get(key)
-      if spec:
-        labelplus.common.config.convert.convert(spec, config)
-        ver = labelplus.common.config.get_version(config)
-      else:
-        raise ValueError("Config file conversion v%s -> v%s not supported" %
-          (file_ver, labelplus.common.config.CONFIG_VERSION))
+    labelplus.common.config.init_config(config,
+      labelplus.common.config.CONFIG_DEFAULTS,
+      labelplus.common.config.CONFIG_VERSION,
+      labelplus.core.config.convert.CONFIG_SPECS)
 
     labelplus.core.config.remove_invalid_keys(config.config)
 
@@ -314,13 +300,15 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
 
   def disable(self):
 
-    log.debug("Deinitializing Core...")
+    log.debug("Deinitializing %s...", self.__class__.__name__)
 
     deluge.component.get("EventManager").deregister_event_handler(
       "SessionStartedEvent", self._on_session_started)
 
-    if getattr(self, "_config", None):
-      if self._initialized: self._config.save()
+    if self._config:
+      if self._initialized:
+        self._config.save()
+
       deluge.configmanager.close(CORE_CONFIG)
 
     self._initialized = False
@@ -346,7 +334,7 @@ class Core(deluge.plugins.pluginbase.CorePluginBase):
     # Workaround for Deluge 1.3.6 bug
     self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
-    log.debug("Core deinitialized")
+    log.debug("%s deinitialized", self.__class__.__name__)
 
 
   def _rpc_deregister(self, name):
