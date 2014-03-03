@@ -35,166 +35,178 @@
 
 import logging
 import copy
-import os.path
 
+import twisted.internet
 import gtk
 
-from twisted.internet import defer
-from twisted.internet import reactor
+import deluge.component
 
-from deluge import common
-from deluge import component
 from deluge.ui.client import client
-import deluge.configmanager
 
-from labelplus.common import PLUGIN_NAME
-from labelplus.common.config import LABEL_DEFAULTS
+import labelplus.common
+import labelplus.common.config
+import labelplus.common.config.autolabel
 
-from labelplus.common import get_resource
-from labelplus.common.label import get_name_by_segments
+from labelplus.gtkui.autolabel_box import AutolabelBox
+from labelplus.gtkui.widget_encapsulator import WidgetEncapsulator
 
-from util import textview_set_text
-from util import textview_get_text
-from widget_encapsulator import WidgetEncapsulator
 
+SETTER = 0
+GETTER = 1
 
 OP_MAP = {
   gtk.RadioButton: ("set_active", "get_active"),
   gtk.CheckButton: ("set_active", "get_active"),
   gtk.SpinButton: ("set_value", "get_value"),
   gtk.Label: ("set_text", "get_text"),
+  AutolabelBox: ("set_all_row_values", "get_all_row_values"),
 }
 
 
 log = logging.getLogger(__name__)
 
 
-class LabelOptionsDialog(object):
+class LabelOptionsDialog(WidgetEncapsulator):
+
+  # Section: Initialization
+
+  def __init__(self, plugin, label_id, page=0):
+
+    super(LabelOptionsDialog, self).__init__(
+      labelplus.common.get_resource("wnd_label_options.glade"))
+
+    self._plugin = plugin
+
+    self._label_id = label_id
+    self._name = self._plugin.data[label_id]["name"]
+
+    self.nb_tabs.set_current_page(page)
+
+    deferreds = []
+    deferreds.append(client.labelplus.get_daemon_info())
+    deferreds.append(client.labelplus.get_parent_move_path(self._label_id))
+    deferreds.append(client.labelplus.get_preferences())
+    deferreds.append(client.labelplus.get_label_options(self._label_id))
+
+    deferred = twisted.internet.defer.DeferredList(deferreds)
+    deferred.addCallback(self._finish_init)
 
 
-  def __init__(self, label_id, full_name, page=0):
-
-    self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
-
-    self.label_id = label_id
-    self.full_name = full_name
-    self.base_name = get_name_by_segments(full_name, 1)
-    self.daemon_is_local = client.is_localhost()
-
-    self.close_func = None
-
-    self.we = WidgetEncapsulator(get_resource("wnd_label_options.glade"))
-    self.we.wnd_label_options.set_transient_for(
-        component.get("MainWindow").window)
-    self.we.wnd_label_options.set_destroy_with_parent(True)
-
-    icon = self.we.wnd_label_options.render_icon(gtk.STOCK_PREFERENCES,
-        gtk.ICON_SIZE_SMALL_TOOLBAR)
-    self.we.wnd_label_options.set_icon(icon)
-
-    pos = self.config["common"]["label_options_pos"]
-    if pos:
-      self.we.wnd_label_options.move(*pos)
-
-    size = self.config["common"]["label_options_size"]
-    if size:
-      self.we.wnd_label_options.resize(*size)
-
-    self.we.lbl_header.set_markup("<b>%s</b>" % self.we.lbl_header.get_text())
-    self.we.lbl_selected_label.set_text(self.base_name)
-    self.we.lbl_selected_label.set_tooltip_text(self.full_name)
-
-    self.we.nb_tabs.set_current_page(page)
-
-    self.option_widgets = (
-      self.we.chk_download_settings,
-      self.we.chk_move_data_completed,
-      self.we.lbl_move_data_completed_path,
-      self.we.chk_prioritize_first_last,
-
-      self.we.chk_bandwidth_settings,
-      self.we.rb_shared_limit_on,
-      self.we.spn_max_download_speed,
-      self.we.spn_max_upload_speed,
-      self.we.spn_max_connections,
-      self.we.spn_max_upload_slots,
-
-      self.we.chk_queue_settings,
-      self.we.chk_auto_managed,
-      self.we.chk_stop_at_ratio,
-      self.we.spn_stop_ratio,
-      self.we.chk_remove_at_ratio,
-
-      self.we.chk_auto_settings,
-      self.we.rb_auto_name,
-      self.we.rb_auto_tracker,
-    )
-
-    self.dependency_widgets = {
-      self.we.chk_download_settings:
-        (self.we.blk_download_settings_group,),
-      self.we.chk_bandwidth_settings:
-        (self.we.blk_bandwidth_settings_group,),
-      self.we.chk_queue_settings:
-        (self.we.blk_queue_settings_group,),
-      self.we.chk_auto_settings:
-        (self.we.blk_auto_settings_group,),
-
-      self.we.chk_move_data_completed:
-        (self.we.blk_move_data_completed_group,),
-
-      self.we.rb_move_data_completed_to_folder:
-        (self.we.fcb_move_data_completed_select,
-          self.we.txt_move_data_completed_entry),
-
-      self.we.chk_stop_at_ratio:
-        (self.we.spn_stop_ratio, self.we.chk_remove_at_ratio),
-
-      self.we.chk_auto_retroactive: (self.we.chk_auto_unlabeled,),
-    }
-
-    self.rgrp_move_data_completed = (
-      self.we.rb_move_data_completed_to_parent,
-      self.we.rb_move_data_completed_to_subfolder,
-      self.we.rb_move_data_completed_to_folder,
-    )
-
-    defers = []
-    defers.append(client.labelplus.get_daemon_info())
-    defers.append(client.labelplus.get_parent_move_path(self.label_id))
-    defers.append(client.labelplus.get_label_options(self.label_id))
-    defers.append(client.labelplus.get_preferences())
-
-    deferred = defer.DeferredList(defers)
-    deferred.addCallback(self.cb_get_options_ok)
-
-
-  def cb_get_options_ok(self, result):
+  def _finish_init(self, result):
 
     for item in result:
       if not item[0]:
-        raise RuntimeError("Could not load dialog options")
+        raise RuntimeError("Could not get label options")
 
     try:
-      self.daemon_path_module = __import__(result[0][1]["os.path"])
+      self._path_module = __import__(result[0][1]["os.path"])
     except ImportError as e:
-      self.daemon_path_module = os.path
+      self._path_module = os.path
 
-    self.parent_move_data_path = result[1][1]
-    options = result[2][1]
-    self.defaults = result[3][1]["defaults"]
+    self._parent_move_path = result[1][1]
+    self._defaults = result[2][1]["label"]
+    options = result[3][1]
 
+    self._setup_window()
+    self._index_widgets()
     self._connect_signals()
     self._load_options(options)
 
-    if self.daemon_is_local:
-      self.we.txt_move_data_completed_entry.hide()
-      self.we.fcb_move_data_completed_select.show()
-    else:
-      self.we.fcb_move_data_completed_select.hide()
-      self.we.txt_move_data_completed_entry.show()
+    self.wnd_label_options.show_all()
 
-    self.we.wnd_label_options.show()
+    if client.is_localhost():
+      self.txt_move_completed_entry.hide()
+      self.fcb_move_completed_select.show()
+    else:
+      self.fcb_move_completed_select.hide()
+      self.txt_move_completed_entry.show()
+
+
+  def _setup_window(self):
+
+    self.wnd_label_options.set_transient_for(
+      deluge.component.get("MainWindow").window)
+    self.wnd_label_options.set_destroy_with_parent(True)
+
+    icon = self.wnd_label_options.render_icon(gtk.STOCK_PREFERENCES,
+      gtk.ICON_SIZE_SMALL_TOOLBAR)
+    self.wnd_label_options.set_icon(icon)
+
+    pos = self._plugin.config["common"]["label_options_pos"]
+    if pos: self.wnd_label_options.move(*pos)
+    size = self._plugin.config["common"]["label_options_size"]
+    if size: self.wnd_label_options.resize(*size)
+
+    self.lbl_header.set_markup("<b>%s</b>" % self.lbl_header.get_text())
+    self.lbl_selected_label.set_text(self._name)
+    self.lbl_selected_label.set_tooltip_text(
+      self._plugin.data[self._label_id]["fullname"])
+
+    self.cr_autolabel_rules = AutolabelBox(row_spacing=3, column_spacing=3)
+    self.cr_autolabel_rules.set_name("cr_autolabel_rules")
+    self.blk_criteria_box.add(self.cr_autolabel_rules)
+
+
+  def _index_widgets(self):
+
+    self._option_widgets = (
+      self.chk_download_settings,
+      self.chk_move_completed,
+      self.lbl_move_completed_path,
+      self.chk_prioritize_first_last,
+
+      self.chk_bandwidth_settings,
+      self.rb_shared_limit,
+      self.spn_max_download_speed,
+      self.spn_max_upload_speed,
+      self.spn_max_connections,
+      self.spn_max_upload_slots,
+
+      self.chk_queue_settings,
+      self.chk_auto_managed,
+      self.chk_stop_at_ratio,
+      self.spn_stop_ratio,
+      self.chk_remove_at_ratio,
+
+      self.chk_autolabel_settings,
+      self.rb_autolabel_match_all,
+      self.cr_autolabel_rules,
+    )
+
+    self._dependent_widgets = {
+      self.chk_download_settings: (self.blk_download_settings_group,),
+      self.chk_bandwidth_settings: (self.blk_bandwidth_settings_group,),
+      self.chk_queue_settings: (self.blk_queue_settings_group,),
+      self.chk_autolabel_settings: (self.blk_autolabel_settings_group,),
+
+      self.chk_move_completed: (self.blk_move_completed_group,),
+      self.rb_move_completed_to_folder: (
+        self.fcb_move_completed_select,
+        self.txt_move_completed_entry
+      ),
+
+      self.chk_stop_at_ratio: (self.spn_stop_ratio, self.chk_remove_at_ratio),
+      self.chk_auto_retroactive: (self.chk_auto_unlabeled,),
+    }
+
+    self._rgrp_move_completed = (
+      self.rb_move_completed_to_parent,
+      self.rb_move_completed_to_subfolder,
+      self.rb_move_completed_to_folder,
+    )
+
+
+  def _connect_signals(self):
+
+    self._model.signal_autoconnect({
+      "on_btn_ok_clicked": self.on_btn_ok_clicked,
+      "cb_do_close": self.cb_do_close,
+      "cb_set_defaults": self.cb_set_defaults,
+      "cb_toggle_dependents": self.cb_toggle_dependents,
+      "on_rb_toggled": self.on_rb_toggled,
+      "on_txt_changed": self.on_txt_changed,
+      "on_fcb_selection_changed": self.on_fcb_selection_changed,
+    })
 
 
   def register_close_func(self, func):
@@ -204,16 +216,17 @@ class LabelOptionsDialog(object):
 
   def cb_do_close(self, widget, event=None):
 
-    self.config["common"]["label_options_pos"] = \
-        list(self.we.wnd_label_options.get_position())
-    self.config["common"]["label_options_size"] = \
-        list(self.we.wnd_label_options.get_size())
-    self.config.save()
+    self._plugin.config["common"]["label_options_pos"] = \
+        list(self.wnd_label_options.get_position())
+    self._plugin.config["common"]["label_options_size"] = \
+        list(self.wnd_label_options.get_size())
 
-    if self.close_func:
-      self.close_func(self)
+    self._plugin.config.save()
 
-    self.we.wnd_label_options.destroy()
+    #if self.close_func:
+    #  self.close_func(self)
+
+    self.wnd_label_options.destroy()
 
 
   def on_btn_ok_clicked(self, widget):
@@ -224,15 +237,15 @@ class LabelOptionsDialog(object):
 
   def cb_set_defaults(self, widget):
 
-    options = copy.deepcopy(self.defaults)
-    mode = options["move_data_completed_mode"]
+    options = copy.deepcopy(self._defaults)
+    mode = options["move_completed_mode"]
     if mode != "folder":
-      path = self.parent_move_data_path
+      path = self._parent_move_path
 
       if mode == "subfolder":
-        path = self.daemon_path_module.join(path, self.base_name)
+        path = self._path_module.join(path, self._name)
 
-      options["move_data_completed_path"] = path
+      options["move_completed_path"] = path
 
     self._load_options(options)
 
@@ -240,7 +253,7 @@ class LabelOptionsDialog(object):
   def cb_toggle_dependents(self, widget):
 
     toggled = widget.get_active()
-    for dependent in self.dependency_widgets[widget]:
+    for dependent in self._dependent_widgets[widget]:
       dependent.set_sensitive(toggled)
 
 
@@ -249,10 +262,10 @@ class LabelOptionsDialog(object):
     if not widget.get_active():
       return False
 
-    lbl = self.we.lbl_move_data_completed_path
-    txt = self.we.txt_move_data_completed_entry
-    fcb = self.we.fcb_move_data_completed_select
-    path = self.parent_move_data_path
+    lbl = self.lbl_move_completed_path
+    txt = self.txt_move_completed_entry
+    fcb = self.fcb_move_completed_select
+    path = self._parent_move_path
 
     txt.set_sensitive(False)
     fcb.set_sensitive(False)
@@ -261,10 +274,10 @@ class LabelOptionsDialog(object):
     if name.endswith("parent"):
       self._set_path_label(path)
     elif name.endswith("subfolder"):
-      path = self.daemon_path_module.join(path, self.base_name)
+      path = self._path_module.join(path, self._name)
       self._set_path_label(path)
     elif name.endswith("folder"):
-      if self.daemon_is_local:
+      if client.is_localhost():
         fcb.set_sensitive(True)
         self.on_fcb_selection_changed(fcb)
       else:
@@ -285,82 +298,66 @@ class LabelOptionsDialog(object):
 
   def _set_path_label(self, path):
 
-    self.we.lbl_move_data_completed_path.set_text(path)
-    self.we.lbl_move_data_completed_path.set_tooltip_text(path)
-
-
-  def _connect_signals(self):
-
-    self.we.model.signal_autoconnect({
-      "on_btn_ok_clicked": self.on_btn_ok_clicked,
-      "cb_do_close": self.cb_do_close,
-      "cb_set_defaults": self.cb_set_defaults,
-      "cb_toggle_dependents": self.cb_toggle_dependents,
-      "on_rb_toggled": self.on_rb_toggled,
-      "on_txt_changed": self.on_txt_changed,
-      "on_fcb_selection_changed": self.on_fcb_selection_changed,
-    })
+    self.lbl_move_completed_path.set_text(path)
+    self.lbl_move_completed_path.set_tooltip_text(path)
 
 
   def _load_options(self, opts):
 
     log.debug("Loading label options")
 
-    options = copy.deepcopy(LABEL_DEFAULTS)
+    options = copy.deepcopy(labelplus.common.config.LABEL_DEFAULTS)
     options.update(opts)
 
-    if not options["move_data_completed_path"]:
-      options["move_data_completed_path"] = \
-          self.defaults["move_data_completed_path"]
+    if not options["move_completed_path"]:
+      options["move_completed_path"] = \
+          self._defaults["move_completed_path"]
 
-    for widget in self.option_widgets:
+    for widget in self._option_widgets:
       prefix, sep, name = widget.get_name().partition("_")
       if sep and name in options:
         widget_type = type(widget)
         if widget_type in OP_MAP:
-          setter = getattr(widget, OP_MAP[widget_type][0])
+          setter = getattr(widget, OP_MAP[widget_type][SETTER])
           setter(options[name])
 
-    rb = getattr(self.we, "rb_move_data_completed_to_%s" %
-        options["move_data_completed_mode"])
+    rb = getattr(self, "rb_move_completed_to_%s" %
+        options["move_completed_mode"])
     rb.set_active(True)
 
-    if options["shared_limit_on"]:
-      self.we.rb_shared_limit_on.set_active(True)
+    if options["shared_limit"]:
+      self.rb_shared_limit.set_active(True)
     else:
-      self.we.rb_shared_limit_off.set_active(True)
+      self.rb_per_torrent_limit.set_active(True)
 
     # Set the current move data completed path
-    self._set_path_label(options["move_data_completed_path"])
+    self._set_path_label(options["move_completed_path"])
 
     # Determine "folder" radio button's path
-    if options["move_data_completed_mode"] == "folder":
-      path = options["move_data_completed_path"]
+    if options["move_completed_mode"] == "folder":
+      path = options["move_completed_path"]
     else:
-      path = self.defaults["move_data_completed_path"]
+      path = self._defaults["move_completed_path"]
 
-    txt = self.we.txt_move_data_completed_entry
+    txt = self.txt_move_completed_entry
     txt.handler_block_by_func(self.on_txt_changed)
-    self.we.txt_move_data_completed_entry.set_text(path)
+    self.txt_move_completed_entry.set_text(path)
     txt.handler_unblock_by_func(self.on_txt_changed)
 
-    if self.daemon_is_local:
-      if not os.path.exists(path):
+    if client.is_localhost():
+      if not self._path_module.exists(path):
         path = ""
 
-      fcb = self.we.fcb_move_data_completed_select
+      fcb = self.fcb_move_completed_select
       fcb.handler_block_by_func(self.on_fcb_selection_changed)
 
       fcb.unselect_all()
       fcb.set_filename(path)
 
-      reactor.callLater(0.2, fcb.handler_unblock_by_func,
+      twisted.internet.reactor.callLater(0.2, fcb.handler_unblock_by_func,
         self.on_fcb_selection_changed)
 
-    textview_set_text(self.we.tv_auto_queries,
-        "\n".join(options["auto_queries"]))
-
-    for widget in self.dependency_widgets:
+    for widget in self._dependent_widgets:
       self.cb_toggle_dependents(widget)
 
 
@@ -368,32 +365,29 @@ class LabelOptionsDialog(object):
 
     log.debug("Saving label options")
 
-    options = copy.deepcopy(LABEL_DEFAULTS)
+    options = copy.deepcopy(labelplus.common.config.LABEL_DEFAULTS)
 
-    for widget in self.option_widgets:
+    for widget in self._option_widgets:
       prefix, sep, name = widget.get_name().partition("_")
       if sep and name in options:
         widget_type = type(widget)
         if widget_type in OP_MAP:
-          getter = getattr(widget, OP_MAP[widget_type][1])
+          getter = getattr(widget, OP_MAP[widget_type][GETTER])
           options[name] = getter()
+          log.debug("%r: %r", name, options[name])
 
-    for rb in self.rgrp_move_data_completed:
+    for rb in self._rgrp_move_completed:
       if rb.get_active():
         prefix, sep, mode = rb.get_name().rpartition("_")
-        options["move_data_completed_mode"] = mode
-
+        options["move_completed_mode"] = mode
         break
-
-    lines = textview_get_text(self.we.tv_auto_queries).split("\n")
-    options["auto_queries"] = [x.strip() for x in lines if x.strip()]
 
     options["max_upload_slots"] = int(options["max_upload_slots"])
     options["max_connections"] = int(options["max_connections"])
 
-    options["tmp_auto_retroactive"] = \
-        self.we.chk_auto_retroactive.get_active()
-    options["tmp_auto_unlabeled"] = \
-        self.we.chk_auto_unlabeled.get_active()
+    if self.chk_auto_retroactive.get_active():
+      apply_to_all = not self.chk_auto_unlabeled.get_active()
+    else:
+      apply_to_all = None
 
-    client.labelplus.set_options(self.label_id, options)
+    client.labelplus.set_label_options(self._label_id, options, apply_to_all)
