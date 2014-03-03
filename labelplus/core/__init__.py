@@ -32,3 +32,17 @@
 # software, but you are not obligated to do so. If you do not wish to
 # do so, delete this exception statement from your version.
 #
+
+
+import logging
+
+import labelplus.common
+
+
+LOG = logging.getLogger(__name__)
+LOG.addHandler(labelplus.common.LOG_HANDLER)
+
+if __debug__:
+  LOG.setLevel(logging.DEBUG)
+else:
+  LOG.setLevel(logging.INFO)
