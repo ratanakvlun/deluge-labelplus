@@ -60,12 +60,12 @@ def is_ancestor(ancestor_id, label_id):
   return ancestor_id != label_id and label_id.startswith(prefix)
 
 
-def get_name_by_segments(full_name, segments=0):
+def resolve_name_by_degree(name, degree):
 
-  if segments < 1:
-    return full_name
+  if degree < 1:
+    return ""
 
-  return "/".join(full_name.split("/")[-segments:])
+  return "/".join(name.split("/")[-degree:])
 
 
 def validate_name(label_name):
