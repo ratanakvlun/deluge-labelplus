@@ -43,7 +43,6 @@ import cPickle
 import copy
 import datetime
 import logging
-import traceback
 
 import gobject
 import gtk
@@ -155,7 +154,7 @@ class GtkUI(GtkPluginBase):
 
         self._ext.append(instance)
       except:
-        traceback.print_exc()
+        pass
 
 
   # Section: Deinitialization
@@ -187,7 +186,7 @@ class GtkUI(GtkPluginBase):
       try:
         ext.unload()
       except:
-        traceback.print_exc()
+        pass
 
 
   # Section: Update Loops
