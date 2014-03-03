@@ -66,6 +66,7 @@ CONFIG_DEFAULTS_V2 = {
     "prefs_state": [],
     "show_label_bandwidth": False,
     "status_include_sublabel": False,
+    "add_torrent_ext_fullname": False,
   },
   "daemon": {},
 }
