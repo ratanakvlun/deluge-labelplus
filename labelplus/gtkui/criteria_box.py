@@ -64,12 +64,11 @@ class CriteriaBox(gtk.VBox):
 
   def destroy(self):
 
-    del self._add_button_row
-
-    self.clear_rows()
-    del self._columns
-
     super(CriteriaBox, self).destroy()
+
+    del self._add_button_row
+    del self._columns
+    del self._rows
 
 
   def set_row_spacing(self, spacing):
