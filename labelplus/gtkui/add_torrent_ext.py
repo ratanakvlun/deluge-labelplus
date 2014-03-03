@@ -48,6 +48,8 @@ import labelplus.common.label
 from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
 from labelplus.gtkui.widget_encapsulator import WidgetEncapsulator
 
+from labelplus.gtkui import RT
+
 
 LABEL_ID = 0
 LABEL_NAME = 1
@@ -101,6 +103,8 @@ class AddTorrentExt(WidgetEncapsulator):
 
       items = [item, gtk.SeparatorMenuItem()]
 
+      RT.register(items[0], "AddTorrentExt:Menu:'None'")
+      RT.register(items[1], "AddTorrentExt:Menu:Separator")
 
       return LabelSelectionMenu(self._plugin, on_activate, items)
 
@@ -118,6 +122,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
     self._menu = build_menu()
 
+    RT.register(self._menu, "AddTorrentExt:Menu")
 
     self.blk_add_torrent_ext.get_parent().remove(self.blk_add_torrent_ext)
     self.blk_add_torrent_ext.show_all()

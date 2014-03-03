@@ -35,6 +35,8 @@
 
 import gtk.glade
 
+from labelplus.gtkui import RT
+
 
 class WidgetEncapsulator(object):
 
@@ -44,6 +46,8 @@ class WidgetEncapsulator(object):
     self._widgets = self._model.get_widget_prefix("")
 
     for widget in self._widgets:
+      RT.register(widget, "WidgetEncapsulator")
+
       if not hasattr(self, widget.get_name()):
         setattr(self, widget.get_name(), widget)
 

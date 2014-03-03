@@ -1,5 +1,5 @@
 #
-# __init__.py
+# reference_tracker.py
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
@@ -34,19 +34,52 @@
 #
 
 
+import weakref
 import logging
 
-import labelplus.common
 
-from labelplus.common.reference_tracker import ReferenceTracker
+class ReferenceTracker(object):
+
+  def __init__(self, logger_name=None):
+
+    self._refs = {}
+
+    if not logger_name:
+      logger_name = __name__
+
+    self.logger = logging.getLogger(logger_name)
 
 
-LOG = logging.getLogger(__name__)
-LOG.addHandler(labelplus.common.LOG_HANDLER)
+  def register(self, obj, name=""):
 
-if __debug__:
-  LOG.setLevel(logging.DEBUG)
-else:
-  LOG.setLevel(logging.INFO)
+    def on_reference_lost(ref):
 
-RT = ReferenceTracker(__name__)
+      self.logger.debug("<%s> is dead", self._refs[ref])
+      del self._refs[ref]
+
+
+    ref = weakref.ref(obj, on_reference_lost)
+    ref_str = " ".join(str(ref).split(" ")[4:])[:-1]
+
+    if name:
+      ref_str += " (%r)" % name
+
+    self._refs[ref] = ref_str
+    self.logger.debug("<%s> is registered", ref_str)
+
+    return ref
+
+
+  def report(self):
+
+    if len(self._refs) > 0:
+      self.logger.info("Reference count: %s", len(self._refs))
+      for ref in self._refs:
+        self.logger.debug("<%s> is alive", self._refs[ref])
+    else:
+      self.logger.info("No references to report")
+
+
+  def clear(self):
+
+    self._refs.clear()
