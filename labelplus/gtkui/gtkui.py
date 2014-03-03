@@ -39,37 +39,46 @@
 #
 
 
-import copy
-import logging
-import datetime
 import cPickle
+import copy
+import datetime
+import logging
+import traceback
 
-import twisted.internet.reactor
 import gobject
 import gtk
+import twisted.internet
+import twisted.python.failure
 
-import deluge.configmanager
 import deluge.component
-import deluge.plugins.pluginbase
+import deluge.configmanager
+
+from deluge.plugins.pluginbase import GtkPluginBase
 from deluge.ui.client import client
 
 import labelplus.common
-import labelplus.common.label
 import labelplus.common.config
+import labelplus.common.label
 
 import labelplus.gtkui.config
 import labelplus.gtkui.config.convert
 
+from labelplus.gtkui.add_torrent_ext import AddTorrentExt
+from labelplus.gtkui.torrent_view_ext import TorrentViewExt
+
+from labelplus.gtkui import RT
+
 
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
-INIT_POLLING_INTERVAL = 3.0
+INIT_POLLING_INTERVAL = 1.0
+LABELS_UPDATE_INTERVAL = 1.0
+
 
 log = logging.getLogger(__name__)
-log.addFilter(labelplus.common.LOG_FILTER)
 
 
-class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
+class GtkUI(GtkPluginBase):
 
   # Section: Initialization
 
@@ -78,15 +87,18 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     super(GtkUI, self).__init__(plugin_name)
 
     self.initialized = False
+
     self.config = None
     self.data = None
     self.store = None
     self.last_updated = None
 
+    self._ext = []
+
 
   def enable(self):
 
-    log.debug("Initializing GtkUI...")
+    log.info("Initializing %s...", self.__class__.__name__)
 
     self._poll_init()
 
@@ -98,7 +110,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
   def _check_init(self, result):
 
-    log.debug("Waiting for Core to be initialized...")
+    log.info("Waiting for core to be initialized...")
 
     if result == True:
       client.labelplus.get_labels_data().addCallback(self._finish_init)
@@ -109,7 +121,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
   def _finish_init(self, result):
 
-    log.debug("Resuming initialization...")
+    log.info("Resuming initialization...")
 
     info = client.connection_info()
     self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
@@ -117,19 +129,40 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
     self.config = self._load_config()
     self._update_labels(result)
 
-    self._ext.append(TorrentViewExt(self))
-    self._ext.append(AddTorrentExt(self))
+    self._load_extensions()
 
     self.initialized = True
 
-    log.debug("GtkUI initialized")
+    log.info("%s initialized", self.__class__.__name__)
+
+    self._labels_update_loop()
+
+
+  def _load_extensions(self):
+
+    extensions = [
+      (AddTorrentExt, (self,)),
+      (TorrentViewExt, (self,)),
+    ]
+
+    while len(extensions):
+      ext = extensions.pop()
+
+      try:
+        instance = ext[0](*ext[1])
+
+        if __debug__: RT.register(instance, ext[0].__name__)
+
+        self._ext.append(instance)
+      except:
+        traceback.print_exc()
 
 
   # Section: Deinitialization
 
   def disable(self):
 
-    log.debug("Deinitializing GtkUI...")
+    log.info("Deinitializing %s...", self.__class__.__name__)
 
     if self.config:
       if self.initialized:
@@ -139,17 +172,60 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
 
     self.initialized = False
 
-    log.debug("GtkUI deinitialized")
+    self._unload_extensions()
+
+    if __debug__: RT.report()
+
+    log.info("%s deinitialized", self.__class__.__name__)
+
+
+  def _unload_extensions(self):
+
+    while len(self._ext):
+      ext = self._ext.pop()
+
+      try:
+        ext.unload()
+      except:
+        traceback.print_exc()
 
 
   # Section: Update Loops
 
-  def update(self):
+  def _labels_update_loop(self):
+
+    def callback(result):
+
+      if not isinstance(result, twisted.python.failure.Failure):
+        self._update_labels(result)
+
+      twisted.internet.reactor.callLater(LABELS_UPDATE_INTERVAL,
+        self._labels_update_loop)
+
 
     if self.initialized:
       pickled_time = cPickle.dumps(self.last_updated)
-      client.labelplus.get_labels_data(pickled_time).addCallback(
-        self._update_labels)
+      client.labelplus.get_labels_data(pickled_time).addCallbacks(
+        callback, callback)
+
+
+  # Section: General
+
+  def get_extension(self, name):
+
+    for ext in self._ext:
+      if ext.__class__.__name__ == name:
+        return ext
+
+    return None
+
+
+  def is_valid_label(self, id, name):
+
+    basename = labelplus.common.label.resolve_name_by_degree(name, degree=1)
+
+    return (id not in labelplus.common.label.RESERVED_IDS and
+      id in self.data and self.data[id]["name"] == basename)
 
 
   # Section: Config
@@ -168,6 +244,7 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
       labelplus.gtkui.config.convert.CONFIG_SPECS)
 
     self._update_daemon_config(config)
+    self._normalize_config(config)
 
     return config
 
@@ -193,7 +270,20 @@ class GtkUI(deluge.plugins.pluginbase.GtkPluginBase):
         labelplus.gtkui.config.DAEMON_DEFAULTS)
 
 
-  # Section: Label: Updates
+  def _normalize_config(self, config):
+
+    labelplus.common.normalize_dict(config.config,
+      labelplus.gtkui.config.CONFIG_DEFAULTS)
+
+    labelplus.common.normalize_dict(config.config["common"],
+      labelplus.gtkui.config.CONFIG_DEFAULTS["common"])
+
+    for daemon in config.config["daemon"]:
+      labelplus.common.normalize_dict(config.config["daemon"][daemon],
+        labelplus.gtkui.config.DAEMON_DEFAULTS)
+
+
+  # Section: Label: Update
 
   def _update_labels(self, result):
 
