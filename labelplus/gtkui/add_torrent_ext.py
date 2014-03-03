@@ -88,27 +88,6 @@ class AddTorrentExt(WidgetEncapsulator):
 
     log.info("Setting up widgets...")
 
-    def build_menu():
-
-      def on_activate(widget, label_id):
-
-        id = self._get_selected_id()
-        if id:
-          self._set_torrent_label(id, label_id)
-          self._update_label_text(id)
-
-
-      item = gtk.MenuItem(_(labelplus.common.label.ID_NONE))
-      item.connect("activate", on_activate, labelplus.common.label.ID_NONE)
-
-      items = [item, gtk.SeparatorMenuItem()]
-
-      RT.register(items[0], "AddTorrentExt:Menu:'None'")
-      RT.register(items[1], "AddTorrentExt:Menu:Separator")
-
-      return LabelSelectionMenu(self._plugin, on_activate, items)
-
-
     def on_click(widget):
 
       self._menu.popup(None, None, None, 1, gtk.gdk.CURRENT_TIME)
@@ -120,9 +99,6 @@ class AddTorrentExt(WidgetEncapsulator):
       self._update_label_text(id)
 
 
-    self._menu = build_menu()
-
-    RT.register(self._menu, "AddTorrentExt:Menu")
 
     self.blk_add_torrent_ext.get_parent().remove(self.blk_add_torrent_ext)
     self.blk_add_torrent_ext.show_all()
@@ -150,6 +126,32 @@ class AddTorrentExt(WidgetEncapsulator):
     box.pack_start(self.blk_add_torrent_ext, expand=False)
     box.child_set_property(self.blk_add_torrent_ext, "position",
       box.child_get_property(self.blk_add_torrent_ext, "position")-1)
+
+
+  def _create_menu(self):
+
+    log.info("Creating menu...")
+
+    def on_activate(widget, label_id):
+
+      id = self._get_selected_id()
+      if id:
+        self._set_torrent_label(id, label_id)
+        self._update_label_text(id)
+
+
+    item = gtk.MenuItem(_(labelplus.common.label.ID_NONE))
+    item.connect("activate", on_activate, labelplus.common.label.ID_NONE)
+
+    items = [item, gtk.SeparatorMenuItem()]
+
+    self._menu = LabelSelectionMenu(self._plugin, on_activate, items)
+
+    self._deinit.append(self._destroy_menu)
+
+    RT.register(items[0], "AddTorrentExt:Menu:'None'")
+    RT.register(items[1], "AddTorrentExt:Menu:Separator")
+    RT.register(self._menu, "AddTorrentExt:Menu")
 
 
   def _register_handlers(self):
