@@ -158,7 +158,7 @@ def init_config(config, defaults, version, specs):
 
     spec = specs.get(key)
     if spec:
-      convert.convert(spec, config, strict_paths=True)
+      convert.convert(spec, config)
       ver = get_version(config)
     else:
       raise ValueError("Config file conversion v%s -> v%s not supported" %
