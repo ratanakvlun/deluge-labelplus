@@ -36,7 +36,6 @@
 
 import logging
 
-import pango
 import gtk
 
 import deluge.component
@@ -47,48 +46,45 @@ import labelplus.common
 import labelplus.common.label
 
 from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
+from labelplus.gtkui.widget_encapsulator import WidgetEncapsulator
 
 
 LABEL_ID = 0
 LABEL_NAME = 1
 
 log = logging.getLogger(__name__)
-log.addFilter(labelplus.common.LOG_FILTER)
 
 
-class AddTorrentExt(object):
+class AddTorrentExt(WidgetEncapsulator):
 
   # Section: Initialization
 
   def __init__(self, plugin):
 
-    log.debug("Initializing AddTorrentExt...")
+    log.info("Initializing %s...", self.__class__.__name__)
+
+    super(AddTorrentExt, self).__init__(labelplus.common.get_resource(
+      "blk_add_torrent_ext.glade"))
 
     self._plugin = plugin
 
     self._dialog = deluge.component.get("AddTorrentDialog")
     self._view = self._dialog.listview_torrents
 
+    self._menu = None
     self._mappings = {}
     self._handlers = []
 
-    self._ext_block = None
-    self._ext_label = None
-    self._ext_menu = None
-    self._build_ext_block()
-    self._install_ext_block()
+    self._setup_widgets()
+    self._install_widgets()
+    self._register_handlers()
 
-    self._update_sensitivity()
-    self._ext_block.show_all()
-
-    self._register_dialog_handlers()
-
-    log.debug("AddTorrentExt initialized")
+    log.info("%s initialized", self.__class__.__name__)
 
 
-  def _build_ext_block(self):
+  def _setup_widgets(self):
 
-    log.debug("Building widgets...")
+    log.info("Setting up widgets...")
 
     def build_menu():
 
@@ -105,121 +101,112 @@ class AddTorrentExt(object):
 
       items = [item, gtk.SeparatorMenuItem()]
 
-      return LabelSelectionMenu("Select", self._plugin, on_activate, items)
+
+      return LabelSelectionMenu(self._plugin, on_activate, items)
 
 
-    def on_button_press(widget, event):
+    def on_click(widget):
 
-      menu.activate()
-      menu.get_submenu().popup(None, None, None, event.button, event.time)
-
-      return True
+      self._menu.popup(None, None, None, 1, gtk.gdk.CURRENT_TIME)
 
 
-    block = gtk.Frame()
-    block.set_shadow_type(gtk.SHADOW_NONE)
-    block.set_label_widget(gtk.Label())
-    block.get_label_widget().set_markup("<b>%s</b>" %
+    def on_toggle(widget):
+
+      id = self._get_selected_id()
+      self._update_label_text(id)
+
+
+    self._menu = build_menu()
+
+
+    self.blk_add_torrent_ext.get_parent().remove(self.blk_add_torrent_ext)
+    self.blk_add_torrent_ext.show_all()
+
+    self.blk_add_torrent_ext.get_label_widget().set_markup("<b>%s</b>" %
       labelplus.common.DISPLAY_NAME)
 
-    box_align = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-    box_align.set_padding(5, 0, 5, 5)
-    box = gtk.HBox(spacing=3)
+    self.btn_select.connect("clicked", on_click)
 
-    frame = gtk.Frame()
-    frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+    self.tgb_fullname.set_active(
+      self._plugin.config["common"]["add_torrent_ext_fullname"])
+    self.tgb_fullname.connect("toggled", on_toggle)
 
-    label_align = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-    label_align.set_padding(0, 0, 3, 3)
-    label = gtk.Label(_(labelplus.common.label.ID_NONE))
-    label.set_alignment(0.0, 0.5)
-    label.set_ellipsize(pango.ELLIPSIZE_END)
-
-    menu = build_menu()
-
-    button = gtk.Button(_("Select"))
-    button.connect("button-press-event", on_button_press)
-
-    block.add(box_align)
-    box_align.add(box)
-    box.pack_start(frame, expand=True)
-    box.pack_start(button, expand=False)
-    frame.add(label_align)
-    label_align.add(label)
-
-    self._ext_block = block
-    self._ext_label = label
-    self._ext_menu = menu
+    self._update_label_text()
+    self._update_sensitivity()
 
 
-  def _install_ext_block(self):
+  def _install_widgets(self):
 
-    log.debug("Adding widgets to Add Torrent dialog...")
+    log.info("Installing widgets...")
 
     widget = self._dialog.glade.get_widget("button_revert")
+
     box = widget.get_ancestor(gtk.VBox)
+    box.pack_start(self.blk_add_torrent_ext, expand=False)
+    box.child_set_property(self.blk_add_torrent_ext, "position",
+      box.child_get_property(self.blk_add_torrent_ext, "position")-1)
 
-    box.pack_start(self._ext_block, expand=False)
-    pos = box.child_get_property(self._ext_block, "position")-1
-    box.child_set_property(self._ext_block, "position", pos)
 
+  def _register_handlers(self):
 
-  def _register_dialog_handlers(self):
-
-    log.debug("Registering handlers...")
+    log.info("Registering handlers...")
 
     self._register_handler(self._view.get_selection(), "changed",
       self._on_selection_changed)
 
-    btn = self._dialog.glade.get_widget("button_revert")
-    self._register_handler(btn, "clicked", self._do_revert)
+    self._register_handler(self._dialog.glade.get_widget("button_revert"),
+      "clicked", self._do_revert)
 
-    btn = self._dialog.glade.get_widget("button_apply")
-    self._register_handler(btn, "clicked", self._do_apply_to_all)
+    self._register_handler(self._dialog.glade.get_widget("button_apply"),
+      "clicked", self._do_apply_to_all)
 
-    btn = self._dialog.glade.get_widget("button_remove")
-    self._register_handler(btn, "clicked", self._on_remove_torrent)
+    self._register_handler(self._dialog.glade.get_widget("button_remove"),
+      "clicked", self._on_remove_torrent)
 
-    btn = self._dialog.glade.get_widget("button_cancel")
-    self._register_handler(btn, "clicked", self._do_clear)
+    self._register_handler(self._dialog.glade.get_widget("button_cancel"),
+      "clicked", self._on_close)
 
-    btn = self._dialog.glade.get_widget("button_add")
-    self._register_handler(btn, "clicked", self._on_add_torrent)
+    self._register_handler(self._dialog.glade.get_widget("button_add"),
+      "clicked", self._on_add_torrent)
 
 
   # Section: Deinitialization
 
   def unload(self):
 
-    log.debug("Deinitializing AddTorrentExt...")
+    log.info("Deinitializing %s...", self.__class__.__name__)
 
     self._deregister_handlers()
-    self._uninstall_ext_block()
+    self._uninstall_widgets()
+    self._destroy_widgets()
 
-    self._ext_menu.destroy()
-
-    del self._ext_menu
-    del self._ext_label
-    del self._ext_block
-
-    log.debug("AddTorrentExt deinitialized")
+    log.info("%s deinitialized", self.__class__.__name__)
 
 
   def _deregister_handlers(self):
 
-    log.debug("Deregistering handlers...")
+    log.info("Deregistering handlers...")
 
     for widget, handle in self._handlers:
       widget.disconnect(handle)
 
 
-  def _uninstall_ext_block(self):
+  def _uninstall_widgets(self):
 
-    log.debug("Removing widgets from Add Torrent dialog...")
+    log.info("Uninstalling widgets...")
 
-    box = self._ext_block.get_parent()
-    box.remove(self._ext_block)
-    self._dialog.dialog.resize(1, 1)
+    box = self.blk_add_torrent_ext.get_parent()
+    box.remove(self.blk_add_torrent_ext)
+
+
+  def _destroy_widgets(self):
+
+    log.info("Destroying widgets...")
+
+    self.destroy()
+
+    self._menu.destroy()
+    del self._menu
 
 
   # Section: General
@@ -234,7 +221,7 @@ class AddTorrentExt(object):
 
     model, row = self._view.get_selection().get_selected()
     if row:
-      return model[row][LABEL_ID]
+      return model[row][0]
 
     return None
 
@@ -244,12 +231,30 @@ class AddTorrentExt(object):
   def _update_sensitivity(self):
 
     id = self._get_selected_id()
-    self._ext_block.set_sensitive(id is not None)
+    self.blk_add_torrent_ext.set_sensitive(id is not None)
+
+
+  def _update_label_text(self, id=None):
+
+    if id in self._mappings:
+      fullname = self._mappings[id][LABEL_NAME]
+    else:
+      fullname = _(labelplus.common.label.ID_NONE)
+
+    if self.tgb_fullname.get_active():
+      self.lbl_name.set_text(fullname)
+    else:
+      self.lbl_name.set_text(labelplus.common.label.resolve_name_by_degree(
+        fullname, degree=1))
+
+    self.lbl_name.set_tooltip_text(fullname)
 
 
   def _set_torrent_label(self, torrent_id, label_id):
 
-    log.debug("Setting label for %r to %r", torrent_id, label_id)
+    assert(torrent_id)
+
+    log.info("Setting label for %r to %r", torrent_id, label_id)
 
     if (label_id != labelplus.common.label.ID_NONE and
         label_id in self._plugin.data):
@@ -257,21 +262,16 @@ class AddTorrentExt(object):
       self._mappings[torrent_id] = (label_id, name)
     else:
       if label_id not in self._plugin.data:
-        log.debug("Invalid label: %r", label_id)
+        log.info("Invalid label: %r", label_id)
 
       if torrent_id in self._mappings:
         del self._mappings[torrent_id]
 
 
-  def _update_label_text(self, id=None):
+  def _clear(self):
 
-    if id and id in self._mappings:
-      name = self._mappings[id][LABEL_NAME]
-    else:
-      name = _(labelplus.common.label.ID_NONE)
-
-    self._ext_label.set_text(name)
-    self._ext_label.set_tooltip_text(name)
+    self._mappings.clear()
+    self._update_label_text()
 
 
   # Section: Dialog Handlers
@@ -287,7 +287,7 @@ class AddTorrentExt(object):
 
     id = self._get_selected_id()
     if id in self._mappings:
-      log.debug("Resetting label setting for %r", id)
+      log.info("Resetting label setting for %r", id)
       del self._mappings[id]
       self._update_label_text(id)
 
@@ -296,7 +296,7 @@ class AddTorrentExt(object):
 
     def set_mapping(model, path, row):
 
-      id = model[row][LABEL_ID]
+      id = model[row][0]
       self._mappings[id] = mapping
 
 
@@ -304,12 +304,12 @@ class AddTorrentExt(object):
     if id in self._mappings:
       mapping = self._mappings[id]
     else:
-      mapping = (labelplus.common.label.ID_NONE,)
+      mapping = None
 
-    if mapping[LABEL_ID] == labelplus.common.label.ID_NONE:
+    if mapping is None:
       self._mappings.clear()
     else:
-      log.debug("Applying label %r to all torrents", mapping[LABEL_ID])
+      log.info("Applying label %r to all torrents", mapping[LABEL_ID])
       self._view.get_model().foreach(set_mapping)
 
 
@@ -324,20 +324,16 @@ class AddTorrentExt(object):
     self._update_label_text(id)
 
 
-  def _do_clear(self, widget):
-
-    self._mappings.clear()
-    self._update_label_text()
-
-
   def _on_add_torrent(self, widget):
 
-    log.debug("Setting labels on added torrents")
+    log.info("Applying labels to the torrents added")
 
     reverse_map = {}
     for torrent_id, mapping in self._mappings.iteritems():
-      label_id = mapping[LABEL_ID]
+      if not self._plugin.is_valid_label(*mapping):
+        continue
 
+      label_id = mapping[LABEL_ID]
       if label_id not in reverse_map:
         reverse_map[label_id] = []
 
@@ -346,4 +342,12 @@ class AddTorrentExt(object):
     for label_id, torrent_ids in reverse_map.iteritems():
       client.labelplus.set_torrent_labels(torrent_ids, label_id)
 
-    self._do_clear(widget)
+    self._on_close(widget)
+
+
+  def _on_close(self, widget):
+
+    self._clear()
+
+    self._plugin.config["common"]["add_torrent_ext_fullname"] = \
+      self.tgb_fullname.get_active()
