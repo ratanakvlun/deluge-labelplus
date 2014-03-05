@@ -48,11 +48,35 @@ CONFIG_SPEC_V1_V2 = {
     "name_input_pos": "common/name_input_pos",
     "label_options_size": "common/label_options_size",
     "label_options_pos": "common/label_options_pos",
+
     "prefs_state": "common/prefs_state",
+
     "show_label_bandwidth": "common/show_label_bandwidth",
+  },
+}
+
+CONFIG_SPEC_V2_V3 = {
+  "version_in": 2,
+  "version_out": 3,
+  "defaults": labelplus.gtkui.config.CONFIG_DEFAULTS_V3,
+  "strict": True,
+  "deepcopy": False,
+  "map": {
+    "common/name_input_size": "common/name_input_size",
+    "common/name_input_pos": "common/name_input_pos",
+    "common/label_options_size": "common/label_options_size",
+    "common/label_options_pos": "common/label_options_pos",
+
+    "common/prefs_state": "common/prefs_state",
+
+    "common/show_label_bandwidth": "common/status_bar",
+    "common/status_include_sublabel": "common/status_bar_sublabels",
+
+    "daemon": "daemon",
   },
 }
 
 CONFIG_SPECS = {
   (1, 2): CONFIG_SPEC_V1_V2,
+  (2, 3): CONFIG_SPEC_V2_V3,
 }
