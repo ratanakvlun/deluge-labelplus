@@ -34,86 +34,69 @@
 #
 
 
-import datetime
-
 import gtk
 
-import labelplus.common
 import labelplus.common.label
+import labelplus.gtkui.common
 
-import labelplus.gtkui.util
+from labelplus.gtkui import RT
 
 
 class LabelSelectionMenu(gtk.Menu):
 
-  def __init__(self, plugin, on_activate, base_items=[]):
+  def __init__(self, model, on_activate, headers=False, root_items=[],
+      base_items=[]):
 
     super(LabelSelectionMenu, self).__init__()
 
-    self._plugin = plugin
-    self._on_activate = on_activate
-    self._base_items = base_items
+    self._build_menu(model, on_activate, headers, root_items, base_items)
 
-    self._last_updated = labelplus.common.DATETIME_010101
-
-    self.connect("show", self._on_show)
-
-    self._on_show(self)
+    self.show_all()
 
 
-  def _on_show(self, widget):
+  def _build_menu(self, model, on_activate, headers, root_items, base_items):
 
-    if self._last_updated <= self._plugin.last_updated:
-      self._clear_menu()
-      self._build_menu(self._plugin.store)
-      self.show_all()
+    def create_item(iter, menu):
 
-      self._last_updated = datetime.datetime.now()
+      id, data = model[iter]
+      if id in labelplus.common.label.RESERVED_IDS:
+        return
 
+      name = data["name"]
 
-  def _clear_menu(self):
+      item = gtk.MenuItem(name); RT.register(item, __name__)
+      menu.append(item)
 
-    for item in list(self.get_children()):
-      self.remove(item)
+      if not model.iter_has_child(iter) and not base_items:
+        item.connect("activate", on_activate, id)
+      else:
+        submenu = gtk.Menu(); RT.register(submenu, __name__)
 
+        if headers:
+          labelplus.gtkui.common.menu_add_items(submenu,
+            [(name, on_activate)], id)
+          labelplus.gtkui.common.menu_add_separator(submenu)
 
-  def _build_menu(self, model):
+        children = labelplus.gtkui.common.treemodel_get_children(model, iter)
 
-    def create_item(model, row, menus):
+        if base_items:
+          labelplus.gtkui.common.menu_add_items(submenu, base_items, id)
+          if children:
+            labelplus.gtkui.common.menu_add_separator(submenu)
 
-      if row:
-        id, data = model[row]
+        for child in children:
+          create_item(child, submenu)
 
-        if id in labelplus.common.label.RESERVED_IDS:
-          return
-
-        name = data["name"]
-
-        item = gtk.MenuItem(name)
-        menus[-1].append(item)
-
-        if not model.iter_has_child(row):
-          item.connect("activate", self._on_activate, id)
-        else:
-          sub_item = gtk.MenuItem(name)
-          sub_item.connect("activate", self._on_activate, id)
-
-          item.set_submenu(gtk.Menu())
-          item.get_submenu().append(sub_item)
-          item.get_submenu().append(gtk.SeparatorMenuItem())
-
-          # Push the menu to be appended by children
-          menus.append(item.get_submenu())
+        item.set_submenu(submenu)
 
 
-    def pop_menu_stack(model, row, menus):
+    children = labelplus.gtkui.common.treemodel_get_children(model)
 
-      if row and model.iter_has_child(row):
-        menus.pop()
+    if root_items:
+      labelplus.gtkui.common.menu_add_items(self, root_items,
+        labelplus.common.label.ID_NULL)
+      if children:
+        labelplus.gtkui.common.menu_add_separator(self)
 
-
-    for item in self._base_items:
-      self.append(item)
-
-    labelplus.gtkui.util.treemodel_recurse(model, None, create_item,
-      pop_menu_stack, menus=[self])
+    for child in children:
+      create_item(child, self)
