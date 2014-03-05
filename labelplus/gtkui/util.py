@@ -50,4 +50,9 @@ def textview_get_text(textview):
   return buff.get_text(buff.get_start_iter(), buff.get_end_iter())
 
 
+def treemodel_get_children(model, iter=None):
 
+  if iter:
+    return [x.iter for x in model[iter].iterchildren()]
+  else:
+    return [x.iter for x in model]
