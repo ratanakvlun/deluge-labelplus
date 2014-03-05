@@ -42,11 +42,13 @@ CONFIG_DEFAULTS_V1 = {
   "name_input_pos": None,
   "label_options_size": None,
   "label_options_pos": None,
+
   "prefs_state": [],
   "sidebar_state": {
     "selected": labelplus.common.label.ID_ALL,
     "expanded": [],
   },
+
   "show_label_bandwidth": False,
 }
 
@@ -63,10 +65,37 @@ CONFIG_DEFAULTS_V2 = {
     "name_input_pos": None,
     "label_options_size": None,
     "label_options_pos": None,
+
     "prefs_state": [],
+
     "show_label_bandwidth": False,
     "status_include_sublabel": False,
+
+    #TEMP
     "add_torrent_ext_fullname": False,
+    "torrent_view_fullname": False,
+    "name_input_fullname": False,
+    "label_options_fullname": False,
+  },
+  "daemon": {},
+}
+
+CONFIG_DEFAULTS_V3 = {
+  "common": {
+    "name_input_size": None,
+    "name_input_pos": None,
+    "label_options_size": None,
+    "label_options_pos": None,
+
+    "prefs_state": [],
+
+    "status_bar": False,
+    "status_bar_sublabels": False,
+
+    "add_torrent_ext_fullname": False,
+    "torrent_view_fullname": False,
+    "name_input_fullname": False,
+    "label_options_fullname": False,
   },
   "daemon": {},
 }
