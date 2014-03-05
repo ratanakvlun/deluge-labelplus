@@ -35,6 +35,8 @@
 
 import gtk
 
+from labelplus.gtkui import RT
+
 
 def textview_set_text(textview, text):
 
@@ -56,3 +58,27 @@ def treemodel_get_children(model, iter=None):
     return [x.iter for x in model[iter].iterchildren()]
   else:
     return [x.iter for x in model]
+
+
+def menu_add_items(menu, items, *args, **kwargs):
+
+  menu_items = []
+
+  for name, on_activate in items:
+    item = gtk.MenuItem(name); RT.register(item)
+
+    if on_activate:
+      item.connect("activate", on_activate, *args, **kwargs)
+
+    menu.append(item)
+    menu_items.append(item)
+
+  return menu_items
+
+
+def menu_add_separator(menu):
+
+  sep = gtk.SeparatorMenuItem(); RT.register(sep)
+  menu.append(sep)
+
+  return sep
