@@ -71,7 +71,7 @@ def resolve_name_by_degree(name, degree):
 def validate_name(label_name):
 
   if not label_name:
-    raise ValueError("Empty label")
+    raise ValueError("Empty Label")
 
   if RE_INVALID_CHARS.search(label_name):
     raise ValueError("Invalid characters")
