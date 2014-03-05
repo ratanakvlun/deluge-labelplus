@@ -44,12 +44,13 @@ from labelplus.gtkui import RT
 
 class LabelSelectionMenu(gtk.Menu):
 
-  def __init__(self, model, on_activate, headers=False, root_items=[],
+  def __init__(self, plugin, on_activate, headers=False, root_items=[],
       base_items=[]):
 
     super(LabelSelectionMenu, self).__init__()
 
-    self._build_menu(model, on_activate, headers, root_items, base_items)
+    self._build_menu(plugin.model, on_activate, headers, root_items,
+      base_items)
 
     self.show_all()
 
