@@ -50,21 +50,4 @@ def textview_get_text(textview):
   return buff.get_text(buff.get_start_iter(), buff.get_end_iter())
 
 
-def treemodel_recurse(model, root, pre_func=None, post_func=None,
-    *args, **kwargs):
 
-  if pre_func:
-    pre_func(model, root, *args, **kwargs)
-
-  children = []
-
-  iter = model.iter_children(root)
-  while iter is not None:
-    children.append(iter)
-    iter = model.iter_next(iter)
-
-  for child in children:
-    treemodel_recurse(model, child, pre_func, post_func, *args, **kwargs)
-
-  if post_func:
-    post_func(model, root, *args, **kwargs)
