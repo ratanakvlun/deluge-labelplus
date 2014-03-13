@@ -433,12 +433,19 @@ class Core(CorePluginBase):
 
   @deluge.core.rpcserver.export
   @check_init
-  def get_parent_move_path(self, label_id):
+  def get_move_path_options(self, label_id):
 
     if label_id not in self._labels:
       raise ValueError("Invalid label: %r" % label_id)
 
-    return self._get_parent_move_path(label_id)
+    parent_path = self._get_parent_move_path(label_id)
+
+    options = {
+      "parent": parent_path,
+      "subfolder": os.path.join(parent_path, self._labels[label_id]["name"]),
+    }
+
+    return options
 
 
   @deluge.core.rpcserver.export
