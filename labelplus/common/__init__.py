@@ -90,6 +90,7 @@ def copy_dict_value(src, dest, src_key, dest_key, use_deepcopy=False):
     dest[dest_key] = src[src_key]
 
 
+# Cumulative dict update
 def update_dict(dest, src, use_deepcopy=False):
 
   for key in src.keys():
@@ -110,6 +111,27 @@ def normalize_dict(dict_in, template):
   for key in template:
     if key not in dict_in:
       dict_in[key] = copy.deepcopy(template[key])
+
+
+def dict_equals(a, b):
+
+  for key in a:
+    if key not in b:
+      return False
+
+    if isinstance(a[key], dict):
+      if not isinstance(b[key], dict):
+        return False
+
+      if a[key] is not b[key]:
+        result = dict_equals(a[key], b[key])
+        if not result:
+          return False
+    else:
+      if a[key] != b[key]:
+        return False
+
+  return True
 
 
 def get_path_mapped_dict(dict_in, path_in, path_out, use_deepcopy=False,
