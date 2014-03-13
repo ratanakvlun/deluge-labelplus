@@ -34,6 +34,7 @@
 #
 
 
+import copy
 import logging
 
 import gobject
@@ -85,6 +86,11 @@ class LabelStore(object):
   def __contains__(self, id):
 
     return id in self._data
+
+
+  def copy(self):
+
+    return copy.copy(self)
 
 
   # Section: Public: Store
