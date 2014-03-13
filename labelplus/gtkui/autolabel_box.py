@@ -79,7 +79,7 @@ class AutolabelBox(CriteriaBox):
 
     rows = super(AutolabelBox, self).get_all_row_values()
 
-    for row in rows:
+    for i, row in enumerate(rows):
       row[labelplus.common.config.autolabel.FIELD_PROP] = \
         labelplus.common.config.autolabel.PROPS[
           row[labelplus.common.config.autolabel.FIELD_PROP]]
@@ -92,7 +92,12 @@ class AutolabelBox(CriteriaBox):
         labelplus.common.config.autolabel.CASES[
           row[labelplus.common.config.autolabel.FIELD_CASE]]
 
-    return rows
+      row[labelplus.common.config.autolabel.FIELD_QUERY] = \
+        unicode(row[labelplus.common.config.autolabel.FIELD_QUERY], "utf8")
+
+      rows[i] = tuple(row)
+
+    return tuple(rows)
 
 
   def set_all_row_values(self, rows):
