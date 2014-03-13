@@ -420,6 +420,15 @@ class Core(CorePluginBase):
     self._timestamp["last_saved"] = datetime.datetime.now()
 
 
+  @deluge.core.rpcserver.export
+  @check_init
+  def get_label_defaults(self):
+
+    log.debug("Getting label defaults")
+
+    return self._prefs["label"]
+
+
   # Section: Public API: Label: Queries
 
   @deluge.core.rpcserver.export
