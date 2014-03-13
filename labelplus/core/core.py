@@ -1317,9 +1317,6 @@ class Core(CorePluginBase):
     rules = options["autolabel_rules"]
     match_all = options["autolabel_match_all"]
 
-    if not rules:
-      return False
-
     status = self._torrents[torrent_id].get_status(["name", "trackers"])
     name = status["name"]
     trackers = [x["url"] for x in status["trackers"]]
