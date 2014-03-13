@@ -101,7 +101,7 @@ NUM_FIELDS = 4
 # rules format: [[property, op, case, query],]
 #
 
-def find_match(props, rules, match_all=False):
+def find_match(props, rules, match_all=False, use_unicode=True):
 
   if not rules:
     return False
@@ -110,19 +110,12 @@ def find_match(props, rules, match_all=False):
     values = props[rule[FIELD_PROP]]
     op_func = OP_FUNCS[rule[FIELD_OP]]
 
-    flags = 0
+    flags = re.UNICODE if use_unicode else 0
 
     if rule[FIELD_CASE] == CASE_IGNORE:
       flags |= re.IGNORECASE
 
     query = rule[FIELD_QUERY]
-    try:
-      query = unicode(query, "utf8")
-      flags |= re.UNICODE
-    except TypeError:
-      flags |= re.UNICODE
-    except UnicodeDecodeError:
-      pass
 
     has_match = False
 
