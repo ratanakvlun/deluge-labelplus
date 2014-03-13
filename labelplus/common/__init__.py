@@ -64,6 +64,11 @@ def get_resource(filename):
       MODULE_NAME, os.path.join("data", filename))
 
 
+class LabelPlusError(Exception):
+
+  pass
+
+
 # Logging
 
 class PrefixHandler(logging.Handler):
