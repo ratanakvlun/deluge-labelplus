@@ -107,7 +107,7 @@ def find_match(props, rules, match_all=False, use_unicode=True):
     return False
 
   for rule in rules:
-    values = props[rule[FIELD_PROP]]
+    values = props.get(rule[FIELD_PROP]) or []
     op_func = OP_FUNCS[rule[FIELD_OP]]
 
     flags = re.UNICODE if use_unicode else 0
