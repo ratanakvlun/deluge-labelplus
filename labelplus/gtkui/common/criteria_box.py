@@ -225,8 +225,10 @@ class CriteriaBox(gtk.VBox):
 
     pairs = []
 
+    children = row.get_children()
+
     for i in range(len(self._columns)):
-      child = row.get_children()[i]
+      child = children[i]
       value = child._getter(child)
       pairs.append(i)
       pairs.append(value)
@@ -239,8 +241,10 @@ class CriteriaBox(gtk.VBox):
     indices = pairs[::2]
     values = pairs[1::2]
 
+    children = row.get_children()
+
     for i in range(len(self._columns)):
-      child = row.get_children()[i]
+      child = children[i]
 
       if i in indices:
         child._setter(child, values[indices.index(i)])
@@ -250,8 +254,10 @@ class CriteriaBox(gtk.VBox):
 
     values = []
 
+    children = row.get_children()
+
     for i in range(len(self._columns)):
-      child = row.get_children()[i]
+      child = children[i]
       value = child._getter(child)
       values.append(value)
 
@@ -260,8 +266,10 @@ class CriteriaBox(gtk.VBox):
 
   def set_row_values(self, row, values):
 
+    children = row.get_children()
+
     for i in range(len(self._columns)):
-      child = row.get_children()[i]
+      child = children[i]
       child._setter(child, values[i])
 
 
