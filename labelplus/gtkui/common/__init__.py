@@ -108,3 +108,27 @@ def menu_add_separator(menu, pos=-1):
   menu.insert(sep, pos)
 
   return sep
+
+
+def widget_get_descendents(widget, types=(), count=-1):
+
+  def get_descendents(widget, types, descendents, count):
+
+    if count != -1 and len(descendents) >= count:
+      return
+
+    if not isinstance(widget, gtk.Container):
+      return
+
+    for child in widget.get_children():
+      if not types or type(child) in types:
+        descendents.append(child)
+
+      get_descendents(child, types, descendents, count)
+
+
+  descendents = []
+
+  get_descendents(widget, types, descendents, count)
+
+  return descendents
