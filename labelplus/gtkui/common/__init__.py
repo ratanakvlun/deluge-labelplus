@@ -77,25 +77,34 @@ def treemodel_get_children(model, iter=None):
     return [x.iter for x in model]
 
 
-def menu_add_items(menu, items, *args, **kwargs):
+def menu_add_items(menu, pos, specs, *args):
 
   menu_items = []
+  if pos < 0:
+    pos = -len(specs)
 
-  for name, on_activate in items:
-    item = gtk.MenuItem(name); RT.register(item, __name__)
+  for spec in specs:
+    schematic = spec[0]
+    if len(schematic) > 1:
+      item = schematic[0](*schematic[1:])
+    else:
+      item = schematic[0]()
 
-    if on_activate:
-      item.connect("activate", on_activate, *args, **kwargs)
+    RT.register(item, __name__)
 
-    menu.append(item)
+    if len(spec) > 1 and spec[1]:
+      item.connect("activate", *(tuple(spec[1:])+args))
+
     menu_items.append(item)
+    menu.insert(item, pos)
+    pos += 1
 
   return menu_items
 
 
-def menu_add_separator(menu):
+def menu_add_separator(menu, pos=-1):
 
   sep = gtk.SeparatorMenuItem(); RT.register(sep, __name__)
-  menu.append(sep)
+  menu.insert(sep, pos)
 
   return sep
