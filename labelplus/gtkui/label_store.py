@@ -59,10 +59,9 @@ class LabelStore(object):
 
   def __init__(self):
 
-    self._data = {}
+    self._data = None
     self._store = None
-    self._map = {}
-
+    self._map = None
     self.model = None
 
 
@@ -91,6 +90,14 @@ class LabelStore(object):
   def copy(self):
 
     return copy.copy(self)
+
+
+  def destroy(self):
+
+    self.model = None
+    self._map = None
+    self._store = None
+    self._data = None
 
 
   # Section: Public: Store
