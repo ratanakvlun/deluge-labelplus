@@ -103,6 +103,9 @@ NUM_FIELDS = 4
 
 def find_match(props, rules, match_all=False):
 
+  if not rules:
+    return False
+
   for rule in rules:
     values = props[rule[FIELD_PROP]]
     op_func = OP_FUNCS[rule[FIELD_OP]]
