@@ -36,6 +36,9 @@
 
 import re
 
+from labelplus.common import LabelPlusError
+from labelplus.common.literals import (ERR_EMPTY_LABEL, ERR_INVALID_CHARS)
+
 
 ID_NULL = ""
 ID_ALL = "All"
@@ -71,7 +74,7 @@ def resolve_name_by_degree(name, degree):
 def validate_name(label_name):
 
   if not label_name:
-    raise ValueError("Empty Label")
+    raise LabelPlusError(ERR_EMPTY_LABEL)
 
   if RE_INVALID_CHARS.search(label_name):
-    raise ValueError("Invalid characters")
+    raise LabelPlusError(ERR_INVALID_CHARS)
