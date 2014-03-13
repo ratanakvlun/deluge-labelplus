@@ -37,18 +37,13 @@
 import gtk
 
 import labelplus.common.config.autolabel
+import labelplus.gtkui.common
 
-from labelplus.gtkui.criteria_box import CriteriaBox
 
+from labelplus.common import _
+from labelplus.gtkui.common.criteria_box import CriteriaBox
 
-def build_store(values):
-
-  ls = gtk.ListStore(str)
-
-  for value in values:
-    ls.append([value])
-
-  return ls
+from labelplus.gtkui import RT
 
 
 class AutolabelBox(CriteriaBox):
@@ -58,13 +53,20 @@ class AutolabelBox(CriteriaBox):
     super(AutolabelBox, self).__init__(homogeneous, row_spacing,
       column_spacing)
 
-    prop_store = build_store(labelplus.common.config.autolabel.PROPS)
-    op_store = build_store(labelplus.common.config.autolabel.OPS)
-    cases_store = build_store(labelplus.common.config.autolabel.CASES)
+    prop_store = labelplus.gtkui.common.liststore_create(str,
+      [_(x) for x in labelplus.common.config.autolabel.PROPS])
+    op_store = labelplus.gtkui.common.liststore_create(str,
+      [_(x) for x in labelplus.common.config.autolabel.OPS])
+    case_store = labelplus.gtkui.common.liststore_create(str,
+      [_(x) for x in labelplus.common.config.autolabel.CASES])
+
+    RT.register(prop_store, __name__)
+    RT.register(op_store, __name__)
+    RT.register(case_store, __name__)
 
     self.add_combobox_column(prop_store)
     self.add_combobox_column(op_store)
-    self.add_combobox_column(cases_store)
+    self.add_combobox_column(case_store)
     self.add_entry_column(expand=True)
 
     # Determine minimum width
