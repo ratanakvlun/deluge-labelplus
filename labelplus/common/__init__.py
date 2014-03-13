@@ -41,6 +41,8 @@ import gettext
 import datetime
 import logging
 
+import twisted.internet.reactor
+
 
 # General
 
@@ -78,6 +80,31 @@ class PrefixHandler(logging.Handler):
 
 
 LOG_HANDLER = PrefixHandler("[%s] " % PLUGIN_NAME)
+
+
+# Twisted
+
+def deferred_timeout(deferred, time, timeout_func, callback, errback, *args,
+    **kwargs):
+
+  def check_timeout(result, timeout, func, *args, **kwargs):
+
+    if not timeout.active():
+      return
+    else:
+      timeout.cancel()
+
+    return func(result, *args, **kwargs)
+
+
+  timeout = twisted.internet.reactor.callLater(time, timeout_func, *args,
+    **kwargs)
+
+  if callback:
+    deferred.addCallback(check_timeout, timeout, callback, *args, **kwargs)
+
+  if errback:
+    deferred.addErrback(check_timeout, timeout, errback, *args, **kwargs)
 
 
 # Dictionary
