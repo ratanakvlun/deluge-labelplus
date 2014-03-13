@@ -40,16 +40,33 @@ from labelplus.gtkui import RT
 
 class WidgetEncapsulator(object):
 
-  def __init__(self, filename):
+  def __init__(self, filename, root, attr_prefix=""):
 
-    self._model = gtk.glade.XML(filename)
+    self._model = None
+    self._root_widget = None
+    self._widgets = []
+
+    self._attr_prefix = attr_prefix
+
+    self._model = gtk.glade.XML(filename, root)
+    RT.register(self._model, __name__)
+
+    self._root_widget = self._model.get_widget(root)
     self._widgets = self._model.get_widget_prefix("")
 
     for widget in self._widgets:
-      RT.register(widget, "WidgetEncapsulator")
+      name = self._attr_prefix + widget.get_name()
 
-      if not hasattr(self, widget.get_name()):
-        setattr(self, widget.get_name(), widget)
+      if not hasattr(self, name):
+        setattr(self, name, widget)
+
+      RT.register(widget, __name__)
+
+
+  @property
+  def valid(self):
+
+    return self._root_widget is not None
 
 
   def get_widgets(self, prefix=""):
@@ -57,13 +74,24 @@ class WidgetEncapsulator(object):
     return [x for x in self._widgets if x.get_name().startswith(prefix)]
 
 
+  def connect_signals(self, map):
+
+    if self._model:
+      self._model.signal_autoconnect(map)
+
+
   def destroy(self):
 
     while len(self._widgets):
       widget = self._widgets.pop()
+      name = self._attr_prefix + widget.get_name()
 
-      attr = getattr(self, widget.get_name(), None)
-      if attr is widget:
-        delattr(self, widget.get_name())
+      attr_widget = getattr(self, name, None)
+      if attr_widget is widget:
+        delattr(self, name)
 
-      widget.destroy()
+    if self._root_widget:
+      self._root_widget.destroy()
+      self._root_widget = None
+
+    self._model = None
