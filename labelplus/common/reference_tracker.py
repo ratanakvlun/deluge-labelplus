@@ -34,8 +34,9 @@
 #
 
 
-import weakref
+import gc
 import logging
+import weakref
 
 
 class ReferenceTracker(object):
@@ -70,14 +71,18 @@ class ReferenceTracker(object):
     return ref
 
 
-  def report(self):
+  def report(self, collect=True):
+
+    if gc.isenabled() and collect:
+      self.logger.debug("Running garbage collector...")
+      gc.collect()
 
     if len(self._refs) > 0:
-      self.logger.info("Reference count: %s", len(self._refs))
+      self.logger.info("Remaining reference count: %s", len(self._refs))
       for ref in self._refs:
         self.logger.debug("<%s> is alive", self._refs[ref])
     else:
-      self.logger.info("No references to report")
+      self.logger.info("No remaining references to report")
 
 
   def clear(self):
