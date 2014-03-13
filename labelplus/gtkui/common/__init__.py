@@ -110,6 +110,27 @@ def menu_add_separator(menu, pos=-1):
   return sep
 
 
+def widget_print_tree(widget, indent, step):
+
+  if hasattr(widget, "get_text"):
+    extra = widget.get_text()
+  elif hasattr(widget, "get_label"):
+    extra = widget.get_label()
+  elif hasattr(widget, "get_title"):
+    extra = widget.get_title()
+  else:
+    extra = ""
+
+  print " "*(indent*step), widget, extra
+
+  if isinstance(widget, gtk.Container):
+    for child in widget.get_children():
+      widget_print_tree(child, indent+1, step)
+  elif isinstance(widget, gtk.TreeView):
+    for col in widget.get_columns():
+      widget_print_tree(col, indent+1, step)
+
+
 def widget_get_descendents(widget, types=(), count=-1):
 
   def get_descendents(widget, types, descendents, count):
