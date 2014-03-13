@@ -40,10 +40,10 @@ import re
 PROP_NAME = "Name"
 PROP_TRACKER = "Tracker"
 
-PROPS = [
+PROPS = (
   PROP_NAME,
   PROP_TRACKER,
-]
+)
 
 OP_CONTAINS = "contains"
 OP_DOESNT_CONTAIN = "doesn't contain"
@@ -54,7 +54,7 @@ OP_ENDS_WITH = "ends with"
 OP_MATCHES_REGEX = "matches regex"
 OP_CONTAINS_WORDS = "contains words"
 
-OPS = [
+OPS = (
   OP_CONTAINS,
   OP_DOESNT_CONTAIN,
   OP_IS,
@@ -63,15 +63,15 @@ OPS = [
   OP_ENDS_WITH,
   OP_MATCHES_REGEX,
   OP_CONTAINS_WORDS,
-]
+)
 
 CASE_MATCH = "match case"
 CASE_IGNORE = "ignore case"
 
-CASES = [
+CASES = (
   CASE_MATCH,
   CASE_IGNORE,
-]
+)
 
 OP_FUNCS = {
   OP_CONTAINS: lambda x,y,z: re.search(re.escape(y), x, z),
