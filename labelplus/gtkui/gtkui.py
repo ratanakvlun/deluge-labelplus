@@ -44,26 +44,28 @@ import copy
 import datetime
 import logging
 
-import gobject
-import gtk
 import twisted.internet
-import twisted.python.failure
 
 import deluge.component
 import deluge.configmanager
 
-from deluge.plugins.pluginbase import GtkPluginBase
-from deluge.ui.client import client
-
 import labelplus.common
 import labelplus.common.config
 import labelplus.common.label
-
 import labelplus.gtkui.config
 import labelplus.gtkui.config.convert
 
+
+from twisted.python.failure import Failure
+
+from deluge.plugins.pluginbase import GtkPluginBase
+from deluge.ui.client import client
+
+from labelplus.gtkui.label_store import LabelStore
 from labelplus.gtkui.add_torrent_ext import AddTorrentExt
-from labelplus.gtkui.torrent_view_ext import TorrentViewExt
+#from labelplus.gtkui.torrent_view_ext import TorrentViewExt
+#from labelplus.gtkui.side_bar_ext import SideBarExt
+#from labelplus.gtkui.status_bar_ext import StatusBarExt
 
 from labelplus.gtkui import RT
 
@@ -71,7 +73,7 @@ from labelplus.gtkui import RT
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
 INIT_POLLING_INTERVAL = 1.0
-LABELS_UPDATE_INTERVAL = 1.0
+UPDATE_INTERVAL = 1.0
 
 
 log = logging.getLogger(__name__)
@@ -81,33 +83,39 @@ class GtkUI(GtkPluginBase):
 
   # Section: Initialization
 
-  def __init__(self, plugin_name):
+  def __init__(self, plugin_name):#
+
+    RT.register(self)
+    RT.logger = logging.getLogger(__name__ + ".rt")
+    RT.logger.setLevel(logging.INFO)
 
     super(GtkUI, self).__init__(plugin_name)
 
     self.initialized = False
 
     self.config = None
-    self.data = None
-    self.store = None
+
+    self.store = LabelStore()
     self.last_updated = None
 
-    self._ext = []
+    self._extensions = []
+
+    self._calls = []
 
 
-  def enable(self):
+  def enable(self):#
 
     log.info("Initializing %s...", self.__class__.__name__)
 
     self._poll_init()
 
 
-  def _poll_init(self):
+  def _poll_init(self):#
 
     client.labelplus.is_initialized().addCallback(self._check_init)
 
 
-  def _check_init(self, result):
+  def _check_init(self, result):#
 
     log.info("Waiting for core to be initialized...")
 
@@ -122,46 +130,85 @@ class GtkUI(GtkPluginBase):
 
     log.info("Resuming initialization...")
 
-    info = client.connection_info()
-    self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
+    try:
+      info = client.connection_info()
+      self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
-    self.config = self._load_config()
-    self._update_labels(result)
+      self.config = self._load_config()
 
-    self._load_extensions()
+      self._update_store(result)
 
-    self.initialized = True
+      self._load_extensions()
 
-    log.info("%s initialized", self.__class__.__name__)
+      self.initialized = True
 
-    self._labels_update_loop()
+      log.info("%s initialized", self.__class__.__name__)
+    except:
+      log.error("Error initializing %s", self.__class__.__name__)
+      raise
+
+    self._update_loop()
+    self.testing()
 
 
-  def _load_extensions(self):
+  def _load_extensions(self):#
 
     extensions = [
-      (AddTorrentExt, (self,)),
-      (TorrentViewExt, (self,)),
+      #(AddTorrentExt, (self,)),
     ]
 
-    while len(extensions):
-      ext = extensions.pop()
-
+    for ext in extensions:
       try:
         instance = ext[0](*ext[1])
 
-        if __debug__: RT.register(instance, ext[0].__name__)
+        RT.register(instance, ext[0].__name__)
 
-        self._ext.append(instance)
+        self._extensions.append(instance)
       except:
         pass
 
 
+  def testing(self):
+
+    log.debug("Testing Start")
+
+    from labelplus.gtkui.name_input_dialog import AddLabelDialog
+    from labelplus.gtkui.name_input_dialog import RenameLabelDialog
+    from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
+    from labelplus.gtkui.label_options_dialog import LabelOptionsDialog
+
+    a = AddLabelDialog(self, self.store)
+    RT.register(a)
+    a.show()
+    del a
+
+    #a = RenameLabelDialog(self, self.store, "0")
+    #RT.register(a)
+    #a.show()
+    #del a
+
+    a = LabelOptionsDialog(self, self.store, "0")
+    RT.register(a)
+    a.show()
+    del a
+    #for x in self.store:
+    #  log.debug("ID: %r", x)
+
+    #for x in self.store:
+    #  log.debug("Name: %r", self.store[x]["name"])
+
+    RT.report()
+
+    log.debug("Testing End")
+
+
   # Section: Deinitialization
 
-  def disable(self):
+  def disable(self):#
 
     log.info("Deinitializing %s...", self.__class__.__name__)
+
+    labelplus.common.cancel_calls(self._calls)
 
     if self.config:
       if self.initialized:
@@ -173,15 +220,18 @@ class GtkUI(GtkPluginBase):
 
     self._unload_extensions()
 
-    if __debug__: RT.report()
+    self.store.destroy()
+    del self.store
+
+    RT.report()
 
     log.info("%s deinitialized", self.__class__.__name__)
 
 
-  def _unload_extensions(self):
+  def _unload_extensions(self):#
 
-    while len(self._ext):
-      ext = self._ext.pop()
+    while self._extensions:
+      ext = self._extensions.pop()
 
       try:
         ext.unload()
@@ -189,47 +239,26 @@ class GtkUI(GtkPluginBase):
         pass
 
 
-  # Section: Update Loops
+  # Section: Public
 
-  def _labels_update_loop(self):
+  def get_extension(self, name):#
 
-    def callback(result):
-
-      if not isinstance(result, twisted.python.failure.Failure):
-        self._update_labels(result)
-
-      twisted.internet.reactor.callLater(LABELS_UPDATE_INTERVAL,
-        self._labels_update_loop)
-
-
-    if self.initialized:
-      pickled_time = cPickle.dumps(self.last_updated)
-      client.labelplus.get_labels_data(pickled_time).addCallbacks(
-        callback, callback)
-
-
-  # Section: General
-
-  def get_extension(self, name):
-
-    for ext in self._ext:
+    for ext in self._extensions:
       if ext.__class__.__name__ == name:
         return ext
 
     return None
 
 
-  def is_valid_label(self, id, name):
-
-    basename = labelplus.common.label.resolve_name_by_degree(name, degree=1)
+  def is_valid_label(self, id):#
 
     return (id not in labelplus.common.label.RESERVED_IDS and
-      id in self.data and self.data[id]["name"] == basename)
+      id in self.store)
 
 
   # Section: Config
 
-  def _load_config(self):
+  def _load_config(self):#
 
     config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
@@ -248,7 +277,7 @@ class GtkUI(GtkPluginBase):
     return config
 
 
-  def _update_daemon_config(self, config):
+  def _update_daemon_config(self, config):#
 
     saved_daemons = deluge.component.get("ConnectionManager").config["hosts"]
     if not saved_daemons:
@@ -269,91 +298,50 @@ class GtkUI(GtkPluginBase):
         labelplus.gtkui.config.DAEMON_DEFAULTS)
 
 
-  def _normalize_config(self, config):
+  def _normalize_config(self, config):#
 
     labelplus.common.normalize_dict(config.config,
       labelplus.gtkui.config.CONFIG_DEFAULTS)
 
-    labelplus.common.normalize_dict(config.config["common"],
+    labelplus.common.normalize_dict(config["common"],
       labelplus.gtkui.config.CONFIG_DEFAULTS["common"])
 
-    for daemon in config.config["daemon"]:
-      labelplus.common.normalize_dict(config.config["daemon"][daemon],
+    for daemon in config["daemon"]:
+      labelplus.common.normalize_dict(config["daemon"][daemon],
         labelplus.gtkui.config.DAEMON_DEFAULTS)
 
 
-  # Section: Label: Update
+  # Section: Update
 
-  def _update_labels(self, result):
+  def _update_loop(self):#
+
+    def process_result(result):
+
+      if not isinstance(result, Failure):
+        self._update_store(result)
+
+      self._calls.append(twisted.internet.reactor.callLater(UPDATE_INTERVAL,
+        self._update_loop))
+
+
+    labelplus.common.clean_calls(self._calls)
+
+    if self.initialized:
+      pickled_time = cPickle.dumps(self.last_updated)
+      client.labelplus.get_labels_data(pickled_time).addCallbacks(
+        process_result, process_result)
+
+
+  def _update_store(self, result):#
 
     if not result:
       return
 
     self.last_updated = datetime.datetime.now()
-    self.data = result
+    self.store.update(result)
 
-    id = labelplus.common.label.ID_ALL
-    self.data[id]["name"] = _(id)
-
-    id = labelplus.common.label.ID_NONE
-    self.data[id]["name"] = _(id)
-
-    self._build_store()
-    self._build_fullname_index()
-
-
-  def _build_store(self):
-
-    def label_sort_asc(model, iter1, iter2):
-
-      id1, data1 = model[iter1]
-      id2, data2 = model[iter2]
-
-      is_reserved1 = id1 in labelplus.common.label.RESERVED_IDS
-      is_reserved2 = id2 in labelplus.common.label.RESERVED_IDS
-
-      if is_reserved1 and is_reserved2:
-        return cmp(id1, id2)
-      elif is_reserved1:
-        return -1
-      elif is_reserved2:
-        return 1
-
-      return cmp(data1["name"], data2["name"])
-
-
-    store = gtk.TreeStore(str, gobject.TYPE_PYOBJECT)
-    store_map = {}
-
-    for id in sorted(self.data):
-      if id in labelplus.common.label.RESERVED_IDS:
-        parent_id = labelplus.common.label.ID_NULL
-      else:
-        parent_id = labelplus.common.label.get_parent_id(id)
-
-      parent_iter = store_map.get(parent_id)
-      iter = store.append(parent_iter, [id, self.data[id]])
-      store_map[id] = iter
-
-    sorted_store = gtk.TreeModelSort(store)
-    sorted_store.set_sort_func(1, label_sort_asc)
-    sorted_store.set_sort_column_id(1, gtk.SORT_ASCENDING)
-
-    self.store = sorted_store
-
-
-  def _build_fullname_index(self):
-
-    def resolve_fullname(id):
-
-      parts = []
-
-      while id:
-        parts.append(self.data[id]["name"])
-        id = labelplus.common.label.get_parent_id(id)
-
-      return "/".join(reversed(parts))
-
-
-    for id in self.data:
-      self.data[id]["fullname"] = resolve_fullname(id)
+    if self._extensions:
+      for ext in self._extensions:
+        if hasattr(ext, "update_store"):
+          self._calls.append(twisted.internet.reactor.callLater(0.1,
+            ext.update_store, self.store.copy()))
