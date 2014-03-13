@@ -112,6 +112,21 @@ def deferred_timeout(deferred, time, timeout_func, callback, errback, *args,
     deferred.addErrback(check_timeout, timeout, errback, *args, **kwargs)
 
 
+def clean_calls(calls):
+
+  for call in list(calls):
+    if not call.active():
+      calls.remove(call)
+
+
+def cancel_calls(calls):
+
+  while calls:
+    call = calls.pop()
+    if call.active():
+      call.cancel()
+
+
 # Dictionary
 
 def copy_dict_value(src, dest, src_key, dest_key, use_deepcopy=False):
