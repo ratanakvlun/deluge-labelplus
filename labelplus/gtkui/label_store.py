@@ -121,9 +121,6 @@ class LabelStore(object):
 
   def get_descendent_ids(self, id, max_depth=-1):
 
-    if id != labelplus.common.label.ID_NULL and id not in self._data:
-      return []
-
     def add_descendents(iter, depth):
 
       if max_depth != -1 and depth > max_depth:
@@ -139,8 +136,9 @@ class LabelStore(object):
 
     descendents = []
 
-    iter = self.get_model_iter(id)
-    add_descendents(iter, 1)
+    if id == labelplus.common.label.ID_NULL or id in self._data:
+      iter = self.get_model_iter(id)
+      add_descendents(iter, 1)
 
     return descendents
 
