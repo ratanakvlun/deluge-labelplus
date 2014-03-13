@@ -153,6 +153,12 @@ class LabelStore(object):
       if id in data:
         data[id]["name"] = _(id)
 
+    for id in data:
+      try:
+        data[id]["name"] = unicode(data[id]["name"], "utf8")
+      except (TypeError, UnicodeDecodeError):
+        pass
+
 
   def _build_fullname_index(self, data):
 
@@ -211,7 +217,6 @@ class LabelStore(object):
     self._data = data
     self._store = store
     self._map = store_map
-
     self.model = sorted_model
 
     RT.register(store, __name__)
