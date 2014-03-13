@@ -53,6 +53,22 @@ def textview_get_text(textview):
   return buff.get_text(buff.get_start_iter(), buff.get_end_iter())
 
 
+def liststore_create(types, rows):
+
+  if not isinstance(types, (list, tuple)):
+    types = (types,)
+
+  ls = gtk.ListStore(*types)
+
+  for values in rows:
+    if not isinstance(values, (list, tuple)):
+      values = (values,)
+
+    ls.append(values)
+
+  return ls
+
+
 def treemodel_get_children(model, iter=None):
 
   if iter:
