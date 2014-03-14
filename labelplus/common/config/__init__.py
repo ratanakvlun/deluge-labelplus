@@ -35,6 +35,7 @@
 
 
 import convert
+import copy
 
 
 MOVE_PARENT = "parent"
