@@ -339,8 +339,7 @@ class Core(CorePluginBase):
       deluge.component.get("FilterManager").deregister_filter(
         labelplus.common.STATUS_ID)
 
-    # Workaround for Deluge 1.3.6 bug
-    self._rpc_deregister(labelplus.common.PLUGIN_NAME)
+    #self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
     log.debug("%s deinitialized", self.__class__.__name__)
 
