@@ -232,6 +232,8 @@ class GtkUI(GtkPluginBase):
 
     self.initialized = False
 
+    self._update_funcs = None
+
     self._run_cleanup_funcs()
 
     self._unload_extensions()
