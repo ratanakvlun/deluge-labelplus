@@ -406,12 +406,16 @@ class GtkUI(GtkPluginBase):
             result.value.exception_type == "LabelPlusError"):
           log.error("%s: %s", STR_UPDATE,
             LabelPlusError(result.value.exception_msg))
+          interval = THROTTLED_INTERVAL
+        else:
+          return result
       else:
         self._tries = 0
+        interval = UPDATE_INTERVAL
         self._update_store(result)
 
       if self.initialized:
-        self._call = twisted.internet.reactor.callLater(UPDATE_INTERVAL,
+        self._call = twisted.internet.reactor.callLater(interval,
           self._update_loop)
 
 
