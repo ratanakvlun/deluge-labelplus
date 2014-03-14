@@ -274,12 +274,6 @@ class GtkUI(GtkPluginBase):
     return None
 
 
-  def is_valid_label(self, id):#
-
-    return (id not in labelplus.common.label.RESERVED_IDS and
-      id in self.store)
-
-
   def register_update_func(self, func):
 
     if func not in self._update_funcs:
