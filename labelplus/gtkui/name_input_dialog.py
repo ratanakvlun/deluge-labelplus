@@ -132,6 +132,9 @@ class NameInputDialog(WidgetEncapsulator):
       self._create_menu()
 
       self._refresh()
+
+      self._plugin.register_update_func(self.update_store)
+      self._plugin.register_cleanup_func(self.destroy)
     except:
       self.destroy()
       raise
@@ -216,8 +219,10 @@ class NameInputDialog(WidgetEncapsulator):
 
   # Section: Deinitialization
 
-  #TODO: Register this with plugin deinit
   def destroy(self):
+
+    self._plugin.deregister_update_func(self.update_store)
+    self._plugin.deregister_cleanup_func(self.destroy)
 
     self._destroy_menu()
     self._destroy_store()
@@ -248,7 +253,6 @@ class NameInputDialog(WidgetEncapsulator):
     self._wnd_name_input.show()
 
 
-  #TODO: Register this with plugin update loop
   def update_store(self, store):
 
     if self._type == TYPE_RENAME:
