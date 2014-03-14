@@ -224,8 +224,7 @@ class GtkUI(GtkPluginBase):
 
     self._unload_extensions()
 
-    self.store.destroy()
-    del self.store
+    self._destroy_store()
 
     RT.report()
 
@@ -254,6 +253,14 @@ class GtkUI(GtkPluginBase):
         ext.unload()
       except:
         pass
+
+
+  def _destroy_store(self):
+
+    log.debug("Destroying store...")
+
+    self.store.destroy()
+    self.store = None
 
 
   # Section: Public
