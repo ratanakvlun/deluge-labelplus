@@ -58,9 +58,11 @@ import labelplus.gtkui.config.convert
 
 from twisted.python.failure import Failure
 
-from deluge.plugins.pluginbase import GtkPluginBase
 from deluge.ui.client import client
+from deluge.ui.client import DelugeRPCError
+from deluge.plugins.pluginbase import GtkPluginBase
 
+from labelplus.common import LabelPlusError
 from labelplus.gtkui.label_store import LabelStore
 from labelplus.gtkui.add_torrent_ext import AddTorrentExt
 #from labelplus.gtkui.torrent_view_ext import TorrentViewExt
@@ -70,10 +72,19 @@ from labelplus.gtkui.add_torrent_ext import AddTorrentExt
 from labelplus.gtkui import RT
 
 
+from labelplus.common.literals import (
+  STR_UPDATE, ERR_TIMED_OUT,
+)
+
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
 INIT_POLLING_INTERVAL = 3.0
 UPDATE_INTERVAL = 1.0
+
+THROTTLED_INTERVAL = 5.0
+MAX_TRIES = 10
+
+REQUEST_TIMEOUT = 10
 
 
 log = logging.getLogger(__name__)
@@ -97,6 +108,7 @@ class GtkUI(GtkPluginBase):
 
     self.store = LabelStore()
     self.last_updated = None
+    self._tries = 0
 
     self._extensions = []
 
@@ -355,22 +367,41 @@ class GtkUI(GtkPluginBase):
 
   # Section: Update
 
-  def _update_loop(self):#
+  def _update_loop(self):
+
+    def on_timeout():
+
+      log.error("%s: %s", STR_UPDATE, LabelPlusError(ERR_TIMED_OUT))
+
+      if self.initialized:
+        self._tries += 1
+        if self._tries < MAX_TRIES:
+          twisted.internet.reactor.callLater(THROTTLED_INTERVAL,
+            self._update_loop)
+        else:
+          log.error("%s: %s", STR_UPDATE,
+            LabelPlusError("Max update retries reached"))
+
 
     def process_result(result):
 
-      if not isinstance(result, Failure):
+      if isinstance(result, Failure):
+        if (isinstance(result.value, DelugeRPCError) and
+            result.value.exception_type == "LabelPlusError"):
+          log.error("%s: %s", STR_UPDATE,
+            LabelPlusError(result.value.exception_msg))
+      else:
+        self._tries = 0
         self._update_store(result)
 
-      self._calls.append(twisted.internet.reactor.callLater(UPDATE_INTERVAL,
-        self._update_loop))
+      if self.initialized:
+        twisted.internet.reactor.callLater(UPDATE_INTERVAL, self._update_loop)
 
-
-    labelplus.common.clean_calls(self._calls)
 
     if self.initialized:
       pickled_time = cPickle.dumps(self.last_updated)
-      client.labelplus.get_labels_data(pickled_time).addCallbacks(
+      deferred = client.labelplus.get_labels_data(pickled_time)
+      labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
         process_result, process_result)
 
 
