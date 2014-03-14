@@ -34,7 +34,6 @@
 #
 
 
-import convert
 import copy
 
 
@@ -145,6 +144,8 @@ def set_version(config, version):
 
 def init_config(config, defaults, version, specs):
 
+  import labelplus.common.config.convert
+
   if len(config.config) == 0:
     config.config.update(copy.deepcopy(defaults))
     set_version(config, version)
@@ -159,7 +160,7 @@ def init_config(config, defaults, version, specs):
 
     spec = specs.get(key)
     if spec:
-      convert.convert(spec, config)
+      labelplus.common.config.convert.convert(spec, config)
       ver = get_version(config)
     else:
       raise ValueError("Config file conversion v%s -> v%s not supported" %
