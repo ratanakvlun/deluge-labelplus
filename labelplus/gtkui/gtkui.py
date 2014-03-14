@@ -44,7 +44,7 @@ import copy
 import datetime
 import logging
 
-import twisted.internet
+import twisted.internet.reactor
 
 import deluge.component
 import deluge.configmanager
@@ -118,7 +118,7 @@ class GtkUI(GtkPluginBase):
 
 
   def enable(self):
-    #TODO: Log at appropriate log level
+
     log.debug("Initializing %s...", self.__class__.__name__)
 
     self._poll_init()
@@ -148,8 +148,7 @@ class GtkUI(GtkPluginBase):
       info = client.connection_info()
       self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
-      log.debug("Loading config...")
-      self.config = self._load_config()
+      self._load_config()
 
       log.debug("Loading store...")
       self._update_store(result)
@@ -228,11 +227,7 @@ class GtkUI(GtkPluginBase):
 
     labelplus.common.cancel_calls(self._calls)
 
-    if self.config:
-      if self.initialized:
-        self.config.save()
-
-      deluge.configmanager.close(GTKUI_CONFIG)
+    self._close_config()
 
     self.initialized = False
 
@@ -321,6 +316,8 @@ class GtkUI(GtkPluginBase):
 
   def _load_config(self):
 
+    log.debug("Loading config...")
+
     config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
     # Workaround for version that didn't use header
@@ -335,7 +332,18 @@ class GtkUI(GtkPluginBase):
     self._update_daemon_config(config)
     self._normalize_config(config)
 
-    return config
+    self.config = config
+
+
+  def _close_config(self):
+
+    log.debug("Closing config...")
+
+    if self.config:
+      if self.initialized:
+        self.config.save()
+
+      deluge.configmanager.close(GTKUI_CONFIG)
 
 
   def _update_daemon_config(self, config):
