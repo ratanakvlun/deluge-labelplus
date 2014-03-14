@@ -181,13 +181,19 @@ class NameInputDialog(WidgetEncapsulator):
       self._select_parent_label(parent_id)
 
 
-    def on_show_menu(widget):
+    def on_show_menu(menu):
 
-      #TODO: Hide current label
+      menu.show_all()
+
+      if self._type == TYPE_RENAME:
+        item = menu.get_label_item(self._label_id)
+        if item:
+          item.hide()
+          if item == menu.get_children()[-1]:
+            items[2].hide()
+
       parent_id = labelplus.common.label.get_parent_id(self._parent_id)
-      if parent_id in self._store:
-        items[1].show()
-      else:
+      if parent_id not in self._store:
         items[1].hide()
 
 
@@ -206,8 +212,6 @@ class NameInputDialog(WidgetEncapsulator):
 
     for item in items:
       RT.register(item, __name__)
-
-    self._menu.show_all()
 
 
   # Section: Deinitialization
