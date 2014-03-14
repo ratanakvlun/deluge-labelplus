@@ -147,6 +147,8 @@ class GtkUI(GtkPluginBase):
     try:
       info = client.connection_info()
       self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
+
+      log.debug("Loading config...")
       self.config = self._load_config()
 
       log.debug("Loading store...")
