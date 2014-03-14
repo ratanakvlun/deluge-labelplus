@@ -3,194 +3,480 @@
 #
 # Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 #
-# Deluge is free software.
+# This module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# You may redistribute it and/or modify it under the terms of the
-# GNU General Public License, as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option)
-# any later version.
-#
-# deluge is distributed in the hope that it will be useful,
+# This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with deluge.    If not, write to:
-# 	The Free Software Foundation, Inc.,
-# 	51 Franklin Street, Fifth Floor
-# 	Boston, MA  02110-1301, USA.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-#    In addition, as a special exception, the copyright holders give
-#    permission to link the code of portions of this program with the OpenSSL
-#    library.
-#    You must obey the GNU General Public License in all respects for all of
-#    the code used other than OpenSSL. If you modify file(s) with this
-#    exception, you may extend this exception to your version of the file(s),
-#    but you are not obligated to do so. If you do not wish to do so, delete
-#    this exception statement from your version. If you delete this exception
-#    statement from all source files in the program, then also delete it here.
+# Linking this software with other modules is making a combined work
+# based on this software. Thus, the terms and conditions of the GNU
+# General Public License cover the whole combination.
+#
+# As a special exception, the copyright holders of this software give
+# you permission to link this software with independent modules to
+# produce a combined work, regardless of the license terms of these
+# independent modules, and to copy and distribute the resulting work
+# under terms of your choice, provided that you also meet, for each
+# linked module in the combined work, the terms and conditions of the
+# license of that module. An independent module is a module which is
+# not derived from or based on this software. If you modify this
+# software, you may extend this exception to your version of the
+# software, but you are not obligated to do so. If you do not wish to
+# do so, delete this exception statement from your version.
 #
 
+
+import logging
 
 import gtk
 
-from deluge import component
+import deluge.component
+
+import labelplus.common
+import labelplus.common.label
+import labelplus.gtkui.common
+
+
+from twisted.python.failure import Failure
+
 from deluge.ui.client import client
-import deluge.configmanager
+from deluge.ui.client import DelugeRPCError
 
-import labelplus.common.validation as Validation
-from labelplus.common.file import get_resource
-from labelplus.common.debug import debug
-
-from labelplus.common.constant import PLUGIN_NAME
-from labelplus.common.constant import NULL_PARENT
-
-from widget_encapsulator import WidgetEncapsulator
+from labelplus.common import LabelPlusError
+from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
+from labelplus.gtkui.common.widget_encapsulator import WidgetEncapsulator
 
 
-DIALOG_TYPES = {
-  "add": (_("Add Label"), gtk.STOCK_ADD),
-  "rename": (_("Rename Label"), gtk.STOCK_EDIT),
-  "sublabel": (_("Add Sublabel"), gtk.STOCK_ADD),
+from labelplus.common.label import (
+  ID_NULL, RESERVED_IDS,
+)
+
+from labelplus.common.literals import (
+  TITLE_ADD_LABEL, TITLE_RENAME_LABEL,
+
+  STR_ADD_LABEL, STR_RENAME_LABEL, STR_PARENT, STR_NONE,
+
+  ERR_TIMED_OUT, ERR_INVALID_TYPE,
+  ERR_INVALID_LABEL, ERR_INVALID_PARENT, ERR_LABEL_EXISTS,
+)
+
+GLADE_FILE = labelplus.common.get_resource("wnd_name_input.glade")
+ROOT_WIDGET = "wnd_name_input"
+
+REQUEST_TIMEOUT = 10
+
+TYPE_ADD = "add"
+TYPE_RENAME = "rename"
+
+DIALOG_SPECS = {
+  TYPE_ADD: (_(TITLE_ADD_LABEL), gtk.STOCK_ADD, STR_ADD_LABEL),
+  TYPE_RENAME: (_(TITLE_RENAME_LABEL), gtk.STOCK_EDIT, STR_RENAME_LABEL),
 }
 
 DIALOG_NAME = 0
 DIALOG_ICON = 1
+DIALOG_CONTEXT = 2
 
 
-class NameInputDialog(object):
+log = logging.getLogger(__name__)
+
+from labelplus.gtkui import RT
 
 
-  def __init__(self, method, label_id="", label_name=""):
+class NameInputDialog(WidgetEncapsulator):
 
-    self.config = component.get("GtkPlugin." + PLUGIN_NAME)._config
+  # Section: Initialization
 
-    self.method = method
-    self.label_id = label_id
-    self.label_name = label_name
-    self.base_name = label_name.rpartition("/")[2]
+  def __init__(self, plugin, dialog_type, label_id):
 
-    self.close_func = None
+    self._plugin = plugin
+    self._type = dialog_type
 
-    self.icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 16, 16)
-    self.icon.fill(0)
-
-    self.type = DIALOG_TYPES[self.method]
-
-    self.we = WidgetEncapsulator(get_resource("wnd_name_input.glade"))
-    self.we.wnd_name_input.set_transient_for(
-        component.get("MainWindow").window)
-    self.we.wnd_name_input.set_destroy_with_parent(True)
-
-    self.we.wnd_name_input.set_title(self.type[DIALOG_NAME])
-    icon = self.we.wnd_name_input.render_icon(self.type[DIALOG_ICON],
-        gtk.ICON_SIZE_SMALL_TOOLBAR)
-    self.we.wnd_name_input.set_icon(icon)
-
-    pos = self.config["common"]["name_input_pos"]
-    if pos:
-      self.we.wnd_name_input.move(*pos)
-
-    size = self.config["common"]["name_input_size"]
-    if size:
-      size[1] = 1
-      self.we.wnd_name_input.resize(*size)
-
-    if self.method == "add":
-      self.we.blk_header.hide()
-    else:
-      self.we.lbl_selected_label.set_text(self.base_name)
-      self.we.lbl_selected_label.set_tooltip_text(self.label_name)
-
-      if self.method == "rename":
-        self.we.lbl_header.set_markup("<b>%s: </b>" % _("Current"))
-        self.we.txt_name.set_text(self.base_name)
-        self.we.txt_name.select_region(0, -1)
-      elif self.method == "sublabel":
-        self.we.lbl_header.set_markup("<b>%s: </b>" % _("Parent"))
+    if self._type == TYPE_ADD:
+      self._parent_id = label_id
+    elif self._type == TYPE_RENAME:
+      if label_id in plugin.store:
+        self._parent_id = labelplus.common.label.get_parent_id(label_id)
+        self._label_id = label_id
+        self._label_name = plugin.store[label_id]["name"]
+        self._label_fullname = plugin.store[label_id]["fullname"]
       else:
-        self.we.lbl_header.set_markup(
-          "<b>%s</b>" % self.we.lbl_header.get_text())
+        raise LabelPlusError(ERR_INVALID_LABEL)
+    else:
+      raise LabelPlusError(ERR_INVALID_TYPE)
 
-    self.we.model.signal_autoconnect({
-      "cb_do_submit" : self.cb_do_submit,
-      "cb_do_close" : self.cb_do_close,
-      "on_txt_changed" : self.on_txt_changed,
+    self._store = None
+    self._menu = None
+
+    super(NameInputDialog, self).__init__(GLADE_FILE, ROOT_WIDGET, "_")
+
+    try:
+      self._store = plugin.store.copy()
+      self._set_parent_label(self._parent_id)
+
+      # Keep window alive with cyclic reference
+      self._root_widget.set_data("owner", self)
+
+      self._setup_widgets()
+
+      self._load_state()
+
+      self._create_menu()
+
+      self._refresh()
+    except:
+      self.destroy()
+      raise
+
+
+  def _setup_widgets(self):
+
+    self._wnd_name_input.set_transient_for(
+      deluge.component.get("MainWindow").window)
+
+    spec = DIALOG_SPECS[self._type]
+    self._wnd_name_input.set_title(spec[DIALOG_NAME])
+    icon = self._wnd_name_input.render_icon(spec[DIALOG_ICON],
+      gtk.ICON_SIZE_SMALL_TOOLBAR)
+    self._wnd_name_input.set_icon(icon)
+
+    self._lbl_header.set_markup("<b>%s:</b>" % _(STR_PARENT))
+
+    self._img_error.set_from_stock(gtk.STOCK_DIALOG_ERROR,
+      gtk.ICON_SIZE_SMALL_TOOLBAR)
+
+    if self._type == TYPE_RENAME:
+      self._btn_revert.show()
+      self._txt_name.set_text(self._label_name)
+      self._txt_name.grab_focus()
+
+    self.connect_signals({
+      "do_close" : self._do_close,
+      "do_submit" : self._do_submit,
+      "do_toggle_fullname": self._do_toggle_fullname,
+      "do_open_select_menu": self._do_open_select_menu,
+      "do_check_input": self._do_check_input,
+      "do_revert": self._do_revert,
     })
 
-    self.we.btn_ok.set_sensitive(False)
 
-    self.we.wnd_name_input.show()
+  def _create_menu(self):
 
+    def on_activate(widget, parent_id):
 
-  def register_close_func(self, func):
-
-    self.close_func = func
+      self._select_parent_label(parent_id)
 
 
-  def cb_do_close(self, widget, event=None):
+    def on_activate_parent(widget):
 
-    self.config["common"]["name_input_pos"] = \
-        list(self.we.wnd_name_input.get_position())
-    self.config["common"]["name_input_size"] = \
-        list(self.we.wnd_name_input.get_size())
-    self.config.save()
-
-    if self.close_func:
-      self.close_func(self)
-
-    self.we.wnd_name_input.destroy()
+      parent_id = labelplus.common.label.get_parent_id(self._parent_id)
+      self._select_parent_label(parent_id)
 
 
-  def on_txt_changed(self, widget):
+    def on_show_menu(widget):
 
-    value = self.we.txt_name.get_text()
+      #TODO: Hide current label
+      parent_id = labelplus.common.label.get_parent_id(self._parent_id)
+      if parent_id in self._store:
+        items[1].show()
+      else:
+        items[1].hide()
+
+
+    self._menu = LabelSelectionMenu(self._store.model, on_activate)
+    self._menu.connect("show", on_show_menu)
+
+    RT.register(self._menu)
+
+    items = labelplus.gtkui.common.menu_add_items(self._menu, 0,
+      (
+        ((gtk.MenuItem, _(STR_NONE)), on_activate, ID_NULL),
+        ((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),
+        ((gtk.SeparatorMenuItem,),),
+      )
+    )
+
+    for item in items:
+      RT.register(item, __name__)
+
+    self._menu.show_all()
+
+
+  # Section: Deinitialization
+
+  #TODO: Register this with plugin deinit
+  def destroy(self):
+
+    self._destroy_menu()
+    self._destroy_store()
+
+    if self.valid:
+      self._root_widget.set_data("owner", None)
+      super(NameInputDialog, self).destroy()
+
+
+  def _destroy_menu(self):
+
+    if self._menu:
+      self._menu.destroy()
+      self._menu = None
+
+
+  def _destroy_store(self):
+
+    if self._store:
+      self._store.destroy()
+      self._store = None
+
+
+  # Section: Public
+
+  def show(self):
+
+    self._wnd_name_input.show()
+
+
+  #TODO: Register this with plugin update loop
+  def update_store(self, store):
+
+    if self._type == TYPE_RENAME:
+      if self._label_id not in store:
+        self._do_close()
+        return
+
+    self._destroy_store()
+    self._store = store.copy()
+
+    self._destroy_menu()
+    self._create_menu()
+
+    self._set_parent_label(self._parent_id)
+    self._refresh()
+
+
+  # Section: General
+
+  def _report_error(self, error):
+
+    log.error("%s: %s", DIALOG_SPECS[self._type][DIALOG_CONTEXT], error)
+    self._set_error(error.tr())
+
+
+  def _set_parent_label(self, parent_id):
+
+    if parent_id in self._store:
+      self._parent_id = parent_id
+      self._parent_name = self._store[parent_id]["name"]
+      self._parent_fullname = self._store[parent_id]["fullname"]
+    else:
+      self._parent_id = ID_NULL
+      self._parent_name = _(STR_NONE)
+      self._parent_fullname = _(STR_NONE)
+
+
+  def _validate(self):
+
+    if self._parent_id != ID_NULL and self._parent_id not in self._store:
+      raise LabelPlusError(ERR_INVALID_PARENT)
+
+    if self._type == TYPE_RENAME:
+      if self._label_id not in self._store:
+        raise LabelPlusError(ERR_INVALID_LABEL)
+
+      if (self._label_id == self._parent_id or
+          labelplus.common.label.is_ancestor(self._label_id,
+            self._parent_id)):
+        raise LabelPlusError(ERR_INVALID_PARENT)
+
+    name = unicode(self._txt_name.get_text(), "utf8")
+    labelplus.common.label.validate_name(name)
+
+    for id in self._store.get_descendent_ids(self._parent_id, max_depth=1):
+      if name == self._store[id]["name"]:
+        raise LabelPlusError(ERR_LABEL_EXISTS)
+
+
+  # Section: Widget State
+
+  def _load_state(self):
+
+    if self._plugin.initialized:
+      pos = self._plugin.config["common"]["name_input_pos"]
+      if pos:
+        self._wnd_name_input.move(*pos)
+
+      size = self._plugin.config["common"]["name_input_size"]
+      if size:
+        self._wnd_name_input.resize(*size)
+
+      self._tgb_fullname.set_active(
+        self._plugin.config["common"]["name_input_fullname"])
+
+
+  def _save_state(self):
+
+    if self._plugin.initialized:
+      self._plugin.config["common"]["name_input_pos"] = \
+        list(self._wnd_name_input.get_position())
+
+      self._plugin.config["common"]["name_input_size"] = \
+        list(self._wnd_name_input.get_size())
+
+      self._plugin.config["common"]["name_input_fullname"] = \
+        self._tgb_fullname.get_active()
+
+      self._plugin.config.save()
+
+
+  # Section: Widget Modifiers
+
+  def _refresh(self):
+
+    self._do_toggle_fullname()
+
+    if self._parent_id == ID_NULL:
+      self._lbl_selected_label.set_tooltip_text(None)
+    else:
+      self._lbl_selected_label.set_tooltip_text(self._parent_fullname)
+
+    self._do_check_input()
+
+
+  def _select_parent_label(self, parent_id):
+
+      self._set_parent_label(parent_id)
+      self._refresh()
+      self._txt_name.grab_focus()
+
+
+  def _set_error(self, message):
+
+    if message:
+      self._img_error.set_tooltip_text(message)
+      self._img_error.show()
+    else:
+      self._img_error.hide()
+
+
+  # Section: Widget Handlers
+
+  def _do_close(self, *args):
+
+    self._save_state()
+    self.destroy()
+
+
+  def _do_submit(self, *args):
+
+    def on_timeout():
+
+      if self.valid:
+        self._wnd_name_input.set_sensitive(True)
+        self._report_error(LabelPlusError(ERR_TIMED_OUT))
+
+
+    def process_result(result):
+
+      if self.valid:
+        self._wnd_name_input.set_sensitive(True)
+
+        if isinstance(result, Failure):
+          if (isinstance(result.value, DelugeRPCError) and
+              result.value.exception_type == "LabelPlusError"):
+            self._report_error(LabelPlusError(result.value.exception_msg))
+          else:
+            return result
+        else:
+          self._do_close()
+
+
+    self._do_check_input()
+    if not self._btn_ok.get_property("sensitive"):
+      return
+
+    name = unicode(self._txt_name.get_text(), "utf8")
+
+    if self._parent_id != ID_NULL:
+      dest_name = "%s/%s" % (self._parent_fullname, name)
+    else:
+      dest_name = name
+
+    if self._type == TYPE_ADD:
+      log.info("%s: %r", STR_ADD_LABEL, dest_name)
+      deferred = client.labelplus.add_label(self._parent_id, name)
+    elif self._type == TYPE_RENAME:
+      log.info("%s: %r -> %r", STR_RENAME_LABEL, self._label_fullname,
+        dest_name)
+      #TODO: rename_label(label_id, dest_parent_id, dest_name)
+      deferred = client.labelplus.rename_label(self._label_id, name)
+
+    labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
+      process_result, process_result)
+
+    self._wnd_name_input.set_sensitive(False)
+
+
+  def _do_toggle_fullname(self, *args):
+
+    if self._tgb_fullname.get_active():
+      self._lbl_selected_label.set_text(self._parent_fullname)
+    else:
+      self._lbl_selected_label.set_text(self._parent_name)
+
+
+  def _do_open_select_menu(self, *args):
+
+    if self._menu:
+      self._menu.popup(None, None, None, 1, gtk.gdk.CURRENT_TIME)
+
+
+  def _do_check_input(self, *args):
+
     try:
-      Validation.validate_name(value)
-
-      self.we.btn_ok.set_sensitive(True)
-      self.we.txt_name.set_icon_from_pixbuf(
-          gtk.ENTRY_ICON_SECONDARY, self.icon)
-      self.we.txt_name.set_icon_tooltip_text(gtk.ENTRY_ICON_SECONDARY, None)
-    except Validation.LabelPlusError as e:
-      self._set_error_hints(e.args[0])
+      self._validate()
+      self._btn_ok.set_sensitive(True)
+      self._set_error(None)
+    except LabelPlusError as e:
+      self._btn_ok.set_sensitive(False)
+      self._set_error(e.tr())
 
 
-  def cb_do_submit(self, widget):
+  def _do_revert(self, *args):
 
-    self.we.btn_ok.set_sensitive(False)
-    self.label_name = self.we.txt_name.get_text()
+    if self._type != TYPE_RENAME:
+      return
 
-    if self.method == "add":
-      deferred = client.labelplus.add_label(NULL_PARENT, self.label_name)
-    elif self.method == "sublabel":
-      deferred = client.labelplus.add_label(self.label_id, self.label_name)
-    elif self.method == "rename":
-      deferred = client.labelplus.rename_label(self.label_id, self.label_name)
+    self._txt_name.set_text(self._label_name)
 
-    deferred.addCallbacks(self.cb_do_submit_ok, self.cb_do_submit_err)
+    parent_id = labelplus.common.label.get_parent_id(self._label_id)
+    self._select_parent_label(parent_id)
 
 
-  @debug()
-  def cb_do_submit_ok(self, result):
+# Wrapper Classes
 
-    self.label_id = result
-    self.cb_do_close(None)
+class AddLabelDialog(NameInputDialog):
 
+  def __init__(self, plugin, parent_id=ID_NULL):
 
-  @debug()
-  def cb_do_submit_err(self, result):
+    if parent_id in RESERVED_IDS:
+      parent_id = ID_NULL
 
-    if result.value.exception_type == Validation.LabelPlusError.__name__:
-      self._set_error_hints(result.value.exception_msg)
-      result.cleanFailure()
+    super(AddLabelDialog, self).__init__(plugin, TYPE_ADD, parent_id)
 
 
-  def _set_error_hints(self, message):
+class RenameLabelDialog(NameInputDialog):
 
-    self.we.btn_ok.set_sensitive(False)
-    self.we.txt_name.set_icon_from_stock(
-        gtk.ENTRY_ICON_SECONDARY, gtk.STOCK_NO)
-    self.we.txt_name.set_icon_tooltip_text(
-        gtk.ENTRY_ICON_SECONDARY, _(message))
+  def __init__(self, plugin, store, label_id):
+
+    if label_id in RESERVED_IDS:
+      raise LabelPlusError(ERR_INVALID_LABEL)
+
+    super(RenameLabelDialog, self).__init__(plugin, TYPE_RENAME, label_id)

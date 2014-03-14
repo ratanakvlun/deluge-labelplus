@@ -3,12 +3,12 @@
   <!-- interface-requires gtk+ 2.16 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="wnd_name_input">
-    <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
-    <signal name="delete_event" handler="cb_do_close"/>
+    <signal name="delete_event" handler="do_close"/>
     <child>
       <widget class="GtkAlignment" id="alignment1">
         <property name="visible">True</property>
@@ -20,37 +20,85 @@
           <widget class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
             <property name="orientation">vertical</property>
-            <property name="spacing">5</property>
+            <property name="spacing">3</property>
             <child>
               <widget class="GtkVBox" id="blk_header">
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
-                <property name="spacing">5</property>
+                <property name="spacing">3</property>
                 <child>
                   <widget class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
                     <property name="spacing">3</property>
                     <child>
-                      <widget class="GtkLabel" id="lbl_header">
+                      <widget class="GtkHBox" id="hbox3">
                         <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes">Label: </property>
-                        <property name="use_markup">True</property>
+                        <property name="spacing">5</property>
+                        <child>
+                          <widget class="GtkLabel" id="lbl_header">
+                            <property name="visible">True</property>
+                            <property name="xalign">0</property>
+                            <property name="label">&lt;b&gt;Parent:&lt;/b&gt;</property>
+                            <property name="use_markup">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="lbl_selected_label">
+                            <property name="visible">True</property>
+                            <property name="xalign">0</property>
+                            <property name="use_markup">True</property>
+                            <property name="selectable">True</property>
+                            <property name="ellipsize">end</property>
+                          </widget>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </widget>
                       <packing>
-                        <property name="expand">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkLabel" id="lbl_selected_label">
+                      <widget class="GtkImage" id="img_error">
                         <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="selectable">True</property>
-                        <property name="ellipsize">end</property>
+                        <property name="xpad">5</property>
                       </widget>
                       <packing>
+                        <property name="expand">False</property>
                         <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkToggleButton" id="tgb_fullname">
+                        <property name="label">-/-</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Toggle full name display</property>
+                        <signal name="toggled" handler="do_toggle_fullname"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="btn_select">
+                        <property name="label" translatable="yes">Select</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="clicked" handler="do_open_select_menu"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                   </widget>
@@ -99,7 +147,7 @@
                     <property name="invisible_char">&#x25CF;</property>
                     <property name="activates_default">True</property>
                     <property name="truncate_multiline">True</property>
-                    <signal name="changed" handler="on_txt_changed"/>
+                    <signal name="changed" handler="do_check_input"/>
                   </widget>
                   <packing>
                     <property name="position">1</property>
@@ -114,20 +162,33 @@
             <child>
               <widget class="GtkHButtonBox" id="hbuttonbox1">
                 <property name="visible">True</property>
-                <property name="spacing">5</property>
+                <property name="spacing">3</property>
                 <property name="layout_style">end</property>
+                <child>
+                  <widget class="GtkButton" id="btn_revert">
+                    <property name="label" translatable="yes">Revert</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="do_revert"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
                 <child>
                   <widget class="GtkButton" id="btn_cancel">
                     <property name="label" translatable="yes">Cancel</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="clicked" handler="cb_do_close"/>
+                    <signal name="clicked" handler="do_close"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">0</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -138,17 +199,18 @@
                     <property name="can_default">True</property>
                     <property name="has_default">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="clicked" handler="cb_do_submit"/>
+                    <signal name="clicked" handler="do_submit"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">1</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
+                <property name="pack_type">end</property>
                 <property name="position">2</property>
               </packing>
             </child>
