@@ -34,7 +34,21 @@
 #
 
 
-ERR_STR = "Error"
+TITLE_ADD_LABEL = "Add Label"
+TITLE_RENAME_LABEL = "Rename Label"
+
+
+STR_ERROR = "Error"
+STR_LABEL = "Label"
+STR_PARENT = "Parent"
+
+STR_NONE = "None"
+
+STR_ADD_LABEL = "Add label"
+STR_RENAME_LABEL = "Rename label"
+STR_LOAD_OPTIONS = "Load options"
+STR_SAVE_OPTIONS = "Save options"
+
 
 ERR_CORE_NOT_INITIALIZED = "Plugin core not initialized"
 ERR_UI_NOT_INITIALIZED = "Plugin UI not initialized"
@@ -43,16 +57,9 @@ ERR_TIMED_OUT = "Timed out"
 ERR_INVALID_CHARS = "Invalid characters"
 ERR_INVALID_TYPE = "Invalid type"
 
-ERR_EMPTY_LABEL = "Empty label"
+ERR_EMPTY_LABEL = "Empty Label"
 ERR_INVALID_LABEL = "Invalid label"
-ERR_INVALID_LABEL_ID = "Invalid label id"
 ERR_INVALID_PARENT = "Invalid parent"
-ERR_INVALID_PARENT_ID = "Invalid parent id"
+ERR_INVALID_LABEL_ID = "Invalid label ID"
+ERR_INVALID_PARENT_ID = "Invalid parent ID"
 ERR_LABEL_EXISTS = "Label already exists"
-
-
-OP_ADD_LABEL = "Add label"
-OP_RENAME_LABEL = "Rename label"
-
-OP_LOAD_OPTIONS = "Load options"
-OP_SAVE_OPTIONS = "Save options"
