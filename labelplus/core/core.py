@@ -64,10 +64,19 @@ import labelplus.core.config
 import labelplus.core.config.convert
 
 
+from labelplus.common import LabelPlusError
+
+
+from labelplus.common.literals import (
+  ERR_CORE_NOT_INITIALIZED,
+  ERR_INVALID_LABEL, ERR_INVALID_PARENT, ERR_LABEL_EXISTS,
+)
+
 CORE_CONFIG = "%s.conf" % labelplus.common.MODULE_NAME
 DELUGE_CORE_CONFIG = "core.conf"
 
 CONFIG_SAVE_INTERVAL = 60*2
+
 
 log = logging.getLogger(__name__)
 
@@ -86,8 +95,7 @@ def check_init(func):
 
     if args and isinstance(args[0], Core):
       if not args[0]._initialized:
-        raise RuntimeError("Plugin %r not initialized" %
-          labelplus.common.PLUGIN_NAME)
+        raise LabelPlusError(ERR_CORE_NOT_INITIALIZED)
 
     return func(*args, **kwargs)
 
@@ -436,7 +444,7 @@ class Core(CorePluginBase):
   def get_move_path_options(self, label_id):
 
     if label_id not in self._labels:
-      raise ValueError("Invalid label: %r" % label_id)
+      raise LabelPlusError(ERR_INVALID_LABEL)
 
     parent_path = self._get_parent_move_path(label_id)
 
@@ -489,7 +497,7 @@ class Core(CorePluginBase):
 
     if (parent_id != labelplus.common.label.ID_NULL and
         parent_id not in self._labels):
-      raise ValueError("Invalid label: %r" % parent_id)
+      raise LabelPlusError(ERR_INVALID_PARENT)
 
     id = self._add_label(parent_id, label_name)
 
@@ -505,7 +513,7 @@ class Core(CorePluginBase):
     log.debug("Renaming name of label %r to %r", label_id, label_name)
 
     if label_id not in self._labels:
-      raise ValueError("Invalid label: %r" % label_id)
+      raise LabelPlusError(ERR_INVALID_LABEL)
 
     self._rename_label(label_id, label_name)
 
@@ -519,7 +527,7 @@ class Core(CorePluginBase):
     log.debug("Removing label %r", label_id)
 
     if label_id not in self._labels:
-      raise ValueError("Invalid label: %r" % label_id)
+      raise LabelPlusError(ERR_INVALID_LABEL)
 
     self._remove_label(label_id)
 
@@ -536,7 +544,7 @@ class Core(CorePluginBase):
     log.debug("Getting label options for %r", label_id)
 
     if label_id not in self._labels:
-      raise ValueError("Invalid label: %r" % label_id)
+      raise LabelPlusError(ERR_INVALID_LABEL)
 
     return self._labels[label_id]["options"]
 
@@ -548,7 +556,7 @@ class Core(CorePluginBase):
     log.debug("Setting label options for %r", label_id)
 
     if label_id not in self._labels:
-      raise ValueError("Invalid label: %r" % label_id)
+      raise LabelPlusError(ERR_INVALID_LABEL)
 
     self._set_label_options(label_id, options_in, apply_to_all)
 
@@ -581,7 +589,7 @@ class Core(CorePluginBase):
 
     if (label_id != labelplus.common.label.ID_NONE and
         label_id not in self._labels):
-      raise ValueError("Invalid label: %r" % label_id)
+      raise LabelPlusError(ERR_INVALID_LABEL)
 
     torrent_ids = [x for x in set(torrent_ids) if x in self._torrents]
 
@@ -742,7 +750,7 @@ class Core(CorePluginBase):
 
     names = self._get_children_names(parent_id)
     if label_name in names:
-      raise ValueError("Label already exists: %r" % label_name)
+      raise LabelPlusError(ERR_LABEL_EXISTS)
 
 
   def _get_descendent_labels(self, label_id, depth=-1):
