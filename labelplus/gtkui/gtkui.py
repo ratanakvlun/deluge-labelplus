@@ -102,6 +102,8 @@ class GtkUI(GtkPluginBase):
 
     self._calls = []
 
+    self._update_funcs = []
+    self._cleanup_funcs = []
 
   def enable(self):#
 
@@ -218,6 +220,8 @@ class GtkUI(GtkPluginBase):
 
     self.initialized = False
 
+    self._run_cleanup_funcs()
+
     self._unload_extensions()
 
     self.store.destroy()
@@ -228,7 +232,20 @@ class GtkUI(GtkPluginBase):
     log.info("%s deinitialized", self.__class__.__name__)
 
 
-  def _unload_extensions(self):#
+  def _run_cleanup_funcs(self):
+
+    log.debug("Cleaning up...")
+
+    while self._cleanup_funcs:
+      func = self._cleanup_funcs.pop()
+
+      try:
+        func()
+      except:
+        pass
+
+
+  def _unload_extensions(self):
 
     while self._extensions:
       ext = self._extensions.pop()
@@ -254,6 +271,30 @@ class GtkUI(GtkPluginBase):
 
     return (id not in labelplus.common.label.RESERVED_IDS and
       id in self.store)
+
+
+  def register_update_func(self, func):
+
+    if func not in self._update_funcs:
+      self._update_funcs.append(func)
+
+
+  def deregister_update_func(self, func):
+
+    if func in self._update_funcs:
+      self._update_funcs.remove(func)
+
+
+  def register_cleanup_func(self, func):
+
+    if func not in self._cleanup_funcs:
+      self._cleanup_funcs.append(func)
+
+
+  def deregister_cleanup_func(self, func):
+
+    if func in self._cleanup_funcs:
+      self._cleanup_funcs.remove(func)
 
 
   # Section: Config
@@ -340,8 +381,5 @@ class GtkUI(GtkPluginBase):
     self.last_updated = datetime.datetime.now()
     self.store.update(result)
 
-    if self._extensions:
-      for ext in self._extensions:
-        if hasattr(ext, "update_store"):
-          self._calls.append(twisted.internet.reactor.callLater(0.1,
-            ext.update_store, self.store.copy()))
+    for func in self._update_funcs:
+      func(self.store)
