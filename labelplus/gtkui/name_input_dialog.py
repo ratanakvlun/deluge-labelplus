@@ -48,7 +48,6 @@ import labelplus.gtkui.common
 from twisted.python.failure import Failure
 
 from deluge.ui.client import client
-from deluge.ui.client import DelugeRPCError
 
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
@@ -396,9 +395,9 @@ class NameInputDialog(WidgetEncapsulator):
         self._wnd_name_input.set_sensitive(True)
 
         if isinstance(result, Failure):
-          if (isinstance(result.value, DelugeRPCError) and
-              result.value.exception_type == "LabelPlusError"):
-            self._report_error(LabelPlusError(result.value.exception_msg))
+          error = labelplus.common.extract_error(result)
+          if error:
+            self._report_error(error)
           else:
             return result
         else:
