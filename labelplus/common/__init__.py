@@ -44,6 +44,9 @@ import logging
 import twisted.internet.reactor
 
 
+from deluge.ui.client import DelugeRPCError
+
+
 # General
 
 _ = gettext.gettext
@@ -84,6 +87,15 @@ class LabelPlusError(Exception):
       return "%s: %s" % (_(STR_ERROR), _(self.args[0]))
     else:
       return ""
+
+
+def extract_error(failure):
+
+  if (isinstance(failure.value, DelugeRPCError) and
+      failure.value.exception_type == "LabelPlusError"):
+    return LabelPlusError(failure.value.exception_msg)
+  else:
+    return None
 
 
 # Logging
