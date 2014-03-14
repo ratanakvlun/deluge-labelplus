@@ -94,7 +94,7 @@ class GtkUI(GtkPluginBase):
 
   # Section: Initialization
 
-  def __init__(self, plugin_name):#
+  def __init__(self, plugin_name):
 
     RT.register(self)
     RT.logger = logging.getLogger(__name__ + ".rt")
@@ -112,26 +112,25 @@ class GtkUI(GtkPluginBase):
 
     self._extensions = []
 
-    self._calls = []
-
     self._update_funcs = []
     self._cleanup_funcs = []
 
-  def enable(self):#
 
-    log.info("Initializing %s...", self.__class__.__name__)
+  def enable(self):
+    #TODO: Log at appropriate log level
+    log.debug("Initializing %s...", self.__class__.__name__)
 
     self._poll_init()
 
 
-  def _poll_init(self):#
+  def _poll_init(self):
 
     client.labelplus.is_initialized().addCallback(self._check_init)
 
 
-  def _check_init(self, result):#
+  def _check_init(self, result):
 
-    log.info("Waiting for core to be initialized...")
+    log.debug("Waiting for core to be initialized...")
 
     if result == True:
       client.labelplus.get_labels_data().addCallback(self._finish_init)
@@ -142,14 +141,14 @@ class GtkUI(GtkPluginBase):
 
   def _finish_init(self, result):
 
-    log.info("Resuming initialization...")
+    log.debug("Resuming initialization...")
 
     try:
       info = client.connection_info()
       self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
-
       self.config = self._load_config()
 
+      log.debug("Loading store...")
       self._update_store(result)
 
       self._load_extensions()
@@ -157,15 +156,17 @@ class GtkUI(GtkPluginBase):
       self.initialized = True
 
       log.info("%s initialized", self.__class__.__name__)
+
+      self._update_loop()
+      self.testing()
     except:
       log.error("Error initializing %s", self.__class__.__name__)
       raise
 
-    self._update_loop()
-    self.testing()
-
 
   def _load_extensions(self):#
+
+    log.debug("Loading extensions...")
 
     extensions = [
       #(AddTorrentExt, (self,)),
@@ -218,11 +219,9 @@ class GtkUI(GtkPluginBase):
 
   # Section: Deinitialization
 
-  def disable(self):#
+  def disable(self):
 
-    log.info("Deinitializing %s...", self.__class__.__name__)
-
-    labelplus.common.cancel_calls(self._calls)
+    log.debug("Deinitializing %s...", self.__class__.__name__)
 
     if self.config:
       if self.initialized:
@@ -260,6 +259,8 @@ class GtkUI(GtkPluginBase):
 
   def _unload_extensions(self):
 
+    log.debug("Unloading extensions...")
+
     while self._extensions:
       ext = self._extensions.pop()
 
@@ -279,7 +280,7 @@ class GtkUI(GtkPluginBase):
 
   # Section: Public
 
-  def get_extension(self, name):#
+  def get_extension(self, name):
 
     for ext in self._extensions:
       if ext.__class__.__name__ == name:
@@ -314,7 +315,7 @@ class GtkUI(GtkPluginBase):
 
   # Section: Config
 
-  def _load_config(self):#
+  def _load_config(self):
 
     config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
@@ -333,7 +334,7 @@ class GtkUI(GtkPluginBase):
     return config
 
 
-  def _update_daemon_config(self, config):#
+  def _update_daemon_config(self, config):
 
     saved_daemons = deluge.component.get("ConnectionManager").config["hosts"]
     if not saved_daemons:
@@ -354,7 +355,7 @@ class GtkUI(GtkPluginBase):
         labelplus.gtkui.config.DAEMON_DEFAULTS)
 
 
-  def _normalize_config(self, config):#
+  def _normalize_config(self, config):
 
     labelplus.common.normalize_dict(config.config,
       labelplus.gtkui.config.CONFIG_DEFAULTS)
@@ -407,7 +408,7 @@ class GtkUI(GtkPluginBase):
         process_result, process_result)
 
 
-  def _update_store(self, result):#
+  def _update_store(self, result):
 
     if not result:
       return
