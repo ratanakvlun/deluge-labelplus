@@ -47,7 +47,7 @@ import twisted.internet.reactor
 from deluge.ui.client import DelugeRPCError
 
 
-# General
+# Section: General
 
 _ = gettext.gettext
 
@@ -66,6 +66,8 @@ def get_resource(filename):
   return pkg_resources.resource_filename(
       MODULE_NAME, os.path.join("data", filename))
 
+
+# Section: Error
 
 class LabelPlusError(Exception):
 
@@ -98,7 +100,7 @@ def extract_error(failure):
     return None
 
 
-# Logging
+# Section: Logging
 
 class PrefixHandler(logging.Handler):
 
@@ -116,7 +118,7 @@ class PrefixHandler(logging.Handler):
 LOG_HANDLER = PrefixHandler("[%s] " % PLUGIN_NAME)
 
 
-# Twisted
+# Section: Twisted
 
 def deferred_timeout(deferred, time, timeout_func, callback, errback, *args,
     **kwargs):
@@ -156,7 +158,7 @@ def cancel_calls(calls):
       call.cancel()
 
 
-# Dictionary
+# Section: Dictionary
 
 def copy_dict_value(src, dest, src_key, dest_key, use_deepcopy=False):
 
