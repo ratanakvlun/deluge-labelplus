@@ -60,6 +60,29 @@ class LabelSelectionMenu(gtk.Menu):
     del self._menus
 
 
+  def get_label_item(self, id):
+
+    def find_item(menu):
+
+      for child in menu.get_children():
+        name = child.get_name()
+
+        if id == name:
+          return child
+
+        if id.startswith(name + ":"):
+          submenu = child.get_submenu()
+          if submenu:
+            return find_item(submenu)
+          else:
+            return None
+
+      return None
+
+
+    return find_item(self)
+
+
   def _build_menu(self, model, on_activate, headers, root_items, sub_items):
 
     children = labelplus.gtkui.common.treemodel_get_children(model)
@@ -83,6 +106,7 @@ class LabelSelectionMenu(gtk.Menu):
     name = data["name"]
 
     item = gtk.MenuItem(name); RT.register(item, __name__)
+    item.set_name(id)
     menu.append(item)
     self._items.append(item)
 
