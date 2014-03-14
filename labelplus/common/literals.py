@@ -39,6 +39,7 @@ TITLE_RENAME_LABEL = "Rename Label"
 
 
 STR_ERROR = "Error"
+STR_UDPATE = "Update"
 STR_LABEL = "Label"
 STR_PARENT = "Parent"
 
