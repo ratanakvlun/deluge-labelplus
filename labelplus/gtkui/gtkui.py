@@ -73,7 +73,7 @@ from labelplus.gtkui import RT
 
 
 from labelplus.common.literals import (
-  STR_UPDATE, ERR_TIMED_OUT,
+  STR_UPDATE, ERR_TIMED_OUT, ERR_MAX_RETRY,
 )
 
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
@@ -395,8 +395,7 @@ class GtkUI(GtkPluginBase):
           self._call = twisted.internet.reactor.callLater(THROTTLED_INTERVAL,
             self._update_loop)
         else:
-          log.error("%s: %s", STR_UPDATE,
-            LabelPlusError("Max update retries reached"))
+          log.error("%s: %s", STR_UPDATE, LabelPlusError(ERR_MAX_RETRY))
 
 
     def process_result(result):

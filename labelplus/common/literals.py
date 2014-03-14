@@ -54,6 +54,7 @@ STR_SAVE_OPTIONS = "Save options"
 ERR_CORE_NOT_INITIALIZED = "Plugin core not initialized"
 ERR_UI_NOT_INITIALIZED = "Plugin UI not initialized"
 ERR_TIMED_OUT = "Timed out"
+ERR_MAX_RETRY = "Max retries reached"
 
 ERR_INVALID_CHARS = "Invalid characters"
 ERR_INVALID_TYPE = "Invalid type"
