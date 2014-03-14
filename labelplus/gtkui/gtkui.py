@@ -78,7 +78,7 @@ from labelplus.common.literals import (
 
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
-INIT_POLLING_INTERVAL = 3.0
+INIT_POLLING_INTERVAL = 5.0
 UPDATE_INTERVAL = 1.0
 
 THROTTLED_INTERVAL = 5.0
