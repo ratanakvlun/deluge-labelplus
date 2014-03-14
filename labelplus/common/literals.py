@@ -36,6 +36,9 @@
 
 TITLE_ADD_LABEL = "Add Label"
 TITLE_RENAME_LABEL = "Rename Label"
+TITLE_LABEL_OPTIONS = "Label Options"
+
+TITLE_SELECT_FOLDER = "Select A Folder"
 
 
 STR_ERROR = "Error"
