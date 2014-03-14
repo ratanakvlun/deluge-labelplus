@@ -34,17 +34,10 @@
 #
 
 
-import os
 import copy
-import pkg_resources
 import gettext
 import datetime
 import logging
-
-import twisted.internet.reactor
-
-
-from deluge.ui.client import DelugeRPCError
 
 
 # Section: General
@@ -63,6 +56,10 @@ DATETIME_010101 = datetime.datetime(1, 1, 1)
 
 def get_resource(filename):
 
+  import os
+  import pkg_resources
+
+
   return pkg_resources.resource_filename(
       MODULE_NAME, os.path.join("data", filename))
 
@@ -75,6 +72,7 @@ class LabelPlusError(Exception):
 
     from labelplus.common.literals import STR_ERROR
 
+
     if self.args:
       return "%s: %s" % (STR_ERROR, self.args[0])
     else:
@@ -85,6 +83,7 @@ class LabelPlusError(Exception):
 
     from labelplus.common.literals import STR_ERROR
 
+
     if self.args:
       return "%s: %s" % (_(STR_ERROR), _(self.args[0]))
     else:
@@ -92,6 +91,9 @@ class LabelPlusError(Exception):
 
 
 def extract_error(failure):
+
+  from deluge.ui.client import DelugeRPCError
+
 
   if (isinstance(failure.value, DelugeRPCError) and
       failure.value.exception_type == "LabelPlusError"):
@@ -122,6 +124,9 @@ LOG_HANDLER = PrefixHandler("[%s] " % PLUGIN_NAME)
 
 def deferred_timeout(deferred, time, timeout_func, callback, errback, *args,
     **kwargs):
+
+  import twisted.internet.reactor
+
 
   def check_timeout(result, timeout, func, *args, **kwargs):
 
