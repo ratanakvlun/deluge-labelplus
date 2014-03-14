@@ -109,7 +109,7 @@ class GtkUI(GtkPluginBase):
     self.store = LabelStore()
     self.last_updated = None
     self._tries = 0
-    self._call = None
+    self._calls = []
 
     self._extensions = []
 
@@ -226,7 +226,7 @@ class GtkUI(GtkPluginBase):
 
     log.debug("Deinitializing %s...", self.__class__.__name__)
 
-    self._cancel_calls()
+    labelplus.common.cancel_calls(self._calls)
 
     if self.config:
       if self.initialized:
@@ -246,14 +246,6 @@ class GtkUI(GtkPluginBase):
     RT.report()
 
     log.info("%s deinitialized", self.__class__.__name__)
-
-
-  def _cancel_calls(self):
-
-    if self._call and self._call.active():
-      self._call.cancel()
-
-    self._call = None
 
 
   def _run_cleanup_funcs(self):
@@ -391,8 +383,8 @@ class GtkUI(GtkPluginBase):
       if self.initialized:
         self._tries += 1
         if self._tries < MAX_TRIES:
-          self._call = twisted.internet.reactor.callLater(THROTTLED_INTERVAL,
-            self._update_loop)
+          self._calls.append(twisted.internet.reactor.callLater(
+            THROTTLED_INTERVAL, self._update_loop))
         else:
           log.error("%s: %s", STR_UPDATE, LabelPlusError(ERR_MAX_RETRY))
 
@@ -413,9 +405,11 @@ class GtkUI(GtkPluginBase):
         self._update_store(result)
 
       if self.initialized:
-        self._call = twisted.internet.reactor.callLater(interval,
-          self._update_loop)
+        self._calls.append(twisted.internet.reactor.callLater(interval,
+          self._update_loop))
 
+
+    labelplus.common.clean_calls(self._calls)
 
     if self.initialized:
       pickled_time = cPickle.dumps(self.last_updated)
