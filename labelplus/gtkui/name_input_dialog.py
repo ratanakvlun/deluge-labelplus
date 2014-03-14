@@ -71,7 +71,7 @@ from labelplus.common.literals import (
 GLADE_FILE = labelplus.common.get_resource("wnd_name_input.glade")
 ROOT_WIDGET = "wnd_name_input"
 
-REQUEST_TIMEOUT = 10
+REQUEST_TIMEOUT = 10.0
 
 TYPE_ADD = "add"
 TYPE_RENAME = "rename"
@@ -203,7 +203,7 @@ class NameInputDialog(WidgetEncapsulator):
     self._menu = LabelSelectionMenu(self._store.model, on_activate)
     self._menu.connect("show", on_show_menu)
 
-    RT.register(self._menu)
+    RT.register(self._menu, __name__)
 
     items = labelplus.gtkui.common.menu_add_items(self._menu, 0,
       (
@@ -266,8 +266,7 @@ class NameInputDialog(WidgetEncapsulator):
     self._destroy_menu()
     self._create_menu()
 
-    self._set_parent_label(self._parent_id)
-    self._refresh()
+    self._select_parent_label(self._parent_id)
 
 
   # Section: General
@@ -358,13 +357,6 @@ class NameInputDialog(WidgetEncapsulator):
     self._do_check_input()
 
 
-  def _select_parent_label(self, parent_id):
-
-      self._set_parent_label(parent_id)
-      self._refresh()
-      self._txt_name.grab_focus()
-
-
   def _set_error(self, message):
 
     if message:
@@ -372,6 +364,13 @@ class NameInputDialog(WidgetEncapsulator):
       self._img_error.show()
     else:
       self._img_error.hide()
+
+
+  def _select_parent_label(self, parent_id):
+
+      self._set_parent_label(parent_id)
+      self._refresh()
+      self._txt_name.grab_focus()
 
 
   # Section: Widget Handlers
@@ -482,7 +481,7 @@ class AddLabelDialog(NameInputDialog):
 
 class RenameLabelDialog(NameInputDialog):
 
-  def __init__(self, plugin, store, label_id):
+  def __init__(self, plugin, label_id):
 
     if label_id in RESERVED_IDS:
       raise LabelPlusError(ERR_INVALID_LABEL)
