@@ -66,7 +66,24 @@ def get_resource(filename):
 
 class LabelPlusError(Exception):
 
-  pass
+  def __str__(self):
+
+    from labelplus.common.literals import STR_ERROR
+
+    if self.args:
+      return "%s: %s" % (STR_ERROR, self.args[0])
+    else:
+      return ""
+
+
+  def tr(self):
+
+    from labelplus.common.literals import STR_ERROR
+
+    if self.args:
+      return "%s: %s" % (_(STR_ERROR), _(self.args[0]))
+    else:
+      return ""
 
 
 # Logging
