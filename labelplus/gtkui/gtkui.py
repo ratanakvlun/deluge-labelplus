@@ -72,7 +72,7 @@ from labelplus.gtkui import RT
 
 GTKUI_CONFIG = "%s_ui.conf" % labelplus.common.MODULE_NAME
 
-INIT_POLLING_INTERVAL = 1.0
+INIT_POLLING_INTERVAL = 3.0
 UPDATE_INTERVAL = 1.0
 
 
