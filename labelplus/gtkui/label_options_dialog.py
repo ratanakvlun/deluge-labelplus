@@ -427,7 +427,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
     self._set_error(None)
 
-    log.info("%s: %r", STR_LOAD_OPTIONS, self._store[label_id]["fullname"])
+    log.info("Loading options for %r", self._store[label_id]["fullname"])
 
     deferreds = []
     deferreds.append(client.labelplus.get_label_defaults())
@@ -473,7 +473,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
     self._set_error(None)
 
-    log.info("%s: %r", STR_SAVE_OPTIONS, self._label_fullname)
+    log.info("Saving options for %r", self._label_fullname)
 
     options = self._get_options()
     same = labelplus.common.dict_equals(options, self._label_options)
