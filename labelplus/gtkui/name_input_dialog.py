@@ -416,11 +416,10 @@ class NameInputDialog(WidgetEncapsulator):
       dest_name = name
 
     if self._type == TYPE_ADD:
-      log.info("%s: %r", STR_ADD_LABEL, dest_name)
+      log.info("Adding label: %r", dest_name)
       deferred = client.labelplus.add_label(self._parent_id, name)
     elif self._type == TYPE_RENAME:
-      log.info("%s: %r -> %r", STR_RENAME_LABEL, self._label_fullname,
-        dest_name)
+      log.info("Renaming label: %r -> %r", self._label_fullname, dest_name)
       #TODO: rename_label(label_id, dest_parent_id, dest_name)
       deferred = client.labelplus.rename_label(self._label_id, name)
 
