@@ -153,10 +153,7 @@ class GtkUI(GtkPluginBase):
       self.daemon = "%s@%s:%s" % (info[2], info[0], info[1])
 
       self._load_config()
-
-      log.debug("Loading store...")
       self._update_store(result)
-
       self._load_extensions()
 
       self.initialized = True
@@ -164,16 +161,16 @@ class GtkUI(GtkPluginBase):
       log.info("%s initialized", self.__class__.__name__)
 
       self._update_loop()
-      self.testing()
     except:
       log.error("Error initializing %s", self.__class__.__name__)
       raise
 
+    self.testing()
 
-  def _load_extensions(self):#
+
+  def _load_extensions(self):
 
     log.debug("Loading extensions...")
-
 
     for ext in EXTENSIONS:
       try:
@@ -231,11 +228,10 @@ class GtkUI(GtkPluginBase):
     self.initialized = False
 
     self._run_cleanup_funcs()
-    self._update_funcs = None
-
     self._unload_extensions()
-
     self._destroy_store()
+
+    self._update_funcs = []
 
     RT.report()
 
@@ -244,15 +240,12 @@ class GtkUI(GtkPluginBase):
 
   def _run_cleanup_funcs(self):
 
-    log.debug("Cleaning up...")
-
     while self._cleanup_funcs:
       func = self._cleanup_funcs.pop()
-
       try:
         func()
       except:
-        pass
+        log.exception("Failed to run %s()", func.func_name)
 
 
   def _unload_extensions(self):
@@ -261,19 +254,17 @@ class GtkUI(GtkPluginBase):
 
     while self._extensions:
       ext = self._extensions.pop()
-
       try:
         ext.unload()
       except:
-        pass
+        log.exception("Error deinitializing %s", ext.__class__.__name__)
 
 
   def _destroy_store(self):
 
-    log.debug("Destroying store...")
-
-    self.store.destroy()
-    self.store = None
+    if self.store:
+      self.store.destroy()
+      self.store = None
 
 
   # Section: Public
@@ -315,8 +306,6 @@ class GtkUI(GtkPluginBase):
 
   def _load_config(self):
 
-    log.debug("Loading config...")
-
     config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
     # Workaround for version that didn't use header
@@ -335,8 +324,6 @@ class GtkUI(GtkPluginBase):
 
 
   def _close_config(self):
-
-    log.debug("Closing config...")
 
     if self.config:
       if self.initialized:
