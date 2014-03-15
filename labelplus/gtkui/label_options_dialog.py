@@ -79,7 +79,6 @@ from labelplus.common.literals import (
   ERR_INVALID_LABEL,
 )
 
-
 GLADE_FILE = labelplus.common.get_resource("wnd_label_options.glade")
 ROOT_WIDGET = "wnd_label_options"
 
@@ -127,6 +126,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
     try:
       self._store = plugin.store.copy()
+      self._set_label(ID_NULL)
 
       # Keep window alive with cyclic reference
       self._root_widget.set_data("owner", self)
