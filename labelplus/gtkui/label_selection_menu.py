@@ -87,6 +87,11 @@ class LabelSelectionMenu(gtk.Menu):
 
     children = labelplus.gtkui.common.treemodel_get_children(model)
 
+    for child in list(children):
+      id, data = model[child]
+      if id in labelplus.common.label.RESERVED_IDS:
+        children.remove(child)
+
     if root_items:
       self._items += labelplus.gtkui.common.menu_add_items(self, -1,
         root_items)
@@ -100,8 +105,6 @@ class LabelSelectionMenu(gtk.Menu):
   def _create_item(self, model, iter, menu, on_activate, headers, sub_items):
 
     id, data = model[iter]
-    if id in labelplus.common.label.RESERVED_IDS:
-      return
 
     name = data["name"]
 
