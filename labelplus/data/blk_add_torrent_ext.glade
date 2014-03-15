@@ -43,7 +43,7 @@
                 </child>
                 <child>
                   <widget class="GtkToggleButton" id="tgb_fullname">
-                    <property name="label" translatable="yes">-/-</property>
+                    <property name="label">-/-</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
