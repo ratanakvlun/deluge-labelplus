@@ -86,6 +86,10 @@ MAX_TRIES = 10
 
 REQUEST_TIMEOUT = 10.0
 
+EXTENSIONS = (
+  AddTorrentExt,
+)
+
 
 log = logging.getLogger(__name__)
 
@@ -170,19 +174,14 @@ class GtkUI(GtkPluginBase):
 
     log.debug("Loading extensions...")
 
-    extensions = [
-      #(AddTorrentExt, (self,)),
-    ]
 
-    for ext in extensions:
+    for ext in EXTENSIONS:
       try:
-        instance = ext[0](*ext[1])
-
-        RT.register(instance, ext[0].__name__)
-
+        instance = ext(self)
         self._extensions.append(instance)
+        RT.register(instance, ext.__name__)
       except:
-        pass
+        log.exception("Error initializing %s", ext.__name__)
 
 
   def testing(self):
