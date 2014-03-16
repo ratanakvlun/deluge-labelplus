@@ -290,7 +290,7 @@ class AddTorrentExt(WidgetEncapsulator):
     else:
       label_id = None
 
-    if label_id not in RESERVED_IDS and label_id in self._store:
+    if label_id in self._store:
       name = self._store[label_id]["name"]
       fullname = self._store[label_id]["fullname"]
     else:
