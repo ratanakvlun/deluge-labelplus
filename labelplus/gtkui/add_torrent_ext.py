@@ -79,6 +79,8 @@ class AddTorrentExt(WidgetEncapsulator):
   def __init__(self, plugin):
 
     self._plugin = plugin
+    self._dialog = deluge.component.get("AddTorrentDialog")
+    self._view = self._dialog.listview_torrents
 
     self._store = None
     self._menu = None
@@ -90,9 +92,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
     try:
       self._store = plugin.store.copy()
-
-      self._dialog = deluge.component.get("AddTorrentDialog")
-      self._view = self._dialog.listview_torrents
+      RT.register(self._store, __name__)
 
       self._setup_widgets()
       self._install_widgets()
@@ -104,8 +104,6 @@ class AddTorrentExt(WidgetEncapsulator):
       self._update_sensitivity()
 
       self._plugin.register_update_func(self.update_store)
-
-      log.info("%s initialized", self.__class__.__name__)
     except:
       self.unload()
       raise
@@ -197,8 +195,6 @@ class AddTorrentExt(WidgetEncapsulator):
 
     super(AddTorrentExt, self).destroy()
 
-    log.info("%s deinitialized", self.__class__.__name__)
-
 
   def _deregister_handlers(self):
 
@@ -250,6 +246,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
     self._store.destroy()
     self._store = store.copy()
+    RT.register(self._store, __name__)
 
     self._destroy_menu()
     self._create_menu()
@@ -336,7 +333,7 @@ class AddTorrentExt(WidgetEncapsulator):
     self._display_torrent_label(None)
 
 
-  # Section: Widget Handlers
+  # Section: Deluge Handlers
 
   def _on_selection_changed(self, selection):
 
