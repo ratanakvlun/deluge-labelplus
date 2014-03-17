@@ -40,13 +40,18 @@ TITLE_LABEL_OPTIONS = "Label Options"
 
 TITLE_SELECT_FOLDER = "Select A Folder"
 
+TITLE_SET_FILTER = "Set Filter"
+TITLE_SET_LABEL = "Set Label"
+
 
 STR_ERROR = "Error"
 STR_UPDATE = "Update"
 STR_LABEL = "Label"
 STR_PARENT = "Parent"
 
+STR_ALL = "All"
 STR_NONE = "None"
+STR_SELECTED = "Selected"
 
 STR_ADD_LABEL = "Add label"
 STR_RENAME_LABEL = "Rename label"
