@@ -177,6 +177,7 @@ class GtkUI(GtkPluginBase):
         instance = ext(self)
         self._extensions.append(instance)
         RT.register(instance, ext.__name__)
+        log.info("%s initialized", ext.__name__)
       except:
         log.exception("Error initializing %s", ext.__name__)
 
@@ -256,6 +257,7 @@ class GtkUI(GtkPluginBase):
       ext = self._extensions.pop()
       try:
         ext.unload()
+        log.info("%s deinitialized", ext.__class__.__name__)
       except:
         log.exception("Error deinitializing %s", ext.__class__.__name__)
 
