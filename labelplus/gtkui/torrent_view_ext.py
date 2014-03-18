@@ -36,6 +36,7 @@
 
 import logging
 
+import gobject
 import gtk
 
 import deluge.component
@@ -57,7 +58,7 @@ from labelplus.common import (
 )
 
 from labelplus.common.label import (
-  ID_NULL, ID_ALL, ID_NONE, RESERVED_IDS,
+  ID_ALL, ID_NONE,
 )
 
 from labelplus.common.literals import (
@@ -101,6 +102,8 @@ class TorrentViewExt(object):
       self._create_menus()
       self._install_context_menu()
 
+      self._install_view_tweaks()
+
       self._register_handlers()
 
       self._plugin.register_update_func(self.update_store)
@@ -116,7 +119,7 @@ class TorrentViewExt(object):
       name = model[row][indices[0]]
       id = model[row][indices[1]]
 
-      if id not in RESERVED_IDS and id in self._store:
+      if self._store.is_user_label(id):
         if self._plugin.config["common"]["torrent_view_fullname"]:
           name = self._store[id]["fullname"]
         else:
@@ -124,11 +127,8 @@ class TorrentViewExt(object):
 
       cell.set_property("text", name)
 
-
     self._view.add_func_column(DISPLAY_NAME, cell_data_func,
       col_types=[str, str], status_field=[STATUS_NAME, STATUS_ID])
-
-    RT.register(self._get_view_column(), __name__)
 
 
   def _create_menus(self):
@@ -148,6 +148,18 @@ class TorrentViewExt(object):
     RT.register(self._sep, __name__)
 
 
+  def _install_view_tweaks(self):
+
+    def update_view(columns=None):
+
+      self._view._orig_update_view(columns)
+      gobject.idle_add(self._view.treeview.scroll_to_point, -1, 0)
+
+
+    self._view._orig_update_view = self._view.update_view
+    self._view.update_view = update_view
+
+
   def _register_handlers(self):
 
     self._register_handler(self._view.treeview, "button-press-event",
@@ -162,9 +174,14 @@ class TorrentViewExt(object):
 
     self._deregister_handlers()
 
+    self._uninstall_view_tweaks()
+
     self._uninstall_context_menu()
     self._destroy_menus()
 
+    self._destroy_store()
+
+    self._reset_filter()
     self._remove_column()
 
 
@@ -172,6 +189,13 @@ class TorrentViewExt(object):
 
     for widget, handle in self._handlers:
       widget.disconnect(handle)
+
+
+  def _uninstall_view_tweaks(self):
+
+    if hasattr(self._view, "_orig_update_view"):
+      self._view.update_view = self._view._orig_update_view
+      del self._view._orig_update_view
 
 
   def _uninstall_context_menu(self):
@@ -193,13 +217,80 @@ class TorrentViewExt(object):
     self._destroy_context_menu()
 
 
+  def _destroy_store(self):
+
+    if self._store:
+      self._store.destroy()
+      self._store = None
+
+
+  def _reset_filter(self):
+
+    if self._view.filter and self._view.filter.get(STATUS_ID) is not None:
+      self._view.set_filter({})
+
+
   def _remove_column(self):
 
-    # Workaround for Deluge removing indices in the wrong order
     column = self._view.columns.get(DISPLAY_NAME)
     if column:
+      renderer = column.column.get_cell_renderers()[0]
+      column.column.set_cell_data_func(renderer, None)
+
+      # Workaround for Deluge removing indices in the wrong order
       column.column_indices = sorted(column.column_indices, reverse=True)
+
       self._view.remove_column(DISPLAY_NAME)
+
+
+  # Section: Public
+
+  def set_filter(self, ids):
+
+    if ID_ALL in ids:
+      filter = {}
+    else:
+      if self._plugin.config["common"]["sidebar_include_sublabels"]:
+        filter = {STATUS_ID: self._get_full_family(ids)}
+      else:
+        filter = {STATUS_ID: ids}
+
+    log.debug("Setting filter: %r", filter)
+    self._view.set_filter(filter)
+
+
+  def is_filter(self, ids):
+
+    if ID_ALL in ids and len(self._view.filter) == 0:
+      return True
+
+    if STATUS_ID in self._view.filter:
+      label_ids = self._view.filter[STATUS_ID]
+
+      if self._plugin.config["common"]["sidebar_include_sublabels"]:
+        label_ids = labelplus.common.label.get_base_ancestors(label_ids)
+
+      if set(ids) == set(label_ids):
+        return True
+
+    return False
+
+
+  # Section: Public: Update
+
+  def update_store(self, store):
+
+    self._store.destroy()
+    self._store = store.copy()
+    RT.register(self._store, __name__)
+
+    self._destroy_alternate_menu()
+    self._alt_menu = self._create_alternate_menu()
+
+    self._uninstall_submenus()
+    self._destroy_submenus()
+    self._submenus = self._create_submenus()
+    self._install_submenus()
 
 
   # Section: General
@@ -219,98 +310,50 @@ class TorrentViewExt(object):
     return None
 
 
-  def _get_selected_torrents_label(self):
+  def _get_selected_torrent_labels(self):
 
-    label_id = None
+    label_ids = []
     torrent_ids = self._view.get_selected_torrents()
 
-    if torrent_ids:
-      status = self._view.get_torrent_status(torrent_ids[0])
-      if STATUS_ID not in status:
-        return None
+    for id in torrent_ids:
+      status = self._view.get_torrent_status(id)
+      label_id = status.get(STATUS_ID) or ID_NONE
+      if label_id not in label_ids:
+        label_ids.append(label_id)
 
-      label_id = status[STATUS_ID] or ID_NONE
-
-      for id in torrent_ids:
-        status = self._view.get_torrent_status(id)
-        other_label_id = status[STATUS_ID] or ID_NONE
-
-        if other_label_id != label_id:
-          return None
-
-    return label_id
+    return label_ids or None
 
 
-  def _get_any_selected_label(self):
+  def _get_any_selected_labels(self):
 
-    id = self._get_selected_torrents_label()
-    if id:
-      return id
+    ids = self._get_selected_torrent_labels()
+    if ids:
+      return ids
     else:
-      sidebar = self._plugin.get_extension("SidebarExt")
-      if sidebar and sidebar.page_selected():
-        return sidebar.get_selected_label()
+      ext = self._plugin.get_extension("SidebarExt")
+      if ext and ext.is_active_page():
+        return ext.get_selected_labels()
 
     return None
 
 
-  def _set_filter(self, id):
+  def _set_filter_sync_sidebar(self, ids):
 
-    if id in self._store:
-      sidebar = self._plugin.get_extension("SidebarExt")
-      if sidebar:
-        sidebar.select_label(id)
-      else:
-        if id == ID_ALL:
-          filter = {}
-        else:
-          filter = {STATUS_ID: id}
-
-        log.info("Setting filter to %r", id if id in RESERVED_IDS else
-          self._store[id]["fullname"])
-        self._view.set_filter(filter)
+    ext = self._plugin.get_extension("SidebarExt")
+    if ext:
+      ext.select_labels(ids)
+    else:
+      self.set_filter(ids)
 
 
-  def _is_filter(self, id):
+  def _get_full_family(self, ids):
 
-    ids = self._view.filter.get(STATUS_ID)
+    label_ids = labelplus.common.label.get_base_ancestors(ids)
 
-    if ids:
-      if isinstance(ids, (list, tuple)):
-        if len(ids) == 1 and ids[0] == id:
-          return True
-      else:
-        if ids == id:
-          return True
+    for id in list(label_ids):
+      label_ids += self._store[id]["descendents"]["ids"]
 
-    return False
-
-
-  def _has_valid_parent(self, id):
-
-    if id and id not in RESERVED_IDS:
-      parent_id = labelplus.common.label.get_parent_id(id)
-      if parent_id in self._store:
-        return True
-
-    return False
-
-
-  # Section: Update
-
-  def update_store(self, store):
-
-    self._store.destroy()
-    self._store = store.copy()
-    RT.register(self._store, __name__)
-
-    self._destroy_alternate_menu()
-    self._alt_menu = self._create_alternate_menu()
-
-    self._uninstall_submenus()
-    self._destroy_submenus()
-    self._submenus = self._create_submenus()
-    self._install_submenus()
+    return label_ids
 
 
   # Section: Context Menu
@@ -395,22 +438,25 @@ class TorrentViewExt(object):
 
   def _create_filter_menu(self):
 
-    def on_activate(widget, label_id):
+    def on_activate(widget, ids):
 
-      self._set_filter(label_id)
+      if not isinstance(ids, list):
+        ids = [ids]
+
+      self._set_filter_sync_sidebar(ids)
 
 
     def on_activate_parent(widget):
 
-      id = self._get_any_selected_label()
-      parent_id = labelplus.common.label.get_parent_id(id)
+      ids = self._get_any_selected_labels()
+      parent_id = labelplus.common.label.get_common_parent(ids)
       on_activate(widget, parent_id)
 
 
     def on_activate_selected(widget):
 
-      id = self._get_selected_torrents_label()
-      on_activate(widget, id)
+      ids = self._get_selected_torrent_labels()
+      on_activate(widget, ids)
 
 
     def on_show_menu(widget):
@@ -418,12 +464,13 @@ class TorrentViewExt(object):
       items[0].hide()
       items[1].hide()
 
-      id = self._get_any_selected_label()
-      if self._has_valid_parent(id):
+      ids = self._get_any_selected_labels()
+      parent_id = labelplus.common.label.get_common_parent(ids)
+      if self._store.is_user_label(parent_id):
         items[0].show()
 
-      id = self._get_selected_torrents_label()
-      if id and id not in RESERVED_IDS:
+      ids = self._get_selected_torrent_labels()
+      if self._store.user_labels(ids):
         items[1].show()
 
 
@@ -460,15 +507,14 @@ class TorrentViewExt(object):
 
       torrent_ids = self._view.get_selected_torrents()
       if torrent_ids and label_id in self._store:
-        log.info("Setting label for selected torrents to %r", label_id if
-          label_id in RESERVED_IDS else self._store[label_id]["fullname"])
+        log.debug("Setting label '%s' on %r", label_id, torrent_ids)
         client.labelplus.set_torrent_labels(torrent_ids, label_id)
 
 
     def on_activate_parent(widget):
 
-      id = self._get_selected_torrents_label()
-      parent_id = labelplus.common.label.get_parent_id(id)
+      ids = self._get_selected_torrent_labels()
+      parent_id = labelplus.common.label.get_common_parent(ids)
       on_activate(widget, parent_id)
 
 
@@ -476,8 +522,9 @@ class TorrentViewExt(object):
 
       items[0].hide()
 
-      id = self._get_selected_torrents_label()
-      if self._has_valid_parent(id):
+      ids = self._get_selected_torrent_labels()
+      parent_id = labelplus.common.label.get_common_parent(ids)
+      if self._store.is_user_label(parent_id):
         items[0].show()
 
 
@@ -506,20 +553,20 @@ class TorrentViewExt(object):
     x, y = event.get_coords()
     path_info = widget.get_path_at_pos(int(x), int(y))
     if not path_info:
+      self._view.treeview.get_selection().unselect_all()
       if event.button == 3:
         self._alt_menu.popup(None, None, None, event.button, event.time)
       return
 
     if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
       if path_info[1] == self._get_view_column():
-        id = self._get_selected_torrents_label()
-
-        if self._is_filter(id):
+        ids = self._get_selected_torrent_labels()
+        if self.is_filter(ids):
           try:
-            dialog = LabelOptionsDialog(self._plugin, id)
-            dialog.show()
+            dialog = LabelOptionsDialog(self._plugin, ids[0])
             RT.register(dialog, __name__)
+            dialog.show()
           except:
             pass
         else:
-          self._set_filter(id)
+          self._set_filter_sync_sidebar(ids)
