@@ -152,6 +152,16 @@ class LabelStore(object):
     return descendents
 
 
+  def get_total_count(self, ids):
+
+    sum = 0
+
+    for id in ids:
+      sum += self._data[id]["count"]
+
+    return sum
+
+
   # Section: Data
 
   def _normalize_data(self, data):
