@@ -67,6 +67,17 @@ def get_common_parent(ids):
   return parent_id
 
 
+def get_base_ancestors(ids):
+
+  ancestors = list(ids)
+
+  for id in sorted(ids, reverse=True):
+    if get_parent_id(id) in ancestors:
+      ancestors.remove(id)
+
+  return ancestors
+
+
 def is_ancestor(ancestor_id, label_id):
 
   if ancestor_id == ID_NULL:
