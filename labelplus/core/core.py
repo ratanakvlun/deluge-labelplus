@@ -52,8 +52,6 @@ import deluge.component
 import deluge.configmanager
 import deluge.core.rpcserver
 
-from deluge.plugins.pluginbase import CorePluginBase
-
 import labelplus.common
 import labelplus.common.config
 import labelplus.common.config.convert
@@ -63,6 +61,8 @@ import labelplus.common.label
 import labelplus.core.config
 import labelplus.core.config.convert
 
+
+from deluge.plugins.pluginbase import CorePluginBase
 
 from labelplus.common import LabelPlusError
 
