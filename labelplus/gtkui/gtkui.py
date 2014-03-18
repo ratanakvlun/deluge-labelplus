@@ -167,8 +167,6 @@ class GtkUI(GtkPluginBase):
     self._load_extensions()
     self._update_loop()
 
-    #self.testing()
-
 
   def _load_extensions(self):
 
@@ -182,40 +180,6 @@ class GtkUI(GtkPluginBase):
         log.info("%s initialized", ext.__name__)
       except:
         log.exception("Error initializing %s", ext.__name__)
-
-
-  def testing(self):
-
-    log.debug("Testing Start")
-
-    from labelplus.gtkui.name_input_dialog import AddLabelDialog
-    from labelplus.gtkui.name_input_dialog import RenameLabelDialog
-    from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
-    from labelplus.gtkui.label_options_dialog import LabelOptionsDialog
-
-    a = AddLabelDialog(self, self.store)
-    RT.register(a)
-    a.show()
-    del a
-
-    #a = RenameLabelDialog(self, self.store, "0")
-    #RT.register(a)
-    #a.show()
-    #del a
-
-    a = LabelOptionsDialog(self, self.store, "0")
-    RT.register(a)
-    a.show()
-    del a
-    #for x in self.store:
-    #  log.debug("ID: %r", x)
-
-    #for x in self.store:
-    #  log.debug("Name: %r", self.store[x]["name"])
-
-    RT.report()
-
-    log.debug("Testing End")
 
 
   # Section: Deinitialization
