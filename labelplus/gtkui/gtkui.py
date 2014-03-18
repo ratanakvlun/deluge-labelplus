@@ -125,7 +125,7 @@ class GtkUI(GtkPluginBase):
 
   def enable(self):
 
-    log.debug("Initializing %s...", self.__class__.__name__)
+    log.info("Initializing %s...", self.__class__.__name__)
 
     self._poll_init()
 
@@ -156,23 +156,23 @@ class GtkUI(GtkPluginBase):
 
       self._load_config()
       self._update_store(result)
-      self._load_extensions()
 
       self.initialized = True
 
       log.info("%s initialized", self.__class__.__name__)
-
-      self._update_loop()
     except:
       log.error("Error initializing %s", self.__class__.__name__)
       raise
 
-    self.testing()
+    self._load_extensions()
+    self._update_loop()
+
+    #self.testing()
 
 
   def _load_extensions(self):
 
-    log.debug("Loading extensions...")
+    log.info("Loading extensions...")
 
     for ext in EXTENSIONS:
       try:
@@ -222,19 +222,18 @@ class GtkUI(GtkPluginBase):
 
   def disable(self):
 
-    log.debug("Deinitializing %s...", self.__class__.__name__)
+    log.info("Deinitializing %s...", self.__class__.__name__)
 
     labelplus.common.cancel_calls(self._calls)
 
-    self._close_config()
-
-    self.initialized = False
-
     self._run_cleanup_funcs()
     self._unload_extensions()
+    self._update_funcs = []
+
+    self._close_config()
     self._destroy_store()
 
-    self._update_funcs = []
+    self.initialized = False
 
     RT.report()
 
@@ -253,7 +252,7 @@ class GtkUI(GtkPluginBase):
 
   def _unload_extensions(self):
 
-    log.debug("Unloading extensions...")
+    log.info("Unloading extensions...")
 
     while self._extensions:
       ext = self._extensions.pop()
