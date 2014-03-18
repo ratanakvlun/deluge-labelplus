@@ -191,26 +191,22 @@ class NameInputDialog(WidgetEncapsulator):
         item = menu.get_label_item(self._label_id)
         if item:
           item.hide()
-          if item == menu.get_children()[-1]:
-            items[2].hide()
 
       parent_id = labelplus.common.label.get_parent_id(self._parent_id)
       if parent_id not in self._store:
-        items[1].hide()
+        items[0].hide()
 
 
-    self._menu = LabelSelectionMenu(self._store.model, on_activate)
+    root_items = (((gtk.MenuItem, _(STR_NONE)), on_activate, ID_NULL),)
+
+    self._menu = LabelSelectionMenu(self._store.model, on_activate,
+      root_items=root_items)
     self._menu.connect("show", on_show_menu)
 
     RT.register(self._menu, __name__)
 
-    items = labelplus.gtkui.common.menu_add_items(self._menu, 0,
-      (
-        ((gtk.MenuItem, _(STR_NONE)), on_activate, ID_NULL),
-        ((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),
-        ((gtk.SeparatorMenuItem,),),
-      )
-    )
+    items = labelplus.gtkui.common.menu_add_items(self._menu, 1,
+      (((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),))
 
     for item in items:
       RT.register(item, __name__)
