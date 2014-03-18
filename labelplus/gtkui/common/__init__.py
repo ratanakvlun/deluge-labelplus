@@ -153,3 +153,16 @@ def widget_get_descendents(widget, types=(), count=-1):
   get_descendents(widget, types, descendents, count)
 
   return descendents
+
+
+class ImageMenuItem(gtk.ImageMenuItem):
+
+  def __init__(self, stock_id=None, label=None, use_underline=True,
+      accel_group=None):
+
+    super(ImageMenuItem, self).__init__(stock_id, accel_group)
+
+    if label is not None:
+      self.set_label(label)
+
+    self.set_use_underline(use_underline)
