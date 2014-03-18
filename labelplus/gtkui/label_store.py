@@ -162,6 +162,27 @@ class LabelStore(object):
     return sum
 
 
+  def is_user_label(self, id):
+
+    if (id and id not in labelplus.common.label.RESERVED_IDS and
+        id in self._data):
+      return True
+
+    return False
+
+
+  def user_labels(self, ids):
+
+    if not ids:
+      return False
+
+    for id in ids:
+      if not self.is_user_label(id):
+        return False
+
+    return True
+
+
   # Section: Data
 
   def _normalize_data(self, data):
