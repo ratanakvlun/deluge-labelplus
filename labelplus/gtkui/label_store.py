@@ -117,6 +117,15 @@ class LabelStore(object):
       return None
 
 
+  def get_model_path(self, id):
+
+    iter = self.get_model_iter(id)
+    if iter:
+      return self.model.get_path(iter)
+
+    return None
+
+
   # Section: Public: Label
 
   def get_descendent_ids(self, id, max_depth=-1):
