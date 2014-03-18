@@ -72,6 +72,11 @@ CONFIG_DEFAULTS_V2 = {
     "status_include_sublabel": False,
 
     #TEMP
+    "sidebar_include_sublabels": True,
+
+    "status_bar": False,
+    "status_bar_include_sublabels": False,
+
     "add_torrent_ext_fullname": False,
     "torrent_view_fullname": False,
     "name_input_fullname": False,
@@ -89,8 +94,10 @@ CONFIG_DEFAULTS_V3 = {
 
     "prefs_state": [],
 
+    "sidebar_include_sublabels": True,
+
     "status_bar": False,
-    "status_bar_sublabels": False,
+    "status_bar_include_sublabels": False,
 
     "add_torrent_ext_fullname": False,
     "torrent_view_fullname": False,
