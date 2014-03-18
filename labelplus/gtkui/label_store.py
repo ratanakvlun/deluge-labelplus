@@ -107,6 +107,7 @@ class LabelStore(object):
     self._normalize_data(data)
     self._build_fullname_index(data)
     self._build_store(data)
+    self._build_descendent_data()
 
 
   def get_model_iter(self, id):
@@ -259,3 +260,15 @@ class LabelStore(object):
 
     RT.register(store, __name__)
     RT.register(sorted_model, __name__)
+
+
+  def _build_descendent_data(self):
+
+    for id in self._data:
+      self._data[id]["children"] = self.get_descendent_ids(id, 1)
+      self._data[id]["descendents"] = {}
+
+      descendents = self.get_descendent_ids(id)
+      self._data[id]["descendents"]["ids"] = descendents
+      self._data[id]["descendents"]["count"] = \
+        self.get_total_count(descendents)
