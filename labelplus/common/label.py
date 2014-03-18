@@ -53,6 +53,20 @@ def get_parent_id(label_id):
   return label_id.rpartition(":")[0]
 
 
+def get_common_parent(ids):
+
+  if not ids:
+    return None
+
+  parent_id = get_parent_id(ids[0])
+
+  for id in ids:
+    if parent_id != get_parent_id(id):
+      return None
+
+  return parent_id
+
+
 def is_ancestor(ancestor_id, label_id):
 
   if ancestor_id == ID_NULL:
