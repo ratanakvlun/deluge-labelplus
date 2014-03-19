@@ -449,6 +449,15 @@ class SidebarExt(object):
 
   def _enable_dnd(self):
 
+    def check_dest_id(widget, path, col, pos, selection, *args):
+
+      model = widget.get_model()
+      id = model[path][LABEL_ID]
+
+      if id == ID_NONE or self._store.is_user_label(id):
+        return True
+
+
     def receive_ids(widget, path, col, pos, selection, *args):
 
       try:
@@ -466,22 +475,13 @@ class SidebarExt(object):
         return True
 
 
-    def check_dest(widget, path, col, pos, selection, *args):
-
-      model = widget.get_model()
-      id = model[path][LABEL_ID]
-
-      if id == ID_NONE or self._store.is_user_label(id):
-        return True
-
-
     dest_target = DragTarget(
       name="torrent_ids",
       scope=gtk.TARGET_SAME_APP,
       action=gtk.gdk.ACTION_MOVE,
       pos=gtk.TREE_VIEW_DROP_INTO_OR_BEFORE,
       data_func=receive_ids,
-      aux_func=check_dest,
+      aux_func=check_dest_id,
     )
 
     self._dnd_dest_proxy = TreeViewDragDestProxy(self._tree)
