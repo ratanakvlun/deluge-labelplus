@@ -34,6 +34,7 @@
 #
 
 
+import cPickle
 import logging
 
 import gobject
@@ -49,6 +50,9 @@ from deluge.ui.client import client
 
 from labelplus.gtkui.label_options_dialog import LabelOptionsDialog
 from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
+
+from labelplus.gtkui.common.dnd import TreeViewDragSourceProxy
+from labelplus.gtkui.common.dnd import DragTarget
 
 
 from labelplus.common import (
@@ -91,6 +95,8 @@ class TorrentViewExt(object):
 
     self._alt_menu = None
 
+    self._dnd_src_proxy = None
+
     self._handlers = []
 
     try:
@@ -103,6 +109,8 @@ class TorrentViewExt(object):
       self._install_context_menu()
 
       self._install_view_tweaks()
+
+      self._enable_dnd()
 
       self._register_handlers()
 
@@ -173,6 +181,8 @@ class TorrentViewExt(object):
     self._plugin.deregister_update_func(self.update_store)
 
     self._deregister_handlers()
+
+    self._disable_dnd()
 
     self._uninstall_view_tweaks()
 
@@ -580,6 +590,62 @@ class TorrentViewExt(object):
     RT.register(item, __name__)
 
     return item
+
+
+  # Section: Drag and Drop
+
+  def _enable_dnd(self):
+
+    def on_drag_start(widget, context):
+
+      torrent_ids = self._view.get_selected_torrents()
+      widget.set_data("dnd_data", torrent_ids)
+
+
+    def load_ids(widget, path, col, selection, *args):
+
+      torrent_ids = widget.get_data("dnd_data")
+      data = cPickle.dumps(torrent_ids)
+      selection.set("TEXT", 8, data)
+
+      return True
+
+
+    def get_drag_icon(widget, x, y):
+
+      if widget.get_selection().count_selected_rows() > 1:
+        pixbuf = icon_multiple
+      else:
+        pixbuf = icon_single
+
+      return (pixbuf, 0, 0)
+
+
+    icon_single = self._view.treeview.render_icon(gtk.STOCK_DND,
+      gtk.ICON_SIZE_DND)
+    icon_multiple = self._view.treeview.render_icon(gtk.STOCK_DND_MULTIPLE,
+      gtk.ICON_SIZE_DND)
+
+    src_target = DragTarget(
+      name="torrent_ids",
+      scope=gtk.TARGET_SAME_APP,
+      action=gtk.gdk.ACTION_MOVE,
+      data_func=load_ids,
+    )
+
+    self._dnd_src_proxy = TreeViewDragSourceProxy(self._view.treeview,
+      get_drag_icon, on_drag_start)
+    self._dnd_src_proxy.add_target(src_target)
+
+    RT.register(src_target, __name__)
+    RT.register(self._dnd_src_proxy, __name__)
+
+
+  def _disable_dnd(self):
+
+    if self._dnd_src_proxy:
+      self._dnd_src_proxy.unload()
+      self._dnd_src_proxy = None
 
 
   # Section: Deluge Handlers

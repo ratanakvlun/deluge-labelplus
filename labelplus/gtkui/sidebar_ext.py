@@ -53,7 +53,6 @@ from labelplus.gtkui.name_input_dialog import AddLabelDialog
 from labelplus.gtkui.name_input_dialog import RenameLabelDialog
 from labelplus.gtkui.label_options_dialog import LabelOptionsDialog
 
-from labelplus.gtkui.common.dnd import TreeViewDragSourceProxy
 from labelplus.gtkui.common.dnd import TreeViewDragDestProxy
 from labelplus.gtkui.common.dnd import DragTarget
 
@@ -85,7 +84,6 @@ class SidebarExt(object):
 
     self._plugin = plugin
     self._filterview = deluge.component.get("FilterTreeView")
-    self._view = deluge.component.get("TorrentView")
 
     self._state = \
       self._plugin.config["daemon"][self._plugin.daemon]["sidebar_state"]
@@ -95,7 +93,6 @@ class SidebarExt(object):
     self._menu = None
 
     self._dnd_dest_proxy = None
-    self._dnd_src_proxy = None
 
     self._handlers = []
 
@@ -452,21 +449,6 @@ class SidebarExt(object):
 
   def _enable_dnd(self):
 
-    def on_drag_start(widget, context):
-
-      torrent_ids = self._view.get_selected_torrents()
-      widget.set_data("dnd_data", torrent_ids)
-
-
-    def load_ids(widget, path, col, selection, *args):
-
-      torrent_ids = widget.get_data("dnd_data")
-      data = cPickle.dumps(torrent_ids)
-      selection.set("TEXT", 8, data)
-
-      return True
-
-
     def receive_ids(widget, path, col, pos, selection, *args):
 
       try:
@@ -493,31 +475,6 @@ class SidebarExt(object):
         return True
 
 
-    def get_drag_icon(widget, x, y):
-
-      if widget.get_selection().count_selected_rows() > 1:
-        pixbuf = icon_multiple
-      else:
-        pixbuf = icon_single
-
-      return (pixbuf, 0, 0)
-
-
-    icon_single = self._tree.render_icon(gtk.STOCK_DND, gtk.ICON_SIZE_DND)
-    icon_multiple = self._tree.render_icon(gtk.STOCK_DND_MULTIPLE,
-      gtk.ICON_SIZE_DND)
-
-    src_target = DragTarget(
-      name="torrent_ids",
-      scope=gtk.TARGET_SAME_APP,
-      action=gtk.gdk.ACTION_MOVE,
-      data_func=load_ids,
-    )
-
-    self._dnd_src_proxy = TreeViewDragSourceProxy(self._view.treeview,
-      get_drag_icon, on_drag_start)
-    self._dnd_src_proxy.add_target(src_target)
-
     dest_target = DragTarget(
       name="torrent_ids",
       scope=gtk.TARGET_SAME_APP,
@@ -530,9 +487,7 @@ class SidebarExt(object):
     self._dnd_dest_proxy = TreeViewDragDestProxy(self._tree)
     self._dnd_dest_proxy.add_target(dest_target)
 
-    RT.register(src_target, __name__)
     RT.register(dest_target, __name__)
-    RT.register(self._dnd_src_proxy, __name__)
     RT.register(self._dnd_dest_proxy, __name__)
 
 
@@ -541,10 +496,6 @@ class SidebarExt(object):
     if self._dnd_dest_proxy:
       self._dnd_dest_proxy.unload()
       self._dnd_dest_proxy = None
-
-    if self._dnd_src_proxy:
-      self._dnd_src_proxy.unload()
-      self._dnd_src_proxy = None
 
 
   # Section: Widget State
