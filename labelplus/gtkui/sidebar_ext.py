@@ -106,79 +106,6 @@ class SidebarExt(object):
       raise
 
 
-  def _create_label_tree(self):
-
-    def render_cell_data(column, cell, model, iter):
-
-      id, data = model[iter]
-
-      count = data["count"]
-
-      if self._plugin.config["common"]["sidebar_include_sublabels"]:
-        count += data["descendents"]["count"]
-
-      label_str = "%s (%s)" % (data["name"], count)
-      cell.set_property("text", label_str)
-
-
-    def search_func(model, column, key, iter):
-
-      id, data = model[iter]
-
-      if data["fullname"].lower().startswith(key.lower()):
-        return False
-
-      if key.endswith("/"):
-        if data["fullname"].lower() == key[:-1].lower():
-          self._tree.expand_to_path(model.get_path(iter))
-
-      return True
-
-
-    tree = gtk.TreeView()
-    column = gtk.TreeViewColumn(DISPLAY_NAME)
-    renderer = gtk.CellRendererText()
-
-    column.pack_start(renderer, False)
-    column.set_cell_data_func(renderer, render_cell_data)
-    tree.append_column(column)
-
-    tree.set_headers_visible(False)
-    tree.set_enable_tree_lines(True)
-    tree.set_search_equal_func(search_func)
-    tree.set_model(self._store.model)
-    tree.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
-
-    tree.connect("button-press-event", self._on_button_pressed)
-    tree.connect("row-collapsed", self._on_row_collapsed)
-    tree.connect("row-expanded", self._on_row_expanded)
-    tree.get_selection().connect("changed", self._on_selection_changed)
-
-    # Override style so expanders are indented
-    name = "%s_tree_view" % MODULE_NAME
-    tree.set_name(name)
-    path = tree.path()
-
-    rc_string = """
-        style '%s' { GtkTreeView::indent-expanders = 1 }
-        widget '%s' style '%s'
-    """ % (name, path, name)
-
-    gtk.rc_parse_string(rc_string)
-    gtk.rc_reset_styles(tree.get_toplevel().get_settings())
-
-    self._tree = tree
-
-    RT.register(tree, __name__)
-    RT.register(column, __name__)
-    RT.register(renderer, __name__)
-
-
-  def _install_label_tree(self):
-
-    self._filterview.sidebar.add_tab(self._tree, MODULE_NAME, DISPLAY_NAME)
-
-
   def _register_handlers(self):
 
     self._register_handler(self._filterview.sidebar.notebook, "switch-page",
@@ -288,19 +215,6 @@ class SidebarExt(object):
         widget.disconnect(handle)
 
 
-  def _uninstall_label_tree(self):
-
-    if MODULE_NAME in self._filterview.sidebar.tabs:
-      self._filterview.sidebar.remove_tab(MODULE_NAME)
-
-
-  def _destroy_label_tree(self):
-
-    if self._tree:
-      self._tree.destroy()
-      self._tree = None
-
-
   def _destroy_menu(self):
 
     if self._menu:
@@ -405,6 +319,94 @@ class SidebarExt(object):
         nearest_dist = dist
 
     return nearest_path
+
+
+  # Section: Label Tree
+
+  def _create_label_tree(self):
+
+    def render_cell_data(column, cell, model, iter):
+
+      id, data = model[iter]
+
+      count = data["count"]
+
+      if self._plugin.config["common"]["sidebar_include_sublabels"]:
+        count += data["descendents"]["count"]
+
+      label_str = "%s (%s)" % (data["name"], count)
+      cell.set_property("text", label_str)
+
+
+    def search_func(model, column, key, iter):
+
+      id, data = model[iter]
+
+      if data["fullname"].lower().startswith(key.lower()):
+        return False
+
+      if key.endswith("/"):
+        if data["fullname"].lower() == key[:-1].lower():
+          self._tree.expand_to_path(model.get_path(iter))
+
+      return True
+
+
+    tree = gtk.TreeView()
+    column = gtk.TreeViewColumn(DISPLAY_NAME)
+    renderer = gtk.CellRendererText()
+
+    column.pack_start(renderer, False)
+    column.set_cell_data_func(renderer, render_cell_data)
+    tree.append_column(column)
+
+    tree.set_headers_visible(False)
+    tree.set_enable_tree_lines(True)
+    tree.set_search_equal_func(search_func)
+    tree.set_model(self._store.model)
+    tree.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+    tree.connect("button-press-event", self._on_button_pressed)
+    tree.connect("row-collapsed", self._on_row_collapsed)
+    tree.connect("row-expanded", self._on_row_expanded)
+    tree.get_selection().connect("changed", self._on_selection_changed)
+
+    # Override style so expanders are indented
+    name = "%s_tree_view" % MODULE_NAME
+    tree.set_name(name)
+    path = tree.path()
+
+    rc_string = """
+        style '%s' { GtkTreeView::indent-expanders = 1 }
+        widget '%s' style '%s'
+    """ % (name, path, name)
+
+    gtk.rc_parse_string(rc_string)
+    gtk.rc_reset_styles(tree.get_toplevel().get_settings())
+
+    self._tree = tree
+
+    RT.register(tree, __name__)
+    RT.register(column, __name__)
+    RT.register(renderer, __name__)
+
+
+  def _install_label_tree(self):
+
+    self._filterview.sidebar.add_tab(self._tree, MODULE_NAME, DISPLAY_NAME)
+
+
+  def _uninstall_label_tree(self):
+
+    if MODULE_NAME in self._filterview.sidebar.tabs:
+      self._filterview.sidebar.remove_tab(MODULE_NAME)
+
+
+  def _destroy_label_tree(self):
+
+    if self._tree:
+      self._tree.destroy()
+      self._tree = None
 
 
   # Section: Widget State
