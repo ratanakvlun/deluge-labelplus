@@ -508,7 +508,8 @@ class TorrentViewExt(object):
 
       torrent_ids = self._view.get_selected_torrents()
       if torrent_ids and label_id in self._store:
-        log.debug("Setting label '%s' on %r", label_id, torrent_ids)
+        log.info("Setting label %r on %r", self._store[label_id]["fullname"],
+          torrent_ids)
         client.labelplus.set_torrent_labels(torrent_ids, label_id)
 
 
