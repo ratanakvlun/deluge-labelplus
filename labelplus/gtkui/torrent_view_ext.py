@@ -276,6 +276,33 @@ class TorrentViewExt(object):
     return False
 
 
+  def get_selected_torrent_labels(self):
+
+    label_ids = []
+    torrent_ids = self._view.get_selected_torrents()
+
+    for id in torrent_ids:
+      status = self._view.get_torrent_status(id)
+      label_id = status.get(STATUS_ID) or ID_NONE
+      if label_id not in label_ids:
+        label_ids.append(label_id)
+
+    return label_ids or None
+
+
+  def get_any_selected_labels(self):
+
+    ids = self.get_selected_torrent_labels()
+    if ids:
+      return ids
+    else:
+      ext = self._plugin.get_extension("SidebarExt")
+      if ext and ext.is_active_page():
+        return ext.get_selected_labels()
+
+    return None
+
+
   # Section: Public: Update
 
   def update_store(self, store):
@@ -306,33 +333,6 @@ class TorrentViewExt(object):
     column = self._view.columns.get(DISPLAY_NAME)
     if column:
       return column.column
-
-    return None
-
-
-  def _get_selected_torrent_labels(self):
-
-    label_ids = []
-    torrent_ids = self._view.get_selected_torrents()
-
-    for id in torrent_ids:
-      status = self._view.get_torrent_status(id)
-      label_id = status.get(STATUS_ID) or ID_NONE
-      if label_id not in label_ids:
-        label_ids.append(label_id)
-
-    return label_ids or None
-
-
-  def _get_any_selected_labels(self):
-
-    ids = self._get_selected_torrent_labels()
-    if ids:
-      return ids
-    else:
-      ext = self._plugin.get_extension("SidebarExt")
-      if ext and ext.is_active_page():
-        return ext.get_selected_labels()
 
     return None
 
@@ -448,14 +448,14 @@ class TorrentViewExt(object):
 
     def on_activate_parent(widget):
 
-      ids = self._get_any_selected_labels()
+      ids = self.get_any_selected_labels()
       parent_id = labelplus.common.label.get_common_parent(ids)
       on_activate(widget, parent_id)
 
 
     def on_activate_selected(widget):
 
-      ids = self._get_selected_torrent_labels()
+      ids = self.get_selected_torrent_labels()
       on_activate(widget, ids)
 
 
@@ -464,12 +464,12 @@ class TorrentViewExt(object):
       items[0].hide()
       items[1].hide()
 
-      ids = self._get_any_selected_labels()
+      ids = self.get_any_selected_labels()
       parent_id = labelplus.common.label.get_common_parent(ids)
       if self._store.is_user_label(parent_id):
         items[0].show()
 
-      ids = self._get_selected_torrent_labels()
+      ids = self.get_selected_torrent_labels()
       if self._store.user_labels(ids):
         items[1].show()
 
@@ -513,7 +513,7 @@ class TorrentViewExt(object):
 
     def on_activate_parent(widget):
 
-      ids = self._get_selected_torrent_labels()
+      ids = self.get_selected_torrent_labels()
       parent_id = labelplus.common.label.get_common_parent(ids)
       on_activate(widget, parent_id)
 
@@ -522,7 +522,7 @@ class TorrentViewExt(object):
 
       items[0].hide()
 
-      ids = self._get_selected_torrent_labels()
+      ids = self.get_selected_torrent_labels()
       parent_id = labelplus.common.label.get_common_parent(ids)
       if self._store.is_user_label(parent_id):
         items[0].show()
@@ -560,7 +560,7 @@ class TorrentViewExt(object):
 
     if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
       if path_info[1] == self._get_view_column():
-        ids = self._get_selected_torrent_labels()
+        ids = self.get_selected_torrent_labels()
         if self.is_filter(ids):
           try:
             dialog = LabelOptionsDialog(self._plugin, ids[0])
