@@ -112,85 +112,6 @@ class SidebarExt(object):
       self._on_switch_page)
 
 
-  def _create_menu(self):
-
-    def on_add(widget):
-
-      try:
-        dialog = AddLabelDialog(self._plugin, ID_NULL)
-        RT.register(dialog, __name__)
-        dialog.show()
-      except:
-        pass
-
-
-    def on_sublabel(widget):
-
-      try:
-        id = self._menu.get_title()
-        dialog = AddLabelDialog(self._plugin, id)
-        RT.register(dialog, __name__)
-        dialog.show()
-      except:
-        pass
-
-
-    def on_rename(widget):
-
-      try:
-        id = self._menu.get_title()
-        dialog = RenameLabelDialog(self._plugin, id)
-        RT.register(dialog, __name__)
-        dialog.show()
-      except:
-        pass
-
-
-    def on_remove(widget):
-
-      id = self._menu.get_title()
-      client.labelplus.remove_label(id)
-
-
-    def on_option(widget):
-
-      try:
-        id = self._menu.get_title()
-        dialog = LabelOptionsDialog(self._plugin, id)
-        RT.register(dialog, __name__)
-        dialog.show()
-      except:
-        pass
-
-
-    def on_show_menu(widget):
-
-      self._menu.show_all()
-
-      id = self._menu.get_title()
-      if id in RESERVED_IDS:
-        for i in range(1, 7):
-          items[i].hide()
-
-
-    menu = gtk.Menu()
-    menu.connect("show", on_show_menu)
-
-    items = labelplus.gtkui.common.menu_add_items(menu, 0, (
-      ((ImageMenuItem, gtk.STOCK_ADD, _("_Add Label")), on_add),
-      ((gtk.SeparatorMenuItem,),),
-      ((ImageMenuItem, gtk.STOCK_ADD, _("Add Sub_label")), on_sublabel),
-      ((ImageMenuItem, gtk.STOCK_EDIT, _("Re_name Label")), on_rename),
-      ((ImageMenuItem, gtk.STOCK_REMOVE, _("_Remove Label")), on_remove),
-      ((gtk.SeparatorMenuItem,),),
-      ((ImageMenuItem, gtk.STOCK_PREFERENCES, _("Label _Options")), on_option),
-    ))
-
-    self._menu = menu
-
-    RT.register(self._menu, __name__)
-
-
   # Section: Deinitialization
 
   def unload(self):
@@ -213,13 +134,6 @@ class SidebarExt(object):
     for widget, handle in self._handlers:
       if widget.handler_is_connected(handle):
         widget.disconnect(handle)
-
-
-  def _destroy_menu(self):
-
-    if self._menu:
-      self._menu.destroy()
-      self._menu = None
 
 
   def _destroy_store(self):
@@ -407,6 +321,94 @@ class SidebarExt(object):
     if self._tree:
       self._tree.destroy()
       self._tree = None
+
+
+  # Section: Context Menu
+
+  def _create_menu(self):
+
+    def on_add(widget):
+
+      try:
+        dialog = AddLabelDialog(self._plugin, ID_NULL)
+        RT.register(dialog, __name__)
+        dialog.show()
+      except:
+        pass
+
+
+    def on_sublabel(widget):
+
+      try:
+        id = self._menu.get_title()
+        dialog = AddLabelDialog(self._plugin, id)
+        RT.register(dialog, __name__)
+        dialog.show()
+      except:
+        pass
+
+
+    def on_rename(widget):
+
+      try:
+        id = self._menu.get_title()
+        dialog = RenameLabelDialog(self._plugin, id)
+        RT.register(dialog, __name__)
+        dialog.show()
+      except:
+        pass
+
+
+    def on_remove(widget):
+
+      id = self._menu.get_title()
+      client.labelplus.remove_label(id)
+
+
+    def on_option(widget):
+
+      try:
+        id = self._menu.get_title()
+        dialog = LabelOptionsDialog(self._plugin, id)
+        RT.register(dialog, __name__)
+        dialog.show()
+      except:
+        pass
+
+
+    def on_show_menu(widget):
+
+      self._menu.show_all()
+
+      id = self._menu.get_title()
+      if id in RESERVED_IDS:
+        for i in range(1, 7):
+          items[i].hide()
+
+
+    menu = gtk.Menu()
+    menu.connect("show", on_show_menu)
+
+    items = labelplus.gtkui.common.menu_add_items(menu, 0, (
+      ((ImageMenuItem, gtk.STOCK_ADD, _("_Add Label")), on_add),
+      ((gtk.SeparatorMenuItem,),),
+      ((ImageMenuItem, gtk.STOCK_ADD, _("Add Sub_label")), on_sublabel),
+      ((ImageMenuItem, gtk.STOCK_EDIT, _("Re_name Label")), on_rename),
+      ((ImageMenuItem, gtk.STOCK_REMOVE, _("_Remove Label")), on_remove),
+      ((gtk.SeparatorMenuItem,),),
+      ((ImageMenuItem, gtk.STOCK_PREFERENCES, _("Label _Options")), on_option),
+    ))
+
+    self._menu = menu
+
+    RT.register(self._menu, __name__)
+
+
+  def _destroy_menu(self):
+
+    if self._menu:
+      self._menu.destroy()
+      self._menu = None
 
 
   # Section: Widget State
