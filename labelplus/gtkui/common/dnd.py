@@ -158,10 +158,11 @@ class TreeViewDragSourceProxy(object):
   )
 
 
-  def __init__(self, treeview, icon_func=None, end_func=None):
+  def __init__(self, treeview, icon_func=None, start_func=None, end_func=None):
 
     self.treeview = treeview
     self.icon_func = icon_func
+    self.start_func = start_func
     self.end_func = end_func
 
     self._targets = {}
@@ -350,6 +351,17 @@ class TreeViewDragSourceProxy(object):
   def _do_drag_begin(self, widget, context):
 
     log.info("%s Do drag-begin", self)
+
+    log.debug("%s Start function: %s", self, self.start_func)
+
+    if self.start_func:
+
+      try:
+        self.start_func(widget, context)
+
+      except:
+        log.exception("%s Start function failed", self)
+
     log.info("%s Do drag-begin ended", self)
 
 
@@ -418,7 +430,7 @@ class TreeViewDragSourceProxy(object):
       widget.get_selection().unselect_all()
       widget.queue_draw()
 
-    log.debug("%s End callback: %s", self, self.end_func)
+    log.debug("%s End function: %s", self, self.end_func)
 
     if self.end_func:
 
@@ -426,7 +438,7 @@ class TreeViewDragSourceProxy(object):
         self.end_func(widget, context)
 
       except:
-        log.exception("%s End callback failed", self)
+        log.exception("%s End function failed", self)
 
     log.info("%s Do drag-end ended", self)
 
