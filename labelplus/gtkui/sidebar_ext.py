@@ -534,9 +534,6 @@ class SidebarExt(object):
         id, data = model[path]
         ids.append(id)
 
-      path = self._get_nearest_path(paths)
-      self._tree.scroll_to_cell(path)
-
       self._state["selected"] = ids
 
       if self.is_active_page():
