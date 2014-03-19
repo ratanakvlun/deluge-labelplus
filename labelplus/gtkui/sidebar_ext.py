@@ -188,12 +188,34 @@ class SidebarExt(object):
 
   def update_store(self, store):
 
+    def restore_adjustment(value):
+
+      adj = self._tree.parent.get_vadjustment()
+      upper = adj.get_upper() - adj.get_page_size()
+
+      if value > upper:
+        value = upper
+
+      adj.set_value(value)
+
+
     self._store.destroy()
     self._store = store.copy()
     RT.register(self._store, __name__)
 
+    value = self._tree.parent.get_vadjustment().get_value()
+    gobject.idle_add(restore_adjustment, value)
+
+    self._tree.window.freeze_updates()
+    gobject.idle_add(self._tree.window.thaw_updates)
+
+    selection = self._tree.get_selection()
+    selection.handler_block_by_func(self._on_selection_changed)
+
     self._tree.set_model(self._store.model)
     self._load_state()
+
+    selection.handler_unblock_by_func(self._on_selection_changed)
 
 
   # Section: General
