@@ -188,7 +188,7 @@ class TreeViewDragSourceProxy(object):
       treeview.connect("drag-end", self._do_drag_end),
     ]
 
-    log.info("%s Created", self)
+    log.debug("%s Created", self)
 
 
   def unload(self):
@@ -203,7 +203,7 @@ class TreeViewDragSourceProxy(object):
     self.treeview.drag_source_set_target_list(self._old_targets)
     self.treeview.unset_rows_drag_source()
 
-    log.info("%s Unloaded", self)
+    log.debug("%s Unloaded", self)
 
 
   def __str__(self):
@@ -223,7 +223,7 @@ class TreeViewDragSourceProxy(object):
 
     self._targets[target.name] = target.copy()
 
-    log.info("%s Added target: %r", self, target.name)
+    log.debug("%s Added target: %r", self, target.name)
 
 
   def remove_target(self, name):
@@ -239,7 +239,7 @@ class TreeViewDragSourceProxy(object):
 
       del self._targets[target.name]
 
-      log.info("%s Removed target: %r", self, name)
+      log.debug("%s Removed target: %r", self, name)
 
 
   def _do_drag_button_press(self, widget, event):
@@ -362,7 +362,7 @@ class TreeViewDragSourceProxy(object):
       except:
         log.exception("%s Start function failed", self)
 
-    log.info("%s Do drag-begin ended", self)
+    log.debug("%s Do drag-begin ended", self)
 
 
   def _do_drag_data_get(self, widget, context, selection, info, timestamp):
@@ -440,7 +440,7 @@ class TreeViewDragSourceProxy(object):
       except:
         log.exception("%s End function failed", self)
 
-    log.info("%s Do drag-end ended", self)
+    log.debug("%s Do drag-end ended", self)
 
     return True
 
@@ -472,7 +472,7 @@ class TreeViewDragDestProxy(object):
       treeview.connect("drag-drop", self._do_drag_drop),
     ]
 
-    log.info("%s Created", self)
+    log.debug("%s Created", self)
 
 
   def unload(self):
@@ -488,7 +488,7 @@ class TreeViewDragDestProxy(object):
     self.treeview.drag_dest_set_target_list(self._old_targets)
     self.treeview.unset_rows_drag_dest()
 
-    log.info("%s Unloaded", self)
+    log.debug("%s Unloaded", self)
 
 
   def __str__(self):
@@ -507,7 +507,7 @@ class TreeViewDragDestProxy(object):
 
     self._targets[target.name] = target.copy()
 
-    log.info("%s Added target: %r", self, target.name)
+    log.debug("%s Added target: %r", self, target.name)
 
 
   def remove_target(self, name):
@@ -523,7 +523,7 @@ class TreeViewDragDestProxy(object):
 
       del self._targets[target.name]
 
-      log.info("%s Removed target: %r", self, name)
+      log.debug("%s Removed target: %r", self, name)
 
 
   def _enable_autoscroll(self):
@@ -727,11 +727,7 @@ class TreeViewDragDestProxy(object):
 
     widget.emit_stop_by_name("drag-data-received")
 
-    if request_type == "get":
-      log.info("%s Do drag-data-received", self)
-
-    else:
-      log.debug("%s Do drag-data-received", self)
+    log.debug("%s Do drag-data-received", self)
 
     result = False
 
@@ -770,7 +766,7 @@ class TreeViewDragDestProxy(object):
         context.finish(result, delete, timestamp)
         widget.do_drag_leave(widget, context, timestamp)
 
-        log.info("%s Success: %s, Should delete: %s", self, result, delete)
+        log.debug("%s Success: %s, Should delete: %s", self, result, delete)
 
       elif request_type == "peek" and result:
 
@@ -786,11 +782,7 @@ class TreeViewDragDestProxy(object):
         context.drag_status(0, timestamp)
         widget.do_drag_leave(widget, context, timestamp)
 
-      if request_type == "get":
-        log.info("%s Do drag-data-received ended", self)
-
-      else:
-        log.debug("%s Do drag-data-received ended", self)
+      log.debug("%s Do drag-data-received ended", self)
 
     return True
 
@@ -818,7 +810,7 @@ class TreeViewDragDestProxy(object):
         log.debug("%s Dest path: %s, %s", self, path, pos)
         log.debug("%s Dest column: %r %s", self, col.get_title(), col)
 
-        log.info("%s Sending data request", self)
+        log.debug("%s Sending data request", self)
 
         context.set_data("request_info", (path, col, pos))
         context.set_data("request_type", "get")
@@ -829,11 +821,11 @@ class TreeViewDragDestProxy(object):
 
     if not drop_finished:
 
-      log.info("%s Do drag-drop failed", self)
+      log.debug("%s Do drag-drop failed", self)
 
       context.finish(False, False, timestamp)
       widget.do_drag_leave(widget, context, timestamp)
 
-    log.info("%s Do drag-drop ended", self)
+    log.debug("%s Do drag-drop ended", self)
 
     return True
