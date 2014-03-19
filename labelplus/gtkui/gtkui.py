@@ -388,4 +388,7 @@ class GtkUI(GtkPluginBase):
     self.store.update(result)
 
     for func in self._update_funcs:
-      func(self.store)
+      try:
+        func(self.store)
+      except:
+        log.exception("Failed to run %s()", func.func_name)
