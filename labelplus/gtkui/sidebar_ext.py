@@ -482,7 +482,8 @@ class SidebarExt(object):
       id = model[path][LABEL_ID]
       src_id = self.get_selected_labels()[0]
 
-      if id == src_id:
+      if (id == src_id or labelplus.common.label.is_ancestor(src_id, id) or
+          not self._store.is_user_label(src_id)):
         return False
 
       if id == ID_NONE:
@@ -502,6 +503,9 @@ class SidebarExt(object):
 
 
     def receive_row(widget, path, col, pos, selection, *args):
+
+      if not check_dest_row(widget, path, col, pos, selection, *args):
+        return False
 
       model = widget.get_model()
       dest_id = model[path][LABEL_ID]
