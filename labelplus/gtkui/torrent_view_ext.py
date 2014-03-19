@@ -62,7 +62,7 @@ from labelplus.common.label import (
 )
 
 from labelplus.common.literals import (
-  TITLE_SET_FILTER, TITLE_SET_LABEL,
+  TITLE_SET_FILTER, TITLE_SET_LABEL, TITLE_LABEL_OPTIONS,
 
   STR_ALL, STR_NONE, STR_PARENT, STR_SELECTED,
 )
@@ -404,6 +404,7 @@ class TorrentViewExt(object):
     menus = []
     menus.append(self._create_filter_menu())
     menus.append(self._create_set_label_menu())
+    menus.append(self._create_options_item())
 
     return menus
 
@@ -544,6 +545,40 @@ class TorrentViewExt(object):
     RT.register(root, __name__)
 
     return root
+
+
+  # Section: Context Menu: Label Options
+
+  def _create_options_item(self):
+
+    def on_activate(widget):
+
+      try:
+        ids = self.get_selected_torrent_labels()
+        dialog = LabelOptionsDialog(self._plugin, ids[0])
+        RT.register(dialog, __name__)
+        dialog.show()
+      except:
+        pass
+
+
+    def on_show(widget, item):
+
+      ids = self.get_selected_torrent_labels()
+      if ids and len(ids) == 1 and self._store.is_user_label(ids[0]):
+        item.show()
+      else:
+        item.hide()
+
+
+    item = gtk.MenuItem(_(TITLE_LABEL_OPTIONS))
+    item.connect("activate", on_activate)
+
+    self._menu.get_submenu().connect("show", on_show, item)
+
+    RT.register(item, __name__)
+
+    return item
 
 
   # Section: Deluge Handlers
