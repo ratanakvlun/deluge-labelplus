@@ -478,6 +478,8 @@ class SidebarExt(object):
       id = model[path][LABEL_ID]
 
       if id == ID_NONE or self._store.is_user_label(id):
+        log.info("Setting label %r on %r", self._store[id]["fullname"],
+          torrent_ids)
         client.labelplus.set_torrent_labels(torrent_ids, id)
         return True
 
