@@ -313,6 +313,7 @@ class SidebarExt(object):
     tree.set_search_equal_func(search_func)
     tree.set_model(self._store.model)
     tree.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+    tree.set_reorderable(True)
 
     tree.connect("button-press-event", self._on_button_pressed)
     tree.connect("row-collapsed", self._on_row_collapsed)
@@ -475,7 +476,53 @@ class SidebarExt(object):
         return True
 
 
-    dest_target = DragTarget(
+    def check_dest_row(widget, path, col, pos, selection, *args):
+
+      model = widget.get_model()
+      id = model[path][LABEL_ID]
+      src_id = self.get_selected_labels()[0]
+
+      if id == src_id:
+        return False
+
+      if id == ID_NONE:
+        children = self._store.get_descendent_ids(ID_NULL, 1)
+      elif self._store.is_user_label(id):
+        children = self._store[id]["children"]
+      else:
+        return False
+
+      src_name = self._store[src_id]["name"]
+
+      for child in children:
+        if child in self._store and self._store[child]["name"] == src_name:
+          return False
+
+      return True
+
+
+    def receive_row(widget, path, col, pos, selection, *args):
+
+      model = widget.get_model()
+      dest_id = model[path][LABEL_ID]
+
+      src_id = self.get_selected_labels()[0]
+      src_name = self._store[src_id]["name"]
+
+      if dest_id != ID_NONE:
+        dest_name = "%s/%s" % (self._store[dest_id]["fullname"], src_name)
+      else:
+        dest_name = src_name
+
+      log.info("Renaming label: %r -> %r", self._store[src_id]["fullname"],
+        dest_name)
+      #client.labelplus.rename_label(src_id, dest_id, src_name)
+
+      # Default drag source will delete row on success, so return failure
+      return False
+
+
+    ids_target = DragTarget(
       name="torrent_ids",
       scope=gtk.TARGET_SAME_APP,
       action=gtk.gdk.ACTION_MOVE,
@@ -484,10 +531,21 @@ class SidebarExt(object):
       aux_func=check_dest_id,
     )
 
-    self._dnd_dest_proxy = TreeViewDragDestProxy(self._tree)
-    self._dnd_dest_proxy.add_target(dest_target)
+    row_target = DragTarget(
+      name="GTK_TREE_MODEL_ROW",
+      scope=gtk.TARGET_SAME_APP,
+      action=gtk.gdk.ACTION_MOVE,
+      pos=gtk.TREE_VIEW_DROP_INTO_OR_BEFORE,
+      data_func=receive_row,
+      aux_func=check_dest_row,
+    )
 
-    RT.register(dest_target, __name__)
+    self._dnd_dest_proxy = TreeViewDragDestProxy(self._tree)
+    self._dnd_dest_proxy.add_target(ids_target)
+    self._dnd_dest_proxy.add_target(row_target)
+
+    RT.register(ids_target, __name__)
+    RT.register(row_target, __name__)
     RT.register(self._dnd_dest_proxy, __name__)
 
 
