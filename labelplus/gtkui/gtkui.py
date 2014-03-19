@@ -160,13 +160,14 @@ class GtkUI(GtkPluginBase):
 
       self.initialized = True
 
+      self._load_extensions()
+
       log.info("%s initialized", self.__class__.__name__)
     except:
       log.error("Error initializing %s", self.__class__.__name__)
       raise
 
-    self._load_extensions()
-    self._update_loop()
+    twisted.internet.reactor.callLater(0, self._update_loop)
 
 
   def _load_extensions(self):
