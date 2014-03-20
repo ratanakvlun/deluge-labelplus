@@ -193,7 +193,7 @@ class SidebarExt(object):
 
   def get_selected_labels(self):
 
-    return self._state["selected"]
+    return list(self._state["selected"])
 
 
   # Section: Public: Update
