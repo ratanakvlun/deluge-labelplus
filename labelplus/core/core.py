@@ -1403,8 +1403,7 @@ class Core(CorePluginBase):
 
     for id in torrent_ids:
       torrent = self._torrents[id]
-      status = torrent.get_status(
-        ["save_path", "move_completed_path", "is_finished"])
+      status = torrent.get_status(["save_path", "move_completed_path"])
 
       label_id = self._mappings.get(id, labelplus.common.label.ID_NONE)
       if label_id == labelplus.common.label.ID_NONE:
@@ -1413,7 +1412,7 @@ class Core(CorePluginBase):
         options = self._labels[label_id]["options"]
         dest_path = options["move_completed_path"]
 
-      if status["is_finished"] and dest_path != status["save_path"]:
+      if torrent.handle.is_finished() and dest_path != status["save_path"]:
         torrent.move_storage(dest_path)
 
 
