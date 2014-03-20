@@ -534,7 +534,11 @@ class Core(CorePluginBase):
         labelplus.common.label.is_ancestor(label_id, dest_id)):
       raise LabelPlusError(ERR_INVALID_PARENT)
 
-    self._move_label(label_id, dest_id, dest_name)
+    parent_id = labelplus.common.label.get_parent_id(label_id)
+    if parent_id == dest_id:
+      self._rename_label(label_id, dest_name)
+    else:
+      self._move_label(label_id, dest_id, dest_name)
 
     self._timestamp["labels_changed"] = datetime.datetime.now()
 
