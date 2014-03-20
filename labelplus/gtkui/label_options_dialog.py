@@ -525,12 +525,14 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._set_widget_values(group, options)
 
     mode = options["move_completed_mode"]
-    if mode != MOVE_FOLDER:
-      path = self._move_path_options.get(mode, "")
-    else:
-      path = options["move_completed_path"]
+    path = options["move_completed_path"]
 
     self._txt_move_completed_path.set_text(path)
+
+    if mode != MOVE_FOLDER:
+      path = self._move_path_options.get(mode, "")
+
+    self._set_path_label(path)
 
 
   def _get_options(self):
