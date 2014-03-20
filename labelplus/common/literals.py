@@ -43,6 +43,10 @@ TITLE_SELECT_FOLDER = "Select A Folder"
 TITLE_SET_FILTER = "Set Filter"
 TITLE_SET_LABEL = "Set Label"
 
+TITLE_USER_INTERFACE = "User Interface"
+TITLE_LABEL_DEFAULTS = "Label Defaults"
+TITLE_DAEMON = "Daemon"
+
 
 STR_ERROR = "Error"
 STR_UPDATE = "Update"
@@ -57,6 +61,8 @@ STR_ADD_LABEL = "Add label"
 STR_RENAME_LABEL = "Rename label"
 STR_LOAD_OPTIONS = "Load options"
 STR_SAVE_OPTIONS = "Save options"
+STR_LOAD_PREFS = "Load preferences"
+STR_SAVE_PREFS = "Save preferences"
 
 
 ERR_CORE_NOT_INITIALIZED = "Plugin core not initialized"
