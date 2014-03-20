@@ -1105,6 +1105,8 @@ class Core(CorePluginBase):
         if self._prefs["options"]["move_on_changes"]:
           self._do_move_completed_by_label(id, True)
 
+      self._timestamp["labels_changed"] = datetime.datetime.now()
+
     if options["autolabel_settings"] and apply_to_all is not None:
       self._do_autolabel_torrents(label_id, apply_to_all)
 
