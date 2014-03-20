@@ -110,9 +110,9 @@ class TorrentViewExt(object):
 
       self._install_view_tweaks()
 
-      self._enable_dnd()
-
       self._register_handlers()
+
+      self._enable_dnd()
 
       self._plugin.register_update_func(self.update_store)
     except:
@@ -180,9 +180,9 @@ class TorrentViewExt(object):
 
     self._plugin.deregister_update_func(self.update_store)
 
-    self._deregister_handlers()
-
     self._disable_dnd()
+
+    self._deregister_handlers()
 
     self._uninstall_view_tweaks()
 
