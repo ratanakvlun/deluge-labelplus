@@ -96,6 +96,13 @@ CONFIG_DEFAULTS_V3 = {
   "daemon": {},
 }
 
+DAEMON_DEFAULTS_V2 = {
+  "sidebar_state": {
+    "selected": [labelplus.common.label.ID_ALL],
+    "expanded": [],
+  },
+}
+
 CONFIG_VERSION = 3
 CONFIG_DEFAULTS = CONFIG_DEFAULTS_V3
-DAEMON_DEFAULTS = DAEMON_DEFAULTS_V1
+DAEMON_DEFAULTS = DAEMON_DEFAULTS_V2
