@@ -70,17 +70,6 @@ CONFIG_DEFAULTS_V2 = {
 
     "show_label_bandwidth": False,
     "status_include_sublabel": False,
-
-    #TEMP
-    "filter_include_sublabels": True,
-
-    "status_bar": False,
-    "status_bar_include_sublabels": False,
-
-    "add_torrent_ext_fullname": False,
-    "torrent_view_fullname": False,
-    "name_input_fullname": False,
-    "label_options_fullname": False,
   },
   "daemon": {},
 }
@@ -94,7 +83,7 @@ CONFIG_DEFAULTS_V3 = {
 
     "prefs_state": [],
 
-    "filter_include_sublabels": True,
+    "filter_include_sublabels": False,
 
     "status_bar": False,
     "status_bar_include_sublabels": False,
@@ -107,6 +96,6 @@ CONFIG_DEFAULTS_V3 = {
   "daemon": {},
 }
 
-CONFIG_VERSION = 2
-CONFIG_DEFAULTS = CONFIG_DEFAULTS_V2
+CONFIG_VERSION = 3
+CONFIG_DEFAULTS = CONFIG_DEFAULTS_V3
 DAEMON_DEFAULTS = DAEMON_DEFAULTS_V1

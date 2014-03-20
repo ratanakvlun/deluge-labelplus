@@ -70,7 +70,7 @@ CONFIG_SPEC_V2_V3 = {
     "common/prefs_state": "common/prefs_state",
 
     "common/show_label_bandwidth": "common/status_bar",
-    "common/status_include_sublabel": "common/status_bar_sublabels",
+    "common/status_include_sublabel": "common/status_bar_include_sublabels",
 
     "daemon": "daemon",
   },
