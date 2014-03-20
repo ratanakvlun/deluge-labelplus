@@ -80,6 +80,7 @@ CONFIG_DEFAULTS_V3 = {
     "name_input_pos": None,
     "label_options_size": None,
     "label_options_pos": None,
+    "label_options_pane_pos": -1,
 
     "prefs_state": [],
 

@@ -595,6 +595,11 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._tgb_fullname.set_active(
         self._plugin.config["common"]["label_options_fullname"])
 
+      if self._plugin.config["common"]["label_options_pane_pos"] > -1:
+        self._vp_criteria_area.set_position(
+          self._vp_criteria_area.allocation.height -
+          self._plugin.config["common"]["label_options_pane_pos"])
+
 
   def _save_state(self):
 
@@ -607,6 +612,10 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
       self._plugin.config["common"]["label_options_fullname"] = \
         self._tgb_fullname.get_active()
+
+      self._plugin.config["common"]["label_options_pane_pos"] = \
+        self._vp_criteria_area.allocation.height - \
+        self._vp_criteria_area.get_position()
 
       self._plugin.config.save()
 
