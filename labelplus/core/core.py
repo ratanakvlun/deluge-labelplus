@@ -379,7 +379,8 @@ class Core(CorePluginBase):
 
     if self._initialized:
       for id in self._shared_limit_index:
-        self._do_update_shared_limit(id)
+        if id in self._labels:
+          self._do_update_shared_limit(id)
 
       twisted.internet.reactor.callLater(
         self._prefs["options"]["shared_limit_interval"],
@@ -935,6 +936,9 @@ class Core(CorePluginBase):
     self._labels[id]["options"]["move_completed_path"] = \
       self._resolve_move_path(id)
 
+    if self._labels[id]["options"]["shared_limit"]:
+      self._shared_limit_index.append(id)
+
     return id
 
 
@@ -974,6 +978,10 @@ class Core(CorePluginBase):
         "torrents": self._index[label_id]["torrents"],
         "children": [],
       }
+
+      if label_id in self._shared_limit_index:
+        self._shared_limit_index.remove(label_id)
+        self._shared_limit_index.append(id)
 
       parent_id = labelplus.common.label.get_parent_id(label_id)
       if parent_id in self._index:
@@ -1015,6 +1023,9 @@ class Core(CorePluginBase):
   def _remove_label(self, label_id):
 
     assert(label_id in self._labels)
+
+    if label_id in self._shared_limit_index:
+      self._shared_limit_index.remove(label_id)
 
     parent_id = labelplus.common.label.get_parent_id(label_id)
     if parent_id in self._index:
