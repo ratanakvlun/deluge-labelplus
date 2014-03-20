@@ -168,6 +168,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._setup_radio_button_groups()
     self._setup_autolabel_box()
     self._setup_test_combo_box()
+    self._setup_criteria_area()
 
     self._rgrp_move_completed_mode.connect("changed", self._do_select_mode)
 
@@ -226,6 +227,25 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._cmb_test_criteria.set_active(0)
 
     RT.register(cell, __name__)
+
+
+  def _setup_criteria_area(self):
+
+    def clamp_position(widget, *args):
+
+      max_dist = widget.get_data("max_dist")
+      if widget.allocation.height - widget.get_position() > max_dist:
+        twisted.internet.reactor.callLater(0.1, widget.set_position,
+          widget.allocation.height - max_dist)
+
+
+    self._vp_criteria_area.realize()
+    max_dist = self._vp_criteria_area.allocation.height - \
+      self._vp_criteria_area.get_position()
+    self._vp_criteria_area.set_data("max_dist", max_dist)
+
+    self._vp_criteria_area.connect("button-release-event", clamp_position)
+    self._vp_criteria_area.connect("accept-position", clamp_position)
 
 
   def _index_widgets(self):
