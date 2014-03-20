@@ -521,6 +521,26 @@ class Core(CorePluginBase):
 
   @deluge.core.rpcserver.export
   @check_init
+  def move_label(self, label_id, dest_id, dest_name):
+
+    log.debug("Moving label %r to %r with name %r", label_id, dest_id,
+      dest_name)
+
+    if label_id not in self._labels:
+      raise LabelPlusError(ERR_INVALID_LABEL)
+
+    if dest_id != labelplus.common.label.ID_NULL and (
+        label_id == dest_id or dest_id not in self._labels or
+        labelplus.common.label.is_ancestor(label_id, dest_id)):
+      raise LabelPlusError(ERR_INVALID_PARENT)
+
+    self._move_label(label_id, dest_id, dest_name)
+
+    self._timestamp["labels_changed"] = datetime.datetime.now()
+
+
+  @deluge.core.rpcserver.export
+  @check_init
   def remove_label(self, label_id):
 
     log.debug("Removing label %r", label_id)
@@ -920,6 +940,58 @@ class Core(CorePluginBase):
 
     if self._prefs["options"]["move_on_changes"]:
       self._do_move_completed_by_label(label_id, True)
+
+
+  def _move_label(self, label_id, dest_id, dest_name):
+
+    def reparent(label_id, dest_id):
+
+      id = self._get_unused_id(dest_id)
+      self._index[dest_id]["children"].append(id)
+
+      self._labels[id] = self._labels[label_id]
+
+      self._index[id] = {
+        "fullname": self._resolve_fullname(id),
+        "torrents": self._index[label_id]["torrents"],
+        "children": [],
+      }
+
+      parent_id = labelplus.common.label.get_parent_id(label_id)
+      if parent_id in self._index:
+        self._index[parent_id]["children"].remove(label_id)
+
+      for torrent_id in self._index[label_id]["torrents"]:
+        self._mappings[torrent_id] = id
+
+      for child_id in list(self._index[label_id]["children"]):
+        reparent(child_id, id)
+
+      del self._index[label_id]
+      del self._labels[label_id]
+
+      return id
+
+
+    assert(label_id in self._labels)
+    assert(dest_id == labelplus.common.label.ID_NULL or
+      dest_id in self._labels)
+
+    dest_name = dest_name.strip()
+
+    try:
+      dest_name = unicode(dest_name, "utf8")
+    except (TypeError, UnicodeDecodeError):
+      pass
+
+    self._validate_name(dest_id, dest_name)
+    id = reparent(label_id, dest_id)
+
+    self._labels[id]["name"] = dest_name
+    self._update_move_completed_paths(id)
+
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed_by_label(id, sublabels=True)
 
 
   def _remove_label(self, label_id):
