@@ -59,7 +59,7 @@ class LabelStore(object):
 
   def __init__(self):
 
-    self._data = None
+    self._data = {}
     self._store = None
     self._map = None
     self.model = None
@@ -74,7 +74,7 @@ class LabelStore(object):
 
   def __getitem__(self, id):
 
-    return self._data[id]
+    return self._data.get(id)
 
 
   def __iter__(self):
@@ -97,7 +97,7 @@ class LabelStore(object):
     self.model = None
     self._map = None
     self._store = None
-    self._data = None
+    self._data = {}
 
 
   # Section: Public: Store
@@ -158,7 +158,8 @@ class LabelStore(object):
     sum = 0
 
     for id in ids:
-      sum += self._data[id]["count"]
+      if id in self._data:
+        sum += self._data[id]["count"]
 
     return sum
 
