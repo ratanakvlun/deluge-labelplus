@@ -356,6 +356,10 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
   def update_store(self, store):
 
+    if self._label_id not in store:
+      self.destroy()
+      return
+
     self._destroy_store()
     self._store = store.copy()
 
