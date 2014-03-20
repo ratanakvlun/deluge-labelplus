@@ -973,6 +973,9 @@ class Core(CorePluginBase):
       options["move_completed_mode"] = \
         labelplus.common.config.MOVE_FOLDER
 
+    options["max_connections"] = int(options["max_connections"])
+    options["max_upload_slots"] = int(options["max_upload_slots"])
+
     rules = options["autolabel_rules"]
     options["autolabel_rules"] = list(options["autolabel_rules"])
     for rule in rules:
