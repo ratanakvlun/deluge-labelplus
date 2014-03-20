@@ -66,9 +66,9 @@ from labelplus.common import LabelPlusError
 from labelplus.gtkui.label_store import LabelStore
 from labelplus.gtkui.add_torrent_ext import AddTorrentExt
 from labelplus.gtkui.preferences_ext import PreferencesExt
-from labelplus.gtkui.torrent_view_ext import TorrentViewExt
 from labelplus.gtkui.sidebar_ext import SidebarExt
 from labelplus.gtkui.status_bar_ext import StatusBarExt
+from labelplus.gtkui.torrent_view_ext import TorrentViewExt
 
 from labelplus.gtkui import RT
 
@@ -90,9 +90,9 @@ REQUEST_TIMEOUT = 10.0
 EXTENSIONS = (
   AddTorrentExt,
   PreferencesExt,
-  TorrentViewExt,
   SidebarExt,
   StatusBarExt,
+  TorrentViewExt,
 )
 
 
