@@ -104,9 +104,9 @@ class SidebarExt(object):
       self._install_label_tree()
       self._load_state()
 
-      self._enable_dnd()
-
       self._register_handlers()
+
+      self._enable_dnd()
 
       self._create_menu()
 
@@ -128,9 +128,9 @@ class SidebarExt(object):
 
     self._plugin.deregister_update_func(self.update_store)
 
-    self._deregister_handlers()
-
     self._disable_dnd()
+
+    self._deregister_handlers()
 
     self._uninstall_label_tree()
     self._destroy_label_tree()
