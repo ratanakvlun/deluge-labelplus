@@ -53,7 +53,7 @@ from labelplus.common import LabelPlusError
 
 
 from labelplus.common.label import (
-  ID_NONE,
+  ID_ALL, ID_NONE,
 )
 
 from labelplus.common.literals import (
@@ -193,16 +193,20 @@ class StatusBarExt(object):
     if not self._status_item:
       return
 
-    ext = self._plugin.get_extension("TorrentViewExt")
-    ids = ext.get_any_selected_labels() if ext else None
+    ext = self._plugin.get_extension("SidebarExt")
+    ids = ext.get_selected_labels() if ext else None
+    if not ids or ID_ALL in ids:
+      ext = self._plugin.get_extension("TorrentViewExt")
+      ids = ext.get_selected_torrent_labels() if ext else None
 
-    if ids and self._plugin.config["common"]["status_bar"]:
+    if (ids and self._plugin.config["common"]["status_bar"] and
+        ID_ALL not in ids):
       tooltip = "Bandwidth Used By: %s" % (self._store[ids[0]]["fullname"] if
-        len(ids) == 1 else "---")
+        len(ids) == 1 else "*Multiple*")
 
       include = self._plugin.config["common"]["status_bar_include_sublabels"]
       if include:
-        if len(ids) == 1 and ids[0] != ID_NONE:
+        if ids[0] != ID_NONE:
           tooltip += "/*"
 
         for id in list(ids):
