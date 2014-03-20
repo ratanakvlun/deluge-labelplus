@@ -211,6 +211,9 @@ class CriteriaBox(gtk.VBox):
     self._rows.append(row)
     self.child_set(row, "expand", False)
 
+    if self.get_toplevel().window:
+      row.realize()
+
     self.reorder_child(self._add_button_row, -1)
 
     return row
