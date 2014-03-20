@@ -516,11 +516,12 @@ class SidebarExt(object):
       if dest_id != ID_NONE:
         dest_name = "%s/%s" % (self._store[dest_id]["fullname"], src_name)
       else:
+        dest_id = ID_NULL
         dest_name = src_name
 
       log.info("Renaming label: %r -> %r", self._store[src_id]["fullname"],
         dest_name)
-      #client.labelplus.rename_label(src_id, dest_id, src_name)
+      client.labelplus.move_label(src_id, dest_id, src_name)
 
       # Default drag source will delete row on success, so return failure
       return False

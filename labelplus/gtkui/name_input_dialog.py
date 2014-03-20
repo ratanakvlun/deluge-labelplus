@@ -416,8 +416,8 @@ class NameInputDialog(WidgetEncapsulator):
       deferred = client.labelplus.add_label(self._parent_id, name)
     elif self._type == TYPE_RENAME:
       log.info("Renaming label: %r -> %r", self._label_fullname, dest_name)
-      #TODO: rename_label(label_id, dest_parent_id, dest_name)
-      deferred = client.labelplus.rename_label(self._label_id, name)
+      deferred = client.labelplus.move_label(self._label_id, self._parent_id,
+        name)
 
     labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
       process_result, process_result)
