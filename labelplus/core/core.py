@@ -619,7 +619,16 @@ class Core(CorePluginBase):
     for id in torrent_ids:
       self._set_torrent_label(id, label_id)
 
+    do_move = False
+
     if self._prefs["options"]["move_on_changes"]:
+      if label_id == labelplus.common.label.ID_NONE:
+        do_move = self._core["move_completed"]
+      else:
+        options = self._labels[label_id]["options"]
+        do_move = options["download_settings"] and options["move_completed"]
+
+    if do_move:
       self._do_move_completed(torrent_ids)
 
     if torrent_ids:
@@ -660,7 +669,12 @@ class Core(CorePluginBase):
 
       if self._prefs["options"]["move_after_recheck"]:
         # Try to move in case this alert was from a recheck
-        self._do_move_completed([torrent_id])
+
+        label_id = self._mappings[torrent_id]
+        options = self._labels[label_id]["options"]
+
+        if options["download_settings"] and options["move_completed"]:
+          self._do_move_completed([torrent_id])
 
 
   @check_init
@@ -1019,7 +1033,8 @@ class Core(CorePluginBase):
     del self._index[label_id]
     del self._labels[label_id]
 
-    if self._prefs["options"]["move_on_changes"]:
+    if (self._prefs["options"]["move_on_changes"] and
+        self._core["move_completed"]):
       self._do_move_completed(torrent_ids)
 
 
