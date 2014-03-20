@@ -260,7 +260,7 @@ class TorrentViewExt(object):
     if ID_ALL in ids:
       filter = {}
     else:
-      if self._plugin.config["common"]["sidebar_include_sublabels"]:
+      if self._plugin.config["common"]["filter_include_sublabels"]:
         filter = {STATUS_ID: self._get_full_family(ids)}
       else:
         filter = {STATUS_ID: ids}
@@ -277,7 +277,7 @@ class TorrentViewExt(object):
     if STATUS_ID in self._view.filter:
       label_ids = self._view.filter[STATUS_ID]
 
-      if self._plugin.config["common"]["sidebar_include_sublabels"]:
+      if self._plugin.config["common"]["filter_include_sublabels"]:
         label_ids = labelplus.common.label.get_base_ancestors(label_ids)
 
       if set(ids) == set(label_ids):

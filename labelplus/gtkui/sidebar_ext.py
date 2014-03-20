@@ -279,7 +279,7 @@ class SidebarExt(object):
 
       count = data["count"]
 
-      if self._plugin.config["common"]["sidebar_include_sublabels"]:
+      if self._plugin.config["common"]["filter_include_sublabels"]:
         count += data["descendents"]["count"]
 
       label_str = "%s (%s)" % (data["name"], count)

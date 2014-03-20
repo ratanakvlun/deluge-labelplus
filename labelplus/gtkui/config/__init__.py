@@ -72,7 +72,7 @@ CONFIG_DEFAULTS_V2 = {
     "status_include_sublabel": False,
 
     #TEMP
-    "sidebar_include_sublabels": True,
+    "filter_include_sublabels": True,
 
     "status_bar": False,
     "status_bar_include_sublabels": False,
@@ -94,7 +94,7 @@ CONFIG_DEFAULTS_V3 = {
 
     "prefs_state": [],
 
-    "sidebar_include_sublabels": True,
+    "filter_include_sublabels": True,
 
     "status_bar": False,
     "status_bar_include_sublabels": False,
