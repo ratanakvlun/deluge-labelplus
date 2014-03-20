@@ -37,6 +37,16 @@
 import labelplus.gtkui.config
 
 
+def post_map_v2_v3(spec, dict_in):
+
+  for daemon in dict_in["daemon"]:
+    state = dict_in["daemon"][daemon]["sidebar_state"]
+    if not isinstance(state["selected"], list):
+      state["selected"] = [state["selected"]]
+
+  return dict_in
+
+
 CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
@@ -61,6 +71,7 @@ CONFIG_SPEC_V2_V3 = {
   "defaults": labelplus.gtkui.config.CONFIG_DEFAULTS_V3,
   "strict": True,
   "deepcopy": False,
+  "post_func": post_map_v2_v3,
   "map": {
     "common/name_input_size": "common/name_input_size",
     "common/name_input_pos": "common/name_input_pos",
