@@ -595,6 +595,9 @@ class Core(CorePluginBase):
     for id in torrent_ids:
       self._set_torrent_label(id, label_id)
 
+    if self._prefs["options"]["move_on_changes"]:
+      self._do_move_completed(torrent_ids)
+
     if torrent_ids:
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
