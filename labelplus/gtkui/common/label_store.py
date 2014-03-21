@@ -43,7 +43,17 @@ import gtk
 import labelplus.common.label
 import labelplus.gtkui.common.gtk
 
+
 from labelplus.gtkui import RT
+
+
+from labelplus.common.label import (
+  ID_NULL, ID_ALL, ID_NONE, RESERVED_IDS,
+)
+
+from labelplus.common.literals import (
+  STR_ALL, STR_NONE,
+)
 
 
 LABEL_ID = 0
@@ -60,9 +70,19 @@ class LabelStore(object):
   def __init__(self):
 
     self._data = {}
+    self._map = {}
     self._store = None
-    self._map = None
     self.model = None
+
+
+  # Section: Deinitialization
+
+  def destroy(self):
+
+    self.model = None
+    self._store = None
+    self._map = {}
+    self._data = {}
 
 
   # Section: Public: General
@@ -92,15 +112,7 @@ class LabelStore(object):
     return copy.copy(self)
 
 
-  def destroy(self):
-
-    self.model = None
-    self._map = None
-    self._store = None
-    self._data = {}
-
-
-  # Section: Public: Store
+  # Section: Public: Model
 
   def update(self, data):
 
@@ -112,10 +124,10 @@ class LabelStore(object):
 
   def get_model_iter(self, id):
 
-    if id in self._map:
+    if id in self._map and self.model:
       return self.model.convert_child_iter_to_iter(None, self._map[id])
-    else:
-      return None
+
+    return None
 
 
   def get_model_path(self, id):
@@ -136,8 +148,8 @@ class LabelStore(object):
       if max_depth != -1 and depth > max_depth:
         return
 
-      children = labelplus.gtkui.common.gtk.treemodel_get_children(
-        self.model, iter)
+      children = labelplus.gtkui.common.gtk.treemodel_get_children(self.model,
+        iter)
 
       for child in children:
         descendents.append(self.model[child][LABEL_ID])
@@ -146,9 +158,10 @@ class LabelStore(object):
 
     descendents = []
 
-    if id == labelplus.common.label.ID_NULL or id in self._data:
-      iter = self.get_model_iter(id)
-      add_descendents(iter, 1)
+    if id == ID_NULL or id in self._data:
+      if self.model:
+        iter = self.get_model_iter(id)
+        add_descendents(iter, 1)
 
     return descendents
 
@@ -166,8 +179,7 @@ class LabelStore(object):
 
   def is_user_label(self, id):
 
-    if (id and id not in labelplus.common.label.RESERVED_IDS and
-        id in self._data):
+    if id and id not in RESERVED_IDS and id in self._data:
       return True
 
     return False
@@ -185,13 +197,12 @@ class LabelStore(object):
     return True
 
 
-  # Section: Data
+  # Section: Model: Update
 
   def _normalize_data(self, data):
 
-    for id in labelplus.common.label.RESERVED_IDS:
-      if id in data:
-        data[id]["name"] = _(id)
+    data[ID_ALL]["name"] = _(STR_ALL)
+    data[ID_NONE]["name"] = _(STR_NONE)
 
     for id in data:
       try:
@@ -224,8 +235,8 @@ class LabelStore(object):
       id1, data1 = model[iter1]
       id2, data2 = model[iter2]
 
-      is_reserved1 = id1 in labelplus.common.label.RESERVED_IDS
-      is_reserved2 = id2 in labelplus.common.label.RESERVED_IDS
+      is_reserved1 = id1 in RESERVED_IDS
+      is_reserved2 = id2 in RESERVED_IDS
 
       if is_reserved1 and is_reserved2:
         return cmp(id1, id2)
@@ -240,9 +251,11 @@ class LabelStore(object):
     store = gtk.TreeStore(str, gobject.TYPE_PYOBJECT)
     store_map = {}
 
+    if __debug__: RT.register(store, __name__)
+
     for id in sorted(data):
-      if id in labelplus.common.label.RESERVED_IDS:
-        parent_id = labelplus.common.label.ID_NULL
+      if id in RESERVED_IDS:
+        parent_id = ID_NULL
       else:
         parent_id = labelplus.common.label.get_parent_id(id)
 
@@ -254,13 +267,12 @@ class LabelStore(object):
     sorted_model.set_sort_func(LABEL_DATA, data_sort_asc)
     sorted_model.set_sort_column_id(LABEL_DATA, gtk.SORT_ASCENDING)
 
-    self._data = data
-    self._store = store
-    self._map = store_map
-    self.model = sorted_model
+    if __debug__: RT.register(sorted_model, __name__)
 
-    RT.register(store, __name__)
-    RT.register(sorted_model, __name__)
+    self._data = data
+    self._map = store_map
+    self._store = store
+    self.model = sorted_model
 
 
   def _build_descendent_data(self):
@@ -270,6 +282,7 @@ class LabelStore(object):
       self._data[id]["descendents"] = {}
 
       descendents = self.get_descendent_ids(id)
+
       self._data[id]["descendents"]["ids"] = descendents
-      self._data[id]["descendents"]["count"] = \
-        self.get_total_count(descendents)
+      self._data[id]["descendents"]["count"] = self.get_total_count(
+        descendents)
