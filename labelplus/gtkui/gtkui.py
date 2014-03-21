@@ -279,7 +279,7 @@ class GtkUI(GtkPluginBase):
 
     config = deluge.configmanager.ConfigManager(GTKUI_CONFIG)
 
-    # Workaround for version that didn't use header
+    # Workaround for 0.2.19.x that didn't use header
     if config.config.get("version") == 2:
       labelplus.common.config.set_version(config, 2)
 
