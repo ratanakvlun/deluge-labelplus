@@ -70,7 +70,7 @@ class AutolabelBox(CriteriaBox):
     self.add_entry_column(expand=True)
 
     # Determine minimum width
-    row = self.add_new_row()
+    row = self.add_row()
     self.show()
     size = self.size_request()
     self.remove(row)
