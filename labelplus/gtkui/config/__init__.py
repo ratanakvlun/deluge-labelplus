@@ -78,22 +78,23 @@ CONFIG_DEFAULTS_V3 = {
   "common": {
     "name_input_size": None,
     "name_input_pos": None,
+    "name_input_fullname": False,
+
     "label_options_size": None,
     "label_options_pos": None,
+    "label_options_fullname": False,
     "label_options_pane_pos": -1,
 
     "prefs_state": [],
     "prefs_pane_pos": -1,
-
-    "filter_include_sublabels": False,
 
     "status_bar": False,
     "status_bar_include_sublabels": False,
 
     "add_torrent_ext_fullname": False,
     "torrent_view_fullname": False,
-    "name_input_fullname": False,
-    "label_options_fullname": False,
+
+    "filter_include_sublabels": False,
   },
   "daemon": {},
 }
