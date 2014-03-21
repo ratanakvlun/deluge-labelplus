@@ -228,6 +228,9 @@ class PreferencesExt(WidgetEncapsulator):
       if widget.allocation.height - widget.get_position() > max_dist:
         twisted.internet.reactor.callLater(0.1, widget.set_position,
           widget.allocation.height - max_dist)
+      elif widget.allocation.height - widget.get_position() < max_dist:
+        twisted.internet.reactor.callLater(0.1, widget.set_position,
+          widget.allocation.height)
 
 
     handle = self._eb_criteria_area.connect("map-event", on_mapped)
