@@ -34,8 +34,10 @@
 #
 
 
-import labelplus.common.label
+from labelplus.common.label import ID_ALL
 
+
+# Version 1
 
 CONFIG_DEFAULTS_V1 = {
   "name_input_size": None,
@@ -45,19 +47,15 @@ CONFIG_DEFAULTS_V1 = {
 
   "prefs_state": [],
   "sidebar_state": {
-    "selected": labelplus.common.label.ID_ALL,
+    "selected": ID_ALL,
     "expanded": [],
   },
 
   "show_label_bandwidth": False,
 }
 
-DAEMON_DEFAULTS_V1 = {
-  "sidebar_state": {
-    "selected": labelplus.common.label.ID_ALL,
-    "expanded": [],
-  },
-}
+
+# Version 2
 
 CONFIG_DEFAULTS_V2 = {
   "common": {
@@ -73,6 +71,15 @@ CONFIG_DEFAULTS_V2 = {
   },
   "daemon": {},
 }
+
+DAEMON_DEFAULTS_V2 = {
+  "sidebar_state": {
+    "selected": ID_ALL,
+    "expanded": [],
+  },
+}
+
+# Version 3
 
 CONFIG_DEFAULTS_V3 = {
   "common": {
@@ -99,13 +106,16 @@ CONFIG_DEFAULTS_V3 = {
   "daemon": {},
 }
 
-DAEMON_DEFAULTS_V2 = {
+DAEMON_DEFAULTS_V3 = {
   "sidebar_state": {
-    "selected": [labelplus.common.label.ID_ALL],
+    "selected": [ID_ALL],
     "expanded": [],
   },
 }
 
+
+# Current Version
+
 CONFIG_VERSION = 3
 CONFIG_DEFAULTS = CONFIG_DEFAULTS_V3
-DAEMON_DEFAULTS = DAEMON_DEFAULTS_V2
+DAEMON_DEFAULTS = DAEMON_DEFAULTS_V3

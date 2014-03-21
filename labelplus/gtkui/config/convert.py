@@ -34,7 +34,10 @@
 #
 
 
-import labelplus.gtkui.config
+from labelplus.gtkui.config import (
+  CONFIG_DEFAULTS_V2,
+  CONFIG_DEFAULTS_V3,
+)
 
 
 def post_map_v2_v3(spec, dict_in):
@@ -50,7 +53,7 @@ def post_map_v2_v3(spec, dict_in):
 CONFIG_SPEC_V1_V2 = {
   "version_in": 1,
   "version_out": 2,
-  "defaults": labelplus.gtkui.config.CONFIG_DEFAULTS_V2,
+  "defaults": CONFIG_DEFAULTS_V2,
   "strict": False,
   "deepcopy": False,
   "map": {
@@ -68,7 +71,7 @@ CONFIG_SPEC_V1_V2 = {
 CONFIG_SPEC_V2_V3 = {
   "version_in": 2,
   "version_out": 3,
-  "defaults": labelplus.gtkui.config.CONFIG_DEFAULTS_V3,
+  "defaults": CONFIG_DEFAULTS_V3,
   "strict": True,
   "deepcopy": False,
   "post_func": post_map_v2_v3,
@@ -86,6 +89,7 @@ CONFIG_SPEC_V2_V3 = {
     "daemon": "daemon",
   },
 }
+
 
 CONFIG_SPECS = {
   (1, 2): CONFIG_SPEC_V1_V2,
