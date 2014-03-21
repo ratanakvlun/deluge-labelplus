@@ -74,7 +74,7 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Toggle full name display</property>
+                    <property name="tooltip" translatable="yes">Toggle fullname display</property>
                     <signal name="toggled" handler="do_toggle_fullname"/>
                   </widget>
                   <packing>
