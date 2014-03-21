@@ -938,12 +938,16 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <widget class="GtkVPaned" id="vp_criteria_area">
+                                                      <widget class="GtkEventBox" id="eb_criteria_area">
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="orientation">vertical</property>
+                                                        <property name="events">GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK</property>
                                                         <child>
-                                                          <widget class="GtkScrolledWindow" id="scrolledwindow1">
+                                                          <widget class="GtkVPaned" id="vp_criteria_area">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="orientation">vertical</property>
+                                                            <child>
+                                                            <widget class="GtkScrolledWindow" id="scrolledwindow1">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="hscrollbar_policy">automatic</property>
@@ -966,14 +970,14 @@
                                                             </child>
                                                             </widget>
                                                             </child>
-                                                          </widget>
-                                                          <packing>
+                                                            </widget>
+                                                            <packing>
                                                             <property name="resize">True</property>
                                                             <property name="shrink">True</property>
-                                                          </packing>
-                                                        </child>
-                                                        <child>
-                                                          <widget class="GtkViewport" id="viewport3">
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkViewport" id="viewport3">
                                                             <property name="visible">True</property>
                                                             <property name="resize_mode">queue</property>
                                                             <property name="shadow_type">none</property>
@@ -1026,11 +1030,13 @@
                                                             </child>
                                                             </widget>
                                                             </child>
-                                                          </widget>
-                                                          <packing>
+                                                            </widget>
+                                                            <packing>
                                                             <property name="resize">False</property>
                                                             <property name="shrink">True</property>
-                                                          </packing>
+                                                            </packing>
+                                                            </child>
+                                                          </widget>
                                                         </child>
                                                       </widget>
                                                       <packing>

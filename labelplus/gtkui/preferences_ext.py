@@ -199,19 +199,30 @@ class PreferencesExt(WidgetEncapsulator):
 
   def _setup_criteria_area(self):
 
-    def on_realize(widget):
+    def on_mapped(widget, event):
+
+      if widget.handler_is_connected(handle):
+        widget.disconnect(handle)
+
+      # Sometimes a widget is mapped but does not immediately have allocation
+      if self._vp_criteria_area.allocation.x < 0:
+        twisted.internet.reactor.callLater(0.1, on_mapped, widget, event)
+        return
+
+      self._vp_criteria_area.set_data("was_mapped", True)
 
       if self._plugin.config["common"]["prefs_pane_pos"] > -1:
         self._vp_criteria_area.set_position(
           self._vp_criteria_area.allocation.height -
           self._plugin.config["common"]["prefs_pane_pos"])
 
-        clamp_position(widget)
+        clamp_position(self._vp_criteria_area)
 
 
     def clamp_position(widget, *args):
 
-      handle_size = widget.allocation.height - widget.get_property("max-position")
+      handle_size = widget.allocation.height - \
+        widget.get_property("max-position")
       max_dist = self._hb_test_criteria.allocation.height + handle_size*2
 
       if widget.allocation.height - widget.get_position() > max_dist:
@@ -219,7 +230,8 @@ class PreferencesExt(WidgetEncapsulator):
           widget.allocation.height - max_dist)
 
 
-    self._vp_criteria_area.connect("realize", on_realize)
+    handle = self._eb_criteria_area.connect("map-event", on_mapped)
+
     self._vp_criteria_area.connect("button-release-event", clamp_position)
     self._vp_criteria_area.connect("accept-position", clamp_position)
 
@@ -286,8 +298,6 @@ class PreferencesExt(WidgetEncapsulator):
     self._manager.add_preferences_page(DISPLAY_NAME, self._blk_preferences)
     self._manager.register_hook("on_show_prefs", self._request_prefs)
     self._manager.register_hook("on_apply_prefs", self._save_prefs)
-
-    self._blk_preferences.realize()
 
 
   def _register_handlers(self):
@@ -443,9 +453,10 @@ class PreferencesExt(WidgetEncapsulator):
 
       self._plugin.config["common"]["prefs_state"] = expanded
 
-      self._plugin.config["common"]["prefs_pane_pos"] = \
-        self._vp_criteria_area.allocation.height - \
-        self._vp_criteria_area.get_position()
+      if self._vp_criteria_area.get_data("was_mapped"):
+        self._plugin.config["common"]["prefs_pane_pos"] = \
+          self._vp_criteria_area.allocation.height - \
+          self._vp_criteria_area.get_position()
 
       self._plugin.config.save()
 
