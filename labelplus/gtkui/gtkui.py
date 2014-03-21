@@ -63,7 +63,7 @@ from deluge.ui.client import DelugeRPCError
 from deluge.plugins.pluginbase import GtkPluginBase
 
 from labelplus.common import LabelPlusError
-from labelplus.gtkui.label_store import LabelStore
+from labelplus.gtkui.common.label_store import LabelStore
 from labelplus.gtkui.extensions.add_torrent_ext import AddTorrentExt
 from labelplus.gtkui.extensions.preferences_ext import PreferencesExt
 from labelplus.gtkui.extensions.sidebar_ext import SidebarExt
