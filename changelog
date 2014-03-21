@@ -12,6 +12,8 @@ Version 0.3.0.0
 - Sidebar menu no longer contains "All" options
 - Status bar no longer opens label options
 
+- Fix shared limit not updating when label added/removed
+
 Version 0.2.19.3
 - Fix status bar not updating when label removed
 - Improve performance when removing label with many sublabels
