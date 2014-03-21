@@ -66,7 +66,7 @@ from labelplus.common import LabelPlusError
 from labelplus.gtkui.label_store import LabelStore
 from labelplus.gtkui.extensions.add_torrent_ext import AddTorrentExt
 from labelplus.gtkui.extensions.preferences_ext import PreferencesExt
-from labelplus.gtkui.sidebar_ext import SidebarExt
+from labelplus.gtkui.extensions.sidebar_ext import SidebarExt
 from labelplus.gtkui.status_bar_ext import StatusBarExt
 from labelplus.gtkui.torrent_view_ext import TorrentViewExt
 
