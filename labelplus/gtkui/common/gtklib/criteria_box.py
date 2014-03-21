@@ -215,9 +215,8 @@ class CriteriaBox(gtk.VBox):
     row.pack_end(button, expand=False)
     row.show_all()
 
-    self.add(row)
+    self.pack_start(row, expand=False)
     self._rows.append(row)
-    self.child_set(row, "expand", False)
 
     self.reorder_child(self._add_button_row, -1)
 
