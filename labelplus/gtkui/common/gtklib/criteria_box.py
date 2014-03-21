@@ -41,13 +41,21 @@ class CriteriaBox(gtk.VBox):
 
   def __init__(self, homogeneous=False, row_spacing=0, column_spacing=0):
 
+    def on_realize(widget):
+
+      if widget.parent:
+        widget.parent.queue_resize()
+
+
     def add_new_row(widget):
 
       self.add_new_row()
 
 
     super(CriteriaBox, self).__init__(homogeneous, row_spacing)
+
     self.connect("destroy", self.destroy)
+    self.connect("realize", on_realize)
 
     self._column_spacing = column_spacing
 
@@ -210,9 +218,6 @@ class CriteriaBox(gtk.VBox):
     self.add(row)
     self._rows.append(row)
     self.child_set(row, "expand", False)
-
-    if self.get_toplevel().window:
-      row.realize()
 
     self.reorder_child(self._add_button_row, -1)
 
