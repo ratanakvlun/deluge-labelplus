@@ -51,9 +51,9 @@ class CriteriaBox(gtk.VBox):
         widget.parent.queue_resize()
 
 
-    def add_new_row(widget):
+    def add_row(widget):
 
-      self.add_new_row()
+      self.add_row()
 
 
     super(CriteriaBox, self).__init__(homogeneous, row_spacing)
@@ -68,7 +68,7 @@ class CriteriaBox(gtk.VBox):
 
     button = gtk.Button("+")
     button.set_size_request(25, -1)
-    button.connect("clicked", add_new_row)
+    button.connect("clicked", add_row)
 
     row = gtk.HBox(spacing=self._column_spacing)
     row.pack_end(button, expand=False)
@@ -193,7 +193,7 @@ class CriteriaBox(gtk.VBox):
       pos, expand)
 
 
-  def add_new_row(self, pairs=None):
+  def add_row(self, pairs=None):
 
     def remove_row(widget):
 
@@ -295,4 +295,4 @@ class CriteriaBox(gtk.VBox):
 
     for row in rows:
       pairs = [x for pair in zip(range(len(row)), row) for x in pair]
-      self.add_new_row(pairs)
+      self.add_row(pairs)
