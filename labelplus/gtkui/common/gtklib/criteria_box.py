@@ -156,43 +156,6 @@ class CriteriaBox(gtk.VBox):
       row.remove(child)
 
 
-  def add_entry_column(self, default_text="", pos=None, expand=False):
-
-    def create(default_text):
-
-      entry = gtk.Entry()
-      entry.set_text(default_text)
-
-      return entry
-
-
-    return self.add_column(
-      create, (default_text,),
-      gtk.Entry.set_text, gtk.Entry.get_text,
-      pos, expand)
-
-
-  def add_combobox_column(self, model, text_column=0, pos=None, expand=False):
-
-    def create(model, text_column):
-
-      combo = gtk.ComboBox(model)
-      renderer = gtk.CellRendererText()
-      combo.pack_start(renderer)
-      combo.add_attribute(renderer, "text", text_column)
-
-      if len(model) > 0:
-        combo.set_active(0)
-
-      return combo
-
-
-    return self.add_column(
-      create, (model, text_column),
-      gtk.ComboBox.set_active, gtk.ComboBox.get_active,
-      pos, expand)
-
-
   def add_row(self, pairs=None):
 
     def remove_row(widget):
@@ -296,3 +259,38 @@ class CriteriaBox(gtk.VBox):
     for row in rows:
       pairs = [x for pair in zip(range(len(row)), row) for x in pair]
       self.add_row(pairs)
+
+
+  # Section: Predefined Columns
+
+  def add_entry_column(self, default_text="", pos=None, expand=False):
+
+    def create(default_text):
+
+      entry = gtk.Entry()
+      entry.set_text(default_text)
+
+      return entry
+
+
+    return self.add_column(create, (default_text,), gtk.Entry.set_text,
+      gtk.Entry.get_text, pos, expand)
+
+
+  def add_combobox_column(self, model, text_column=0, pos=None, expand=False):
+
+    def create(model, text_column):
+
+      combo = gtk.ComboBox(model)
+      renderer = gtk.CellRendererText()
+      combo.pack_start(renderer)
+      combo.add_attribute(renderer, "text", text_column)
+
+      if len(model) > 0:
+        combo.set_active(0)
+
+      return combo
+
+
+    return self.add_column(create, (model, text_column),
+      gtk.ComboBox.set_active, gtk.ComboBox.get_active, pos, expand)
