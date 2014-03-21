@@ -48,13 +48,13 @@ import labelplus.common.label
 from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
-from labelplus.gtkui.common.gtk import ImageMenuItem
+from labelplus.gtkui.common.gtklib import ImageMenuItem
 from labelplus.gtkui.common.widgets.name_input_dialog import AddLabelDialog
 from labelplus.gtkui.common.widgets.name_input_dialog import RenameLabelDialog
 from labelplus.gtkui.common.widgets.label_options_dialog import LabelOptionsDialog
 
-from labelplus.gtkui.common.gtk.dnd import TreeViewDragDestProxy
-from labelplus.gtkui.common.gtk.dnd import DragTarget
+from labelplus.gtkui.common.gtklib.dnd import TreeViewDragDestProxy
+from labelplus.gtkui.common.gtklib.dnd import DragTarget
 
 
 from labelplus.common import (
@@ -80,7 +80,7 @@ class SidebarExt(object):
 
   def __init__(self, plugin):
 
-    labelplus.gtkui.common.gtk.dnd.log.setLevel(logging.INFO)
+    labelplus.gtkui.common.gtklib.dnd.log.setLevel(logging.INFO)
 
     self._plugin = plugin
     self._filterview = deluge.component.get("FilterTreeView")
@@ -437,7 +437,7 @@ class SidebarExt(object):
     menu = gtk.Menu()
     menu.connect("show", on_show_menu)
 
-    items = labelplus.gtkui.common.gtk.menu_add_items(menu, 0, (
+    items = labelplus.gtkui.common.gtklib.menu_add_items(menu, 0, (
       ((ImageMenuItem, gtk.STOCK_ADD, _("_Add Label")), on_add),
       ((gtk.SeparatorMenuItem,),),
       ((ImageMenuItem, gtk.STOCK_ADD, _("Add Sub_label")), on_sublabel),

@@ -48,7 +48,7 @@ from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
-from labelplus.gtkui.common.gtk.widget_encapsulator import WidgetEncapsulator
+from labelplus.gtkui.common.gtklib.widget_encapsulator import WidgetEncapsulator
 
 
 from labelplus.common.label import (

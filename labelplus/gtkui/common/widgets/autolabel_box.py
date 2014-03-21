@@ -37,11 +37,11 @@
 import gtk
 
 import labelplus.common.config.autolabel
-import labelplus.gtkui.common.gtk
+import labelplus.gtkui.common.gtklib
 
 
 from labelplus.common import _
-from labelplus.gtkui.common.gtk.criteria_box import CriteriaBox
+from labelplus.gtkui.common.gtklib.criteria_box import CriteriaBox
 
 from labelplus.gtkui import RT
 
@@ -53,11 +53,11 @@ class AutolabelBox(CriteriaBox):
     super(AutolabelBox, self).__init__(homogeneous, row_spacing,
       column_spacing)
 
-    prop_store = labelplus.gtkui.common.gtk.liststore_create(str,
+    prop_store = labelplus.gtkui.common.gtklib.liststore_create(str,
       [_(x) for x in labelplus.common.config.autolabel.PROPS])
-    op_store = labelplus.gtkui.common.gtk.liststore_create(str,
+    op_store = labelplus.gtkui.common.gtklib.liststore_create(str,
       [_(x) for x in labelplus.common.config.autolabel.OPS])
-    case_store = labelplus.gtkui.common.gtk.liststore_create(str,
+    case_store = labelplus.gtkui.common.gtklib.liststore_create(str,
       [_(x) for x in labelplus.common.config.autolabel.CASES])
 
     RT.register(prop_store, __name__)

@@ -51,8 +51,8 @@ from deluge.ui.client import client
 from labelplus.gtkui.common.widgets.label_options_dialog import LabelOptionsDialog
 from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
 
-from labelplus.gtkui.common.gtk.dnd import TreeViewDragSourceProxy
-from labelplus.gtkui.common.gtk.dnd import DragTarget
+from labelplus.gtkui.common.gtklib.dnd import TreeViewDragSourceProxy
+from labelplus.gtkui.common.gtklib.dnd import DragTarget
 
 
 from labelplus.common import (
@@ -83,7 +83,7 @@ class TorrentViewExt(object):
 
   def __init__(self, plugin):
 
-    labelplus.gtkui.common.gtk.dnd.log.setLevel(logging.INFO)
+    labelplus.gtkui.common.gtklib.dnd.log.setLevel(logging.INFO)
 
     self._plugin = plugin
     self._view = deluge.component.get("TorrentView")
@@ -496,7 +496,7 @@ class TorrentViewExt(object):
       root_items=root_items)
     menu.connect("show", on_show_menu)
 
-    items = labelplus.gtkui.common.gtk.menu_add_items(menu, 2,
+    items = labelplus.gtkui.common.gtklib.menu_add_items(menu, 2,
       (
         ((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),
         ((gtk.MenuItem, _(STR_SELECTED)), on_activate_selected),
@@ -548,7 +548,7 @@ class TorrentViewExt(object):
       root_items=root_items)
     menu.connect("show", on_show_menu)
 
-    items = labelplus.gtkui.common.gtk.menu_add_items(menu, 1,
+    items = labelplus.gtkui.common.gtklib.menu_add_items(menu, 1,
       (((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),))
 
     root = gtk.MenuItem(_(TITLE_SET_LABEL))

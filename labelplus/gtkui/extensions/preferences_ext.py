@@ -46,7 +46,7 @@ import deluge.component
 import labelplus.common
 import labelplus.common.config
 import labelplus.common.config.autolabel
-import labelplus.gtkui.common.gtk
+import labelplus.gtkui.common.gtklib
 import labelplus.gtkui.config
 
 
@@ -56,8 +56,8 @@ from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.widgets.autolabel_box import AutolabelBox
-from labelplus.gtkui.common.gtk.radio_button_group import RadioButtonGroup
-from labelplus.gtkui.common.gtk.widget_encapsulator import WidgetEncapsulator
+from labelplus.gtkui.common.gtklib.radio_button_group import RadioButtonGroup
+from labelplus.gtkui.common.gtklib.widget_encapsulator import WidgetEncapsulator
 
 
 from labelplus.common import (
@@ -183,7 +183,7 @@ class PreferencesExt(WidgetEncapsulator):
 
   def _setup_test_combo_box(self):
 
-    prop_store = labelplus.gtkui.common.gtk.liststore_create(str,
+    prop_store = labelplus.gtkui.common.gtklib.liststore_create(str,
       [_(x) for x in labelplus.common.config.autolabel.PROPS])
 
     RT.register(prop_store, __name__)
@@ -616,7 +616,7 @@ class PreferencesExt(WidgetEncapsulator):
     dialog.set_filename(path)
     dialog.show_all()
 
-    location_toggle = labelplus.gtkui.common.gtk.widget_get_descendents(dialog,
+    location_toggle = labelplus.gtkui.common.gtklib.widget_get_descendents(dialog,
       (gtk.ToggleButton,), 1)[0]
     location_toggle.set_active(False)
 

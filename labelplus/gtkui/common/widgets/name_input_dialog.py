@@ -42,7 +42,7 @@ import deluge.component
 
 import labelplus.common
 import labelplus.common.label
-import labelplus.gtkui.common.gtk
+import labelplus.gtkui.common.gtklib
 
 
 from twisted.python.failure import Failure
@@ -51,7 +51,7 @@ from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
-from labelplus.gtkui.common.gtk.widget_encapsulator import WidgetEncapsulator
+from labelplus.gtkui.common.gtklib.widget_encapsulator import WidgetEncapsulator
 
 
 from labelplus.common.label import (
@@ -205,7 +205,7 @@ class NameInputDialog(WidgetEncapsulator):
 
     RT.register(self._menu, __name__)
 
-    items = labelplus.gtkui.common.gtk.menu_add_items(self._menu, 1,
+    items = labelplus.gtkui.common.gtklib.menu_add_items(self._menu, 1,
       (((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),))
 
     for item in items:
