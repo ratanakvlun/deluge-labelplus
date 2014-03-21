@@ -39,6 +39,10 @@ import gtk
 
 class CriteriaBox(gtk.VBox):
 
+  SETTER = 2
+  GETTER = 3
+
+
   def __init__(self, homogeneous=False, row_spacing=0, column_spacing=0):
 
     def on_realize(widget):
@@ -110,14 +114,14 @@ class CriteriaBox(gtk.VBox):
       self.remove(row)
 
 
-  def _add_column(self, create_func, create_args, pos, expand):
+  def add_column(self, create_func, create_args, setter, getter, pos, expand):
 
     if pos is None:
       pos = len(self._columns)
 
-    column_spec = [create_func, create_args, expand]
-    self._columns.insert(pos, column_spec)
-    pos = self._columns.index(column_spec)
+    spec = (create_func, create_args, setter, getter, expand)
+    self._columns.insert(pos, spec)
+    pos = self._columns.index(spec)
 
     for row in self._rows:
       child = create_func(*create_args)
@@ -132,9 +136,9 @@ class CriteriaBox(gtk.VBox):
     if pos is None:
       pos = len(self._columns)-1
 
-    column_spec = self._columns.pop(index)
-    self._columns.insert(pos, column_spec)
-    pos = self._columns.index(column_spec)
+    spec = self._columns.pop(index)
+    self._columns.insert(pos, spec)
+    pos = self._columns.index(spec)
 
     for row in self._rows:
       child = row.get_children()[index]
@@ -159,12 +163,13 @@ class CriteriaBox(gtk.VBox):
       entry = gtk.Entry()
       entry.set_text(default_text)
 
-      entry._setter = gtk.Entry.set_text
-      entry._getter = gtk.Entry.get_text
-
       return entry
 
-    return self._add_column(create, [default_text], pos, expand)
+
+    return self.add_column(
+      create, (default_text,),
+      gtk.Entry.set_text, gtk.Entry.get_text,
+      pos, expand)
 
 
   def add_combobox_column(self, model, text_column=0, pos=None, expand=False):
@@ -179,12 +184,13 @@ class CriteriaBox(gtk.VBox):
       if len(model) > 0:
         combo.set_active(0)
 
-      combo._setter = gtk.ComboBox.set_active
-      combo._getter = gtk.ComboBox.get_active
-
       return combo
 
-    return self._add_column(create, [model, text_column], pos, expand)
+
+    return self.add_column(
+      create, (model, text_column),
+      gtk.ComboBox.set_active, gtk.ComboBox.get_active,
+      pos, expand)
 
 
   def add_new_row(self, pairs=None):
@@ -200,13 +206,13 @@ class CriteriaBox(gtk.VBox):
 
     row = gtk.HBox(spacing=self._column_spacing)
 
-    for i, column_spec in enumerate(self._columns):
-      create_func, create_args, expand = column_spec
+    for i, spec in enumerate(self._columns):
+      create_func, create_args, setter, getter, expand = spec
       child = create_func(*create_args)
       row.pack_start(child, expand)
 
       if pairs and i in indices:
-        child._setter(child, values[indices.index(i)])
+        setter(child, values[indices.index(i)])
 
     button = gtk.Button("-")
     button.set_size_request(25, -1)
@@ -234,11 +240,9 @@ class CriteriaBox(gtk.VBox):
 
     children = row.get_children()
 
-    for i in range(len(self._columns)):
-      child = children[i]
-      value = child._getter(child)
+    for i, spec in enumerate(self._columns):
       pairs.append(i)
-      pairs.append(value)
+      pairs.append(spec[CriteriaBox.GETTER](children[i]))
 
     return pairs
 
@@ -250,11 +254,9 @@ class CriteriaBox(gtk.VBox):
 
     children = row.get_children()
 
-    for i in range(len(self._columns)):
-      child = children[i]
-
+    for i, spec in enumerate(self._columns):
       if i in indices:
-        child._setter(child, values[indices.index(i)])
+        spec[CriteriaBox.SETTER](children[i], values[indices.index(i)])
 
 
   def get_row_values(self, row):
@@ -263,10 +265,8 @@ class CriteriaBox(gtk.VBox):
 
     children = row.get_children()
 
-    for i in range(len(self._columns)):
-      child = children[i]
-      value = child._getter(child)
-      values.append(value)
+    for i, spec in enumerate(self._columns):
+      values.append(spec[CriteriaBox.GETTER](children[i]))
 
     return values
 
@@ -275,9 +275,8 @@ class CriteriaBox(gtk.VBox):
 
     children = row.get_children()
 
-    for i in range(len(self._columns)):
-      child = children[i]
-      child._setter(child, values[i])
+    for i, spec in enumerate(self._columns):
+      spec[CriteriaBox.SETTER](children[i], values[i])
 
 
   def get_all_row_values(self):
