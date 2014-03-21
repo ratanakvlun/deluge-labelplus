@@ -654,9 +654,7 @@ class SidebarExt(object):
   def _on_selection_changed(self, widget):
 
     model, paths = widget.get_selected_rows()
-    if not paths:
-      self._select_label(ID_ALL)
-    else:
+    if paths:
       ids = []
 
       for path in paths:
