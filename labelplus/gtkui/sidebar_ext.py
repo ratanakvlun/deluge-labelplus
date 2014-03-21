@@ -111,6 +111,8 @@ class SidebarExt(object):
       self._create_menu()
 
       self._plugin.register_update_func(self.update_store)
+
+      self._scroll_to_nearest_id(self._state["selected"])
     except:
       self.unload()
       raise
@@ -268,6 +270,17 @@ class SidebarExt(object):
         nearest_dist = dist
 
     return nearest_path
+
+
+  def _scroll_to_nearest_id(self, ids):
+
+    paths = [y for y in (self._store.get_model_path(x) for x in ids) if y]
+    path = self._get_nearest_path(paths)
+    if path:
+      self._tree.scroll_to_cell(path)
+      return path
+
+    return None
 
 
   # Section: Label Tree
