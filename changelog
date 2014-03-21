@@ -1,5 +1,6 @@
 Version 0.3.0.0
 - Autolabel now uses criteria based matching
+- Test autolabel using a collapsible test area
 - Select multiple label filters
 - Move labels using the rename dialog or sidebar drag-n-drop
 - Switch labels from within dialogs
@@ -8,7 +9,7 @@ Version 0.3.0.0
 - Revert label options by page
 
 - Popup file chooser replaced with browse dialog
-- Right-clicking sidebar no longer changes the current filter
+- Sidebar menu operates on right-clicked label without changing filter
 - Sidebar menu no longer contains "All" options
 - Status bar no longer opens label options
 
