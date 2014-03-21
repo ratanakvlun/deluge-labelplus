@@ -438,6 +438,9 @@ class PreferencesExt(WidgetEncapsulator):
 
   def _load_state(self):
 
+    if not client.is_localhost():
+      self._btn_browse.hide()
+
     if self._plugin.initialized:
       expanded = self._plugin.config["common"]["prefs_state"]
       for exp in expanded:

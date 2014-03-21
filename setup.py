@@ -1,6 +1,7 @@
+#
 # setup.py
 #
-# Copyright (C) 2012 Ratanak Lun <ratanakvlun@gmail.com>
+# Copyright (C) 2014 Ratanak Lun <ratanakvlun@gmail.com>
 # Copyright (C) 2008 Martijn Voncken <mvoncken@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -35,7 +36,7 @@ from setuptools import setup, find_packages
 __plugin_name__ = "LabelPlus"
 __author__ = "Ratanak Lun"
 __author_email__ = "ratanakvlun@gmail.com"
-__version__ = "0.2.19.3"
+__version__ = "0.3.0.0-dev"
 __url__ = "http://github.com/ratanakvlun"
 __license__ = "GPLv3"
 __description__ = "Assign labels to torrents"
