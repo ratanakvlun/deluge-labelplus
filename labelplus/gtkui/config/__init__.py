@@ -83,6 +83,7 @@ CONFIG_DEFAULTS_V3 = {
     "label_options_pane_pos": -1,
 
     "prefs_state": [],
+    "prefs_pane_pos": -1,
 
     "filter_include_sublabels": False,
 
