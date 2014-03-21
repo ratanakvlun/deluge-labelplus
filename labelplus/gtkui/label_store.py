@@ -41,7 +41,7 @@ import gobject
 import gtk
 
 import labelplus.common.label
-import labelplus.gtkui.common
+import labelplus.gtkui.common.gtk
 
 from labelplus.gtkui import RT
 
@@ -136,7 +136,7 @@ class LabelStore(object):
       if max_depth != -1 and depth > max_depth:
         return
 
-      children = labelplus.gtkui.common.treemodel_get_children(
+      children = labelplus.gtkui.common.gtk.treemodel_get_children(
         self.model, iter)
 
       for child in children:
