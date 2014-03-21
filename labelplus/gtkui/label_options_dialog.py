@@ -231,19 +231,27 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
   def _setup_criteria_area(self):
 
+    def on_realize(widget):
+
+      if self._plugin.config["common"]["label_options_pane_pos"] > -1:
+        self._vp_criteria_area.set_position(
+          self._vp_criteria_area.allocation.height -
+          self._plugin.config["common"]["label_options_pane_pos"])
+
+        clamp_position(widget)
+
+
     def clamp_position(widget, *args):
 
-      max_dist = widget.get_data("max_dist")
+      handle_size = widget.allocation.height - widget.get_property("max-position")
+      max_dist = self._hb_test_criteria.allocation.height + handle_size*2
+
       if widget.allocation.height - widget.get_position() > max_dist:
         twisted.internet.reactor.callLater(0.1, widget.set_position,
           widget.allocation.height - max_dist)
 
 
-    self._vp_criteria_area.realize()
-    max_dist = self._vp_criteria_area.allocation.height - \
-      self._vp_criteria_area.get_position()
-    self._vp_criteria_area.set_data("max_dist", max_dist)
-
+    self._vp_criteria_area.connect("realize", on_realize)
     self._vp_criteria_area.connect("button-release-event", clamp_position)
     self._vp_criteria_area.connect("accept-position", clamp_position)
 
@@ -594,11 +602,6 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
       self._tgb_fullname.set_active(
         self._plugin.config["common"]["label_options_fullname"])
-
-      if self._plugin.config["common"]["label_options_pane_pos"] > -1:
-        self._vp_criteria_area.set_position(
-          self._vp_criteria_area.allocation.height -
-          self._plugin.config["common"]["label_options_pane_pos"])
 
 
   def _save_state(self):
