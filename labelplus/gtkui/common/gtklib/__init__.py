@@ -69,10 +69,10 @@ def liststore_create(types, rows):
   return ls
 
 
-def treemodel_get_children(model, iter=None):
+def treemodel_get_children(model, iter_=None):
 
-  if iter:
-    return [x.iter for x in model[iter].iterchildren()]
+  if iter_:
+    return [x.iter for x in model[iter_].iterchildren()]
   else:
     return [x.iter for x in model]
 
@@ -80,6 +80,7 @@ def treemodel_get_children(model, iter=None):
 def menu_add_items(menu, pos, specs, *args):
 
   menu_items = []
+
   if pos < 0:
     pos = -len(specs)
 
@@ -112,12 +113,12 @@ def menu_add_separator(menu, pos=-1):
 
 def widget_print_tree(widget, indent, step):
 
-  if hasattr(widget, "get_text"):
-    extra = widget.get_text()
+  if hasattr(widget, "get_title"):
+    extra = widget.get_title()
   elif hasattr(widget, "get_label"):
     extra = widget.get_label()
-  elif hasattr(widget, "get_title"):
-    extra = widget.get_title()
+  elif hasattr(widget, "get_text"):
+    extra = widget.get_text()
   else:
     extra = ""
 
@@ -126,7 +127,8 @@ def widget_print_tree(widget, indent, step):
   if isinstance(widget, gtk.Container):
     for child in widget.get_children():
       widget_print_tree(child, indent+1, step)
-  elif isinstance(widget, gtk.TreeView):
+
+  if isinstance(widget, gtk.TreeView):
     for col in widget.get_columns():
       widget_print_tree(col, indent+1, step)
 
@@ -149,7 +151,6 @@ def widget_get_descendents(widget, types=(), count=-1):
 
 
   descendents = []
-
   get_descendents(widget, types, descendents, count)
 
   return descendents
