@@ -218,8 +218,9 @@ class SidebarExt(object):
     value = self._tree.parent.get_vadjustment().get_value()
     gobject.idle_add(restore_adjustment, value)
 
-    self._tree.get_toplevel().window.freeze_updates()
-    gobject.idle_add(self._tree.get_toplevel().window.thaw_updates)
+    if self._tree.window:
+      self._tree.window.freeze_updates()
+      gobject.idle_add(self._tree.window.thaw_updates)
 
     selection = self._tree.get_selection()
     selection.handler_block_by_func(self._on_selection_changed)
