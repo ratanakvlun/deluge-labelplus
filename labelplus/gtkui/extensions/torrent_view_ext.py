@@ -48,8 +48,8 @@ import labelplus.common.label
 
 from deluge.ui.client import client
 
-from labelplus.gtkui.label_options_dialog import LabelOptionsDialog
-from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
+from labelplus.gtkui.common.widgets.label_options_dialog import LabelOptionsDialog
+from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
 
 from labelplus.gtkui.common.gtk.dnd import TreeViewDragSourceProxy
 from labelplus.gtkui.common.gtk.dnd import DragTarget

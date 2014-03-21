@@ -49,9 +49,9 @@ from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.gtk import ImageMenuItem
-from labelplus.gtkui.name_input_dialog import AddLabelDialog
-from labelplus.gtkui.name_input_dialog import RenameLabelDialog
-from labelplus.gtkui.label_options_dialog import LabelOptionsDialog
+from labelplus.gtkui.common.widgets.name_input_dialog import AddLabelDialog
+from labelplus.gtkui.common.widgets.name_input_dialog import RenameLabelDialog
+from labelplus.gtkui.common.widgets.label_options_dialog import LabelOptionsDialog
 
 from labelplus.gtkui.common.gtk.dnd import TreeViewDragDestProxy
 from labelplus.gtkui.common.gtk.dnd import DragTarget

@@ -55,7 +55,7 @@ from twisted.python.failure import Failure
 from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
-from labelplus.gtkui.autolabel_box import AutolabelBox
+from labelplus.gtkui.common.widgets.autolabel_box import AutolabelBox
 from labelplus.gtkui.common.gtk.radio_button_group import RadioButtonGroup
 from labelplus.gtkui.common.gtk.widget_encapsulator import WidgetEncapsulator
 

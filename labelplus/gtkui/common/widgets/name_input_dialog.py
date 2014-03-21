@@ -50,7 +50,7 @@ from twisted.python.failure import Failure
 from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
-from labelplus.gtkui.label_selection_menu import LabelSelectionMenu
+from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
 from labelplus.gtkui.common.gtk.widget_encapsulator import WidgetEncapsulator
 
 
