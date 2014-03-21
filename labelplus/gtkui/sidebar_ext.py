@@ -177,8 +177,7 @@ class SidebarExt(object):
       if ID_ALL in ids:
         self._select_label(ID_ALL)
       else:
-        paths = [y for y in (self._store.get_model_path(x) for x in ids) if y]
-        path = self._get_nearest_path(paths)
+        path = self._scroll_to_nearest_id(ids)
         if path:
           self._tree.set_cursor(path)
 
