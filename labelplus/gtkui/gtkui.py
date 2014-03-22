@@ -105,9 +105,8 @@ class GtkUI(GtkPluginBase):
 
   def __init__(self, plugin_name):
 
-    RT.register(self)
-    RT.logger = logging.getLogger(__name__ + ".rt")
     RT.logger.setLevel(logging.INFO)
+    RT.register(self)
 
     super(GtkUI, self).__init__(plugin_name)
 

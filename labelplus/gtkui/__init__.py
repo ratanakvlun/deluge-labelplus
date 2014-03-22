@@ -38,10 +38,11 @@ import logging
 
 import labelplus.common
 
+
 from labelplus.common.reference_tracker import ReferenceTracker
 
 
 LOG = logging.getLogger(__name__)
 LOG.addHandler(labelplus.common.LOG_HANDLER)
 
-RT = ReferenceTracker(__name__)
+RT = ReferenceTracker(__name__ + ".rt")
