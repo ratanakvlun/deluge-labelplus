@@ -412,13 +412,14 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
     def on_mapped(widget, event):
 
-      if widget.handler_is_connected(handle):
-        widget.disconnect(handle)
-
       # Sometimes a widget is mapped but does not immediately have allocation
       if self._vp_criteria_area.allocation.x < 0:
-        twisted.internet.reactor.callLater(0.1, on_mapped, widget, event)
+        twisted.internet.reactor.callLater(0.1, widget.emit, "map-event",
+          event)
         return
+
+      if widget.handler_is_connected(handle):
+        widget.disconnect(handle)
 
       self._vp_criteria_area.set_data("was_mapped", True)
 
