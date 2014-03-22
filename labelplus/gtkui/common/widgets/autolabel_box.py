@@ -34,16 +34,19 @@
 #
 
 
-import gtk
-
-import labelplus.common.config.autolabel
 import labelplus.gtkui.common.gtklib
 
 
-from labelplus.common import _
 from labelplus.gtkui.common.gtklib.criteria_box import CriteriaBox
 
+from labelplus.common import _
 from labelplus.gtkui import RT
+
+
+from labelplus.common.config.autolabel import (
+  PROPS, OPS, CASES,
+  FIELD_PROP, FIELD_OP, FIELD_CASE, FIELD_QUERY,
+)
 
 
 class AutolabelBox(CriteriaBox):
@@ -54,11 +57,11 @@ class AutolabelBox(CriteriaBox):
       column_spacing)
 
     prop_store = labelplus.gtkui.common.gtklib.liststore_create(str,
-      [_(x) for x in labelplus.common.config.autolabel.PROPS])
+      [_(x) for x in PROPS])
     op_store = labelplus.gtkui.common.gtklib.liststore_create(str,
-      [_(x) for x in labelplus.common.config.autolabel.OPS])
+      [_(x) for x in OPS])
     case_store = labelplus.gtkui.common.gtklib.liststore_create(str,
-      [_(x) for x in labelplus.common.config.autolabel.CASES])
+      [_(x) for x in CASES])
 
     RT.register(prop_store, __name__)
     RT.register(op_store, __name__)
@@ -82,20 +85,10 @@ class AutolabelBox(CriteriaBox):
     rows = super(AutolabelBox, self).get_all_row_values()
 
     for i, row in enumerate(rows):
-      row[labelplus.common.config.autolabel.FIELD_PROP] = \
-        labelplus.common.config.autolabel.PROPS[
-          row[labelplus.common.config.autolabel.FIELD_PROP]]
-
-      row[labelplus.common.config.autolabel.FIELD_OP] = \
-        labelplus.common.config.autolabel.OPS[
-          row[labelplus.common.config.autolabel.FIELD_OP]]
-
-      row[labelplus.common.config.autolabel.FIELD_CASE] = \
-        labelplus.common.config.autolabel.CASES[
-          row[labelplus.common.config.autolabel.FIELD_CASE]]
-
-      row[labelplus.common.config.autolabel.FIELD_QUERY] = \
-        unicode(row[labelplus.common.config.autolabel.FIELD_QUERY], "utf8")
+      row[FIELD_PROP] = PROPS[row[FIELD_PROP]]
+      row[FIELD_OP] = OPS[row[FIELD_OP]]
+      row[FIELD_CASE] = CASES[row[FIELD_CASE]]
+      row[FIELD_QUERY] = unicode(row[FIELD_QUERY], "utf8")
 
       rows[i] = tuple(row)
 
@@ -109,17 +102,9 @@ class AutolabelBox(CriteriaBox):
     for row in rows:
       row = list(row)
 
-      row[labelplus.common.config.autolabel.FIELD_PROP] = \
-        labelplus.common.config.autolabel.PROPS.index(
-          row[labelplus.common.config.autolabel.FIELD_PROP])
-
-      row[labelplus.common.config.autolabel.FIELD_OP] = \
-        labelplus.common.config.autolabel.OPS.index(
-          row[labelplus.common.config.autolabel.FIELD_OP])
-
-      row[labelplus.common.config.autolabel.FIELD_CASE] = \
-        labelplus.common.config.autolabel.CASES.index(
-          row[labelplus.common.config.autolabel.FIELD_CASE])
+      row[FIELD_PROP] = PROPS.index(row[FIELD_PROP])
+      row[FIELD_OP] = OPS.index(row[FIELD_OP])
+      row[FIELD_CASE] = CASES.index(row[FIELD_CASE])
 
       converted_rows.append(row)
 
