@@ -45,9 +45,8 @@ import twisted.internet.reactor
 import deluge.component
 
 import labelplus.common
-import labelplus.common.config
-import labelplus.common.config.autolabel
 import labelplus.common.label
+import labelplus.common.config.autolabel
 import labelplus.gtkui.common.gtklib
 
 
@@ -57,54 +56,57 @@ from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.widgets.autolabel_box import AutolabelBox
-from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
 from labelplus.gtkui.common.gtklib.radio_button_group import RadioButtonGroup
-from labelplus.gtkui.common.gtklib.widget_encapsulator import WidgetEncapsulator
 
+from labelplus.gtkui.common.widgets.label_selection_menu import (
+  LabelSelectionMenu)
 
-from labelplus.common.label import (
-  ID_NULL, RESERVED_IDS,
-)
-
-from labelplus.common.config import (
-  MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
-)
-
-from labelplus.common.literals import (
-  TITLE_LABEL_OPTIONS, TITLE_SELECT_FOLDER,
-
-  STR_LOAD_OPTIONS, STR_SAVE_OPTIONS, STR_LABEL, STR_PARENT, STR_NONE,
-
-  ERR_TIMED_OUT,
-  ERR_INVALID_LABEL,
-)
-
-GLADE_FILE = labelplus.common.get_resource("wnd_label_options.glade")
-ROOT_WIDGET = "wnd_label_options"
-
-REQUEST_TIMEOUT = 10.0
-
-CLEAR_TEST_DELAY = 2.0
-
-OP_MAP = {
-  gtk.CheckButton: ("set_active", "get_active"),
-  gtk.Label: ("set_text", "get_text"),
-  gtk.RadioButton: ("set_active", "get_active"),
-  gtk.SpinButton: ("set_value", "get_value"),
-  AutolabelBox: ("set_all_row_values", "get_all_row_values"),
-  RadioButtonGroup: ("set_active_value", "get_active_value"),
-}
-
-SETTER = 0
-GETTER = 1
-
-
-log = logging.getLogger(__name__)
+from labelplus.gtkui.common.gtklib.widget_encapsulator import (
+  WidgetEncapsulator)
 
 from labelplus.gtkui import RT
 
 
+from labelplus.common.label import ID_NULL, RESERVED_IDS
+from labelplus.common.config.autolabel import PROPS
+
+from labelplus.common.config import (
+  MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
+  LABEL_DEFAULTS,
+)
+
+from labelplus.common.literals import (
+  TITLE_LABEL_OPTIONS, TITLE_SELECT_FOLDER,
+  STR_LOAD_OPTIONS, STR_SAVE_OPTIONS, STR_LABEL, STR_PARENT, STR_NONE,
+  ERR_TIMED_OUT, ERR_INVALID_LABEL,
+)
+
+
+log = logging.getLogger(__name__)
+
+
 class LabelOptionsDialog(WidgetEncapsulator):
+
+  # Section: Constants
+
+  GLADE_FILE = labelplus.common.get_resource("wnd_label_options.glade")
+  ROOT_WIDGET = "wnd_label_options"
+
+  REQUEST_TIMEOUT = 10.0
+  CLEAR_TEST_DELAY = 2.0
+
+  OP_MAP = {
+    gtk.CheckButton: ("set_active", "get_active"),
+    gtk.Label: ("set_text", "get_text"),
+    gtk.RadioButton: ("set_active", "get_active"),
+    gtk.SpinButton: ("set_value", "get_value"),
+    AutolabelBox: ("set_all_row_values", "get_all_row_values"),
+    RadioButtonGroup: ("set_active_value", "get_active_value"),
+  }
+
+  SETTER = 0
+  GETTER = 1
+
 
   # Section: Initialization
 
@@ -122,7 +124,8 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._move_path_options = {}
     self._label_options = {}
 
-    super(LabelOptionsDialog, self).__init__(GLADE_FILE, ROOT_WIDGET, "_")
+    super(LabelOptionsDialog, self).__init__(self.GLADE_FILE, self.ROOT_WIDGET,
+      "_")
 
     try:
       self._store = plugin.store.copy()
@@ -140,15 +143,190 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._create_menu()
 
       self._clear_dialog()
+      self._request_options(label_id)
 
       self._plugin.register_update_func(self.update_store)
       self._plugin.register_cleanup_func(self.destroy)
-
-      self._request_options(label_id)
     except:
       self.destroy()
       raise
 
+
+  # Section: Deinitialization
+
+  def destroy(self):
+
+    self._plugin.deregister_update_func(self.update_store)
+    self._plugin.deregister_cleanup_func(self.destroy)
+
+    self._destroy_menu()
+    self._destroy_store()
+
+    if self.valid:
+      self._root_widget.set_data("owner", None)
+      super(LabelOptionsDialog, self).destroy()
+
+
+  def _destroy_store(self):
+
+    if self._store:
+      self._store.destroy()
+      self._store = None
+
+
+  # Section: Public
+
+  def show(self):
+
+    self._wnd_label_options.show()
+
+
+  def update_store(self, store):
+
+    if self._label_id not in store:
+      self.destroy()
+      return
+
+    self._destroy_store()
+    self._store = store.copy()
+
+    self._destroy_menu()
+    self._create_menu()
+
+    self._request_options(self._label_id)
+
+
+  # Section: General
+
+  def _set_label(self, label_id):
+
+    if label_id in self._store:
+      self._label_id = label_id
+      self._label_name = self._store[label_id]["name"]
+      self._label_fullname = self._store[label_id]["fullname"]
+    else:
+      self._label_id = ID_NULL
+      self._label_name = _(STR_NONE)
+      self._label_fullname = _(STR_NONE)
+
+
+  def _report_error(self, context, error):
+
+    log.error("%s: %s", context, error)
+    self._set_error(error.tr())
+
+
+  # Section: Options
+
+  def _request_options(self, label_id):
+
+    def on_timeout(label_id):
+
+      if self.valid:
+        self._wnd_label_options.set_sensitive(True)
+        self._report_error(STR_LOAD_OPTIONS, LabelPlusError(ERR_TIMED_OUT))
+        self._clear_dialog()
+
+
+    def process_result(result, label_id):
+
+      if self.valid:
+        self._wnd_label_options.set_sensitive(True)
+
+        for success, data in result:
+          if not success:
+            if isinstance(data, Failure):
+              error = labelplus.common.extract_error(data)
+              if error:
+                self._report_error(STR_LOAD_OPTIONS, error)
+                self._clear_dialog()
+            return
+
+        self._label_defaults = result[0][1]
+        self._move_path_options = result[1][1]
+        self._label_options = result[2][1]
+
+        self._set_label(label_id)
+        self._load_options(self._label_options)
+        self._refresh()
+
+
+    if not label_id in self._store:
+      self._report_error(STR_LOAD_OPTIONS, LabelPlusError(ERR_INVALID_LABEL))
+      self._clear_dialog()
+      return
+
+    self._set_error(None)
+
+    log.info("Loading options for %r", self._store[label_id]["fullname"])
+
+    deferreds = []
+    deferreds.append(client.labelplus.get_label_defaults())
+    deferreds.append(client.labelplus.get_move_path_options(label_id))
+    deferreds.append(client.labelplus.get_label_options(label_id))
+
+    deferred = twisted.internet.defer.DeferredList(deferreds,
+      consumeErrors=True)
+
+    labelplus.common.deferred_timeout(deferred, self.REQUEST_TIMEOUT,
+      on_timeout, process_result, None, label_id)
+
+    self._wnd_label_options.set_sensitive(False)
+
+
+  def _save_options(self):
+
+    def on_timeout(options):
+
+      if self.valid:
+        self._wnd_label_options.set_sensitive(True)
+        self._report_error(STR_SAVE_OPTIONS, LabelPlusError(ERR_TIMED_OUT))
+
+
+    def process_result(result, options):
+
+      if self.valid:
+        self._wnd_label_options.set_sensitive(True)
+
+        if isinstance(result, Failure):
+          error = labelplus.common.extract_error(result)
+          if error:
+            self._report_error(STR_SAVE_OPTIONS, error)
+          else:
+            return result
+        else:
+          self._label_options = options
+
+
+    if not self._label_id in self._store:
+      self._report_error(STR_SAVE_OPTIONS, LabelPlusError(ERR_INVALID_LABEL))
+      return
+
+    self._set_error(None)
+
+    log.info("Saving options for %r", self._label_fullname)
+
+    options = self._get_options()
+    same = labelplus.common.dict_equals(options, self._label_options)
+
+    if self._chk_autolabel_retroactive.get_active():
+      apply_to_all = not self._chk_autolabel_unlabeled_only.get_active()
+    else:
+      apply_to_all = None
+
+    if not same or apply_to_all is not None:
+      deferred = client.labelplus.set_label_options(self._label_id, options,
+        apply_to_all)
+
+      labelplus.common.deferred_timeout(deferred, self.REQUEST_TIMEOUT,
+        on_timeout, process_result, process_result, options)
+
+      self._wnd_label_options.set_sensitive(False)
+    else:
+      log.info("No options were changed")
+
+
+  # Section: Dialog: Setup
 
   def _setup_widgets(self):
 
@@ -175,12 +353,12 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self.connect_signals({
       "do_close": self._do_close,
       "do_submit": self._do_submit,
-      "do_toggle_fullname": self._do_toggle_fullname,
       "do_open_select_menu": self._do_open_select_menu,
       "do_revert_to_defaults": self._do_revert_to_defaults,
+      "do_toggle_fullname": self._do_toggle_fullname,
       "do_toggle_dependents": self._do_toggle_dependents,
-      "do_open_file_dialog": self._do_open_file_dialog,
       "on_txt_changed": self._on_txt_changed,
+      "do_open_file_dialog": self._do_open_file_dialog,
       "do_test_criteria": self._do_test_criteria,
     })
 
@@ -192,41 +370,38 @@ class LabelOptionsDialog(WidgetEncapsulator):
       (self._rb_move_completed_to_subfolder, MOVE_SUBFOLDER),
       (self._rb_move_completed_to_folder, MOVE_FOLDER),
     ))
+    if __debug__: RT.register(rgrp, __name__)
 
     rgrp.set_name("rgrp_move_completed_mode")
     self._rgrp_move_completed_mode = rgrp
-
-    RT.register(rgrp, __name__)
 
 
   def _setup_autolabel_box(self):
 
     crbox = AutolabelBox(row_spacing=6, column_spacing=3)
-    crbox.show_all()
+    if __debug__: RT.register(crbox, __name__)
 
     crbox.set_name("crbox_autolabel_rules")
     self._crbox_autolabel_rules = crbox
-
     self._blk_criteria_box.add(crbox)
     self._widgets.append(crbox)
 
-    RT.register(crbox, __name__)
+    crbox.show_all()
 
 
   def _setup_test_combo_box(self):
 
     prop_store = labelplus.gtkui.common.gtklib.liststore_create(str,
-      [_(x) for x in labelplus.common.config.autolabel.PROPS])
-
-    RT.register(prop_store, __name__)
+      [_(x) for x in PROPS])
+    if __debug__: RT.register(prop_store, __name__)
 
     cell = gtk.CellRendererText()
+    if __debug__: RT.register(cell, __name__)
+
     self._cmb_test_criteria.pack_start(cell)
     self._cmb_test_criteria.add_attribute(cell, "text", 0)
     self._cmb_test_criteria.set_model(prop_store)
     self._cmb_test_criteria.set_active(0)
-
-    RT.register(cell, __name__)
 
 
   def _setup_criteria_area(self):
@@ -319,290 +494,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
     }
 
 
-  def _create_menu(self):
-
-    def on_activate(widget, label_id):
-
-      self._request_options(label_id)
-
-
-    def on_activate_parent(widget):
-
-      parent_id = labelplus.common.label.get_parent_id(self._label_id)
-      self._request_options(parent_id)
-
-
-    def on_show_menu(widget):
-
-      parent_id = labelplus.common.label.get_parent_id(self._label_id)
-      if parent_id in self._store:
-        items[0].show()
-        items[1].show()
-      else:
-        items[0].hide()
-        items[1].hide()
-
-
-    self._menu = LabelSelectionMenu(self._store.model, on_activate)
-    self._menu.connect("show", on_show_menu)
-
-    RT.register(self._menu, __name__)
-
-    items = labelplus.gtkui.common.gtklib.menu_add_items(self._menu, 0,
-      (
-        ((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),
-        ((gtk.SeparatorMenuItem,),),
-      )
-    )
-
-    for item in items:
-      RT.register(item, __name__)
-
-    self._menu.show_all()
-
-
-  # Section: Deinitialization
-
-  def destroy(self):
-
-    self._plugin.deregister_update_func(self.update_store)
-    self._plugin.deregister_cleanup_func(self.destroy)
-
-    self._destroy_menu()
-    self._destroy_store()
-
-    if self.valid:
-      self._root_widget.set_data("owner", None)
-      super(LabelOptionsDialog, self).destroy()
-
-
-  def _destroy_menu(self):
-
-    if self._menu:
-      self._menu.destroy()
-      self._menu = None
-
-
-  def _destroy_store(self):
-
-    if self._store:
-      self._store.destroy()
-      self._store = None
-
-
-  # Section: Public
-
-  def show(self):
-
-    self._wnd_label_options.show()
-
-
-  def update_store(self, store):
-
-    if self._label_id not in store:
-      self.destroy()
-      return
-
-    self._destroy_store()
-    self._store = store.copy()
-
-    self._destroy_menu()
-    self._create_menu()
-
-    self._request_options(self._label_id)
-
-
-  # Section: General
-
-  def _report_error(self, context, error):
-
-    log.error("%s: %s", context, error)
-    self._set_error(error.tr())
-
-
-  def _set_label(self, label_id):
-
-    if label_id in self._store:
-      self._label_id = label_id
-      self._label_name = self._store[label_id]["name"]
-      self._label_fullname = self._store[label_id]["fullname"]
-    else:
-      self._label_id = ID_NULL
-      self._label_name = _(STR_NONE)
-      self._label_fullname = _(STR_NONE)
-
-
-  # Section: Options
-
-  def _request_options(self, label_id):
-
-    def on_timeout(label_id):
-
-      if self.valid:
-        self._wnd_label_options.set_sensitive(True)
-        self._report_error(STR_LOAD_OPTIONS, LabelPlusError(ERR_TIMED_OUT))
-        self._clear_dialog()
-
-
-    def process_result(result, label_id):
-
-      if self.valid:
-        self._wnd_label_options.set_sensitive(True)
-
-        for success, data in result:
-          if not success:
-            if isinstance(data, Failure):
-              error = labelplus.common.extract_error(data)
-              if error:
-                self._report_error(STR_LOAD_OPTIONS, error)
-                self._clear_dialog()
-            return
-
-        self._label_defaults = result[0][1]
-        self._move_path_options = result[1][1]
-        self._label_options = result[2][1]
-
-        self._set_label(label_id)
-        self._load_options(self._label_options)
-        self._refresh()
-
-
-    if not label_id in self._store:
-      self._report_error(STR_LOAD_OPTIONS, LabelPlusError(ERR_INVALID_LABEL))
-      self._clear_dialog()
-      return
-
-    self._set_error(None)
-
-    log.info("Loading options for %r", self._store[label_id]["fullname"])
-
-    deferreds = []
-    deferreds.append(client.labelplus.get_label_defaults())
-    deferreds.append(client.labelplus.get_move_path_options(label_id))
-    deferreds.append(client.labelplus.get_label_options(label_id))
-
-    deferred = twisted.internet.defer.DeferredList(deferreds,
-      consumeErrors=True)
-
-    labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
-      process_result, None, label_id)
-
-    self._wnd_label_options.set_sensitive(False)
-
-
-  def _save_options(self):
-
-    def on_timeout(options):
-
-      if self.valid:
-        self._wnd_label_options.set_sensitive(True)
-        self._report_error(STR_SAVE_OPTIONS, LabelPlusError(ERR_TIMED_OUT))
-
-
-    def process_result(result, options):
-
-      if self.valid:
-        self._wnd_label_options.set_sensitive(True)
-
-        if isinstance(result, Failure):
-          error = labelplus.common.extract_error(result)
-          if error:
-            self._report_error(STR_SAVE_OPTIONS, error)
-          else:
-            return result
-        else:
-          self._label_options = options
-
-
-    if not self._label_id in self._store:
-      self._report_error(STR_SAVE_OPTIONS, LabelPlusError(ERR_INVALID_LABEL))
-      return
-
-    self._set_error(None)
-
-    log.info("Saving options for %r", self._label_fullname)
-
-    options = self._get_options()
-    same = labelplus.common.dict_equals(options, self._label_options)
-
-    if self._chk_autolabel_retroactive.get_active():
-      apply_to_all = not self._chk_autolabel_unlabeled_only.get_active()
-    else:
-      apply_to_all = None
-
-    if not same or apply_to_all is not None:
-      deferred = client.labelplus.set_label_options(self._label_id, options,
-        apply_to_all)
-
-      labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
-        process_result, process_result, options)
-
-      self._wnd_label_options.set_sensitive(False)
-    else:
-      log.debug("No options were changed")
-
-
-  # Section: Options: Widget
-
-  def _get_widget_values(self, widgets, options_out):
-
-    for widget in widgets:
-      prefix, sep, name = widget.get_name().partition("_")
-      if sep and name in options_out:
-        ops = OP_MAP.get(type(widget))
-        if ops:
-          getter = getattr(widget, ops[GETTER])
-          options_out[name] = getter()
-
-
-  def _set_widget_values(self, widgets, options_in):
-
-    for widget in widgets:
-      prefix, sep, name = widget.get_name().partition("_")
-      if sep and name in options_in:
-        ops = OP_MAP.get(type(widget))
-        if ops:
-          setter = getattr(widget, ops[SETTER])
-          setter(options_in[name])
-
-
-  def _load_options(self, options):
-
-    for group in self._option_groups:
-      self._set_widget_values(group, options)
-
-    mode = options["move_completed_mode"]
-    path = options["move_completed_path"]
-
-    self._txt_move_completed_path.set_text(path)
-
-    if mode != MOVE_FOLDER:
-      path = self._move_path_options.get(mode, "")
-
-    self._set_path_label(path)
-
-
-  def _get_options(self):
-
-    options = copy.deepcopy(self._label_defaults)
-
-    for group in self._option_groups:
-      self._get_widget_values(group, options)
-
-    return options
-
-
-  def _revert_options_by_page(self, options_out, page):
-
-    widgets = self._option_groups[page]
-
-    for widget in widgets:
-      prefix, sep, name = widget.get_name().partition("_")
-      if sep and name in self._label_defaults:
-        options_out[name] = copy.deepcopy(self._label_defaults[name])
-
-
-  # Section: Widget State
+  # Section: Dialog: State
 
   def _load_state(self):
 
@@ -642,7 +534,67 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._plugin.config.save()
 
 
-  # Section: Widget Modifiers
+  # Section: Dialog: Options
+
+  def _get_widget_values(self, widgets, options_out):
+
+    for widget in widgets:
+      prefix, sep, name = widget.get_name().partition("_")
+      if sep and name in options_out:
+        ops = self.OP_MAP.get(type(widget))
+        if ops:
+          getter = getattr(widget, ops[self.GETTER])
+          options_out[name] = getter()
+
+
+  def _set_widget_values(self, widgets, options_in):
+
+    for widget in widgets:
+      prefix, sep, name = widget.get_name().partition("_")
+      if sep and name in options_in:
+        ops = self.OP_MAP.get(type(widget))
+        if ops:
+          setter = getattr(widget, ops[self.SETTER])
+          setter(options_in[name])
+
+
+  def _load_options(self, options):
+
+    for group in self._option_groups:
+      self._set_widget_values(group, options)
+
+    mode = options["move_completed_mode"]
+    path = options["move_completed_path"]
+
+    self._txt_move_completed_path.set_text(path)
+
+    if mode != MOVE_FOLDER:
+      path = self._move_path_options.get(mode, "")
+
+    self._set_path_label(path)
+
+
+  def _get_options(self):
+
+    options = copy.deepcopy(self._label_defaults)
+
+    for group in self._option_groups:
+      self._get_widget_values(group, options)
+
+    return options
+
+
+  def _revert_options_by_page(self, options_out, page):
+
+    widgets = self._option_groups[page]
+
+    for widget in widgets:
+      prefix, sep, name = widget.get_name().partition("_")
+      if sep and name in self._label_defaults:
+        options_out[name] = copy.deepcopy(self._label_defaults[name])
+
+
+  # Section: Dialog: Modifiers
 
   def _refresh(self):
 
@@ -659,32 +611,10 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._set_test_result(None)
 
 
-  def _set_error(self, message):
-
-    if message:
-      self._img_error.set_tooltip_text(message)
-      self._img_error.show()
-    else:
-      self._img_error.hide()
-
-
   def _set_path_label(self, path):
 
     self._lbl_move_completed_path.set_text(path)
     self._lbl_move_completed_path.set_tooltip_text(path)
-
-
-  def _clear_dialog(self):
-
-    if not self._label_defaults:
-      self._label_defaults = labelplus.common.config.LABEL_DEFAULTS
-
-    self._move_path_options = {}
-    self._label_options = {}
-
-    self._set_label(ID_NULL)
-    self._load_options(self._label_defaults)
-    self._refresh()
 
 
   def _set_test_result(self, result):
@@ -698,7 +628,31 @@ class LabelOptionsDialog(WidgetEncapsulator):
         None)
 
 
-  # Section: Widget Handlers
+  def _clear_dialog(self):
+
+    if not self._label_defaults:
+      self._label_defaults = LABEL_DEFAULTS
+
+    self._move_path_options = {}
+    self._label_options = {}
+
+    self._set_label(ID_NULL)
+    self._load_options(self._label_defaults)
+    self._refresh()
+
+
+  def _set_error(self, message):
+
+    if message:
+      self._img_error.set_tooltip_text(message)
+      self._img_error.show()
+    else:
+      self._img_error.hide()
+
+
+  # Section: Dialog: Handlers
+
+  # General
 
   def _do_close(self, *args):
 
@@ -709,14 +663,6 @@ class LabelOptionsDialog(WidgetEncapsulator):
   def _do_submit(self, *args):
 
     self._save_options()
-
-
-  def _do_toggle_fullname(self, *args):
-
-    if self._tgb_fullname.get_active():
-      self._lbl_selected_label.set_text(self._label_fullname)
-    else:
-      self._lbl_selected_label.set_text(self._label_name)
 
 
   def _do_open_select_menu(self, *args):
@@ -737,6 +683,14 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._refresh()
 
 
+  def _do_toggle_fullname(self, *args):
+
+    if self._tgb_fullname.get_active():
+      self._lbl_selected_label.set_text(self._label_fullname)
+    else:
+      self._lbl_selected_label.set_text(self._label_name)
+
+
   def _do_toggle_dependents(self, widget):
 
     if widget in self._dependency_widgets:
@@ -745,6 +699,8 @@ class LabelOptionsDialog(WidgetEncapsulator):
       for dependent in self._dependency_widgets[widget]:
         dependent.set_sensitive(toggled)
 
+
+  # Move Completed
 
   def _do_select_mode(self, group, button, mode):
 
@@ -755,6 +711,11 @@ class LabelOptionsDialog(WidgetEncapsulator):
     else:
       path = self._move_path_options.get(mode, "")
       self._set_path_label(path)
+
+
+  def _on_txt_changed(self, widget):
+
+    self._set_path_label(widget.get_text())
 
 
   def _do_open_file_dialog(self, widget):
@@ -775,6 +736,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
       )
     )
 
+    RT.register(dialog, __name__)
     dialog.set_destroy_with_parent(True)
     dialog.connect("response", on_response)
 
@@ -785,17 +747,12 @@ class LabelOptionsDialog(WidgetEncapsulator):
     dialog.set_filename(path)
     dialog.show_all()
 
-    location_toggle = labelplus.gtkui.common.gtklib.widget_get_descendents(dialog,
-      (gtk.ToggleButton,), 1)[0]
+    location_toggle = labelplus.gtkui.common.gtklib.widget_get_descendents(
+      dialog, (gtk.ToggleButton,), 1)[0]
     location_toggle.set_active(False)
 
-    RT.register(dialog, __name__)
 
-
-  def _on_txt_changed(self, widget):
-
-    self._set_path_label(widget.get_text())
-
+  # Autolabel Test
 
   def _do_test_criteria(self, *args):
 
@@ -806,10 +763,10 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
 
     index = self._cmb_test_criteria.get_active()
-    prop = labelplus.common.config.autolabel.PROPS[index]
+    prop_name = PROPS[index]
 
     props = {
-      prop: [unicode(self._txt_test_criteria.get_text(), "utf8")]
+      prop_name: [unicode(self._txt_test_criteria.get_text(), "utf8")]
     }
 
     rules = self._crbox_autolabel_rules.get_all_row_values()
@@ -824,4 +781,55 @@ class LabelOptionsDialog(WidgetEncapsulator):
     log.debug("Test result: %s", result)
     self._set_test_result(result)
 
-    twisted.internet.reactor.callLater(CLEAR_TEST_DELAY, clear_result)
+    twisted.internet.reactor.callLater(self.CLEAR_TEST_DELAY, clear_result)
+
+
+  # Section: Dialog: Menu
+
+  def _create_menu(self):
+
+    def on_show_menu(widget):
+
+      parent_id = labelplus.common.label.get_parent_id(self._label_id)
+      if parent_id in self._store:
+        items[0].show()
+        items[1].show()
+      else:
+        items[0].hide()
+        items[1].hide()
+
+
+    def on_activate(widget, label_id):
+
+      self._request_options(label_id)
+
+
+    def on_activate_parent(widget):
+
+      parent_id = labelplus.common.label.get_parent_id(self._label_id)
+      self._request_options(parent_id)
+
+
+    self._menu = LabelSelectionMenu(self._store.model, on_activate)
+    if __debug__: RT.register(self._menu, __name__)
+
+    items = labelplus.gtkui.common.gtklib.menu_add_items(self._menu, 0,
+      (
+        ((gtk.MenuItem, _(STR_PARENT)), on_activate_parent),
+        ((gtk.SeparatorMenuItem,),),
+      )
+    )
+
+    if __debug__:
+      for item in items:
+        RT.register(item, __name__)
+
+    self._menu.connect("show", on_show_menu)
+    self._menu.show_all()
+
+
+  def _destroy_menu(self):
+
+    if self._menu:
+      self._menu.destroy()
+      self._menu = None
