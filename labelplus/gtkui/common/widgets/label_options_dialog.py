@@ -142,7 +142,6 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
       self._create_menu()
 
-      self._clear_dialog()
       self._request_options(label_id)
 
       self._plugin.register_update_func(self.update_store)
@@ -220,45 +219,47 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
   def _request_options(self, label_id):
 
-    def on_timeout(label_id):
+    def on_timeout():
 
       if self.valid:
         self._wnd_label_options.set_sensitive(True)
         self._report_error(STR_LOAD_OPTIONS, LabelPlusError(ERR_TIMED_OUT))
-        self._clear_dialog()
 
 
-    def process_result(result, label_id):
+    def process_result(result):
 
       if self.valid:
         self._wnd_label_options.set_sensitive(True)
 
         for success, data in result:
           if not success:
-            if isinstance(data, Failure):
-              error = labelplus.common.extract_error(data)
-              if error:
-                self._report_error(STR_LOAD_OPTIONS, error)
-                self._clear_dialog()
+            error = labelplus.common.extract_error(data)
+            if error:
+              self._report_error(STR_LOAD_OPTIONS, error)
+            else:
+              self.destroy()
             return
 
         self._label_defaults = result[0][1]
         self._move_path_options = result[1][1]
         self._label_options = result[2][1]
 
-        self._set_label(label_id)
         self._load_options(self._label_options)
-        self._refresh()
+        self._enable_options()
 
+
+    self._clear_options()
+    self._disable_options()
+    self._set_label(label_id)
+    self._refresh()
 
     if not label_id in self._store:
       self._report_error(STR_LOAD_OPTIONS, LabelPlusError(ERR_INVALID_LABEL))
-      self._clear_dialog()
       return
 
     self._set_error(None)
 
-    log.info("Loading options for %r", self._store[label_id]["fullname"])
+    log.info("Loading options for %r", self._label_fullname)
 
     deferreds = []
     deferreds.append(client.labelplus.get_label_defaults())
@@ -269,7 +270,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
       consumeErrors=True)
 
     labelplus.common.deferred_timeout(deferred, self.REQUEST_TIMEOUT,
-      on_timeout, process_result, None, label_id)
+      on_timeout, process_result, None)
 
     self._wnd_label_options.set_sensitive(False)
 
@@ -293,6 +294,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
           if error:
             self._report_error(STR_SAVE_OPTIONS, error)
           else:
+            self.destroy()
             return result
         else:
           self._label_options = options
@@ -342,6 +344,8 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
     self._img_error.set_from_stock(gtk.STOCK_DIALOG_ERROR,
       gtk.ICON_SIZE_SMALL_TOOLBAR)
+
+    self._btn_close.grab_focus()
 
     self._setup_radio_button_groups()
     self._setup_autolabel_box()
@@ -594,6 +598,33 @@ class LabelOptionsDialog(WidgetEncapsulator):
         options_out[name] = copy.deepcopy(self._label_defaults[name])
 
 
+  def _clear_options(self):
+
+    if not self._label_defaults:
+      self._label_defaults = LABEL_DEFAULTS
+
+    self._move_path_options = {}
+    self._label_options = {}
+
+    self._load_options(self._label_defaults)
+
+
+  def _enable_options(self):
+
+    self._nb_tabs.set_sensitive(True)
+    self._btn_defaults.set_sensitive(True)
+    self._btn_defaults_all.set_sensitive(True)
+    self._btn_apply.set_sensitive(True)
+
+
+  def _disable_options(self):
+
+    self._nb_tabs.set_sensitive(False)
+    self._btn_defaults.set_sensitive(False)
+    self._btn_defaults_all.set_sensitive(False)
+    self._btn_apply.set_sensitive(False)
+
+
   # Section: Dialog: Modifiers
 
   def _refresh(self):
@@ -626,19 +657,6 @@ class LabelOptionsDialog(WidgetEncapsulator):
     else:
       self._txt_test_criteria.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY,
         None)
-
-
-  def _clear_dialog(self):
-
-    if not self._label_defaults:
-      self._label_defaults = LABEL_DEFAULTS
-
-    self._move_path_options = {}
-    self._label_options = {}
-
-    self._set_label(ID_NULL)
-    self._load_options(self._label_defaults)
-    self._refresh()
 
 
   def _set_error(self, message):
