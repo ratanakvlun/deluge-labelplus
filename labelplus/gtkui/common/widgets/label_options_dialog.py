@@ -754,8 +754,8 @@ class LabelOptionsDialog(WidgetEncapsulator):
         gtk.STOCK_OK, gtk.RESPONSE_OK,
       )
     )
+    if __debug__: RT.register(dialog, __name__)
 
-    RT.register(dialog, __name__)
     dialog.set_destroy_with_parent(True)
     dialog.connect("response", on_response)
 
@@ -766,9 +766,11 @@ class LabelOptionsDialog(WidgetEncapsulator):
     dialog.set_filename(path)
     dialog.show_all()
 
-    location_toggle = labelplus.gtkui.common.gtklib.widget_get_descendents(
-      dialog, (gtk.ToggleButton,), 1)[0]
-    location_toggle.set_active(False)
+    widgets = labelplus.gtkui.common.gtklib.widget_get_descendents(dialog,
+      (gtk.ToggleButton,), 1)
+    if widgets:
+      location_toggle = widgets[0]
+      location_toggle.set_active(False)
 
 
   # Autolabel Test
