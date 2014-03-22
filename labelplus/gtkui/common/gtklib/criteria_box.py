@@ -39,6 +39,8 @@ import gtk
 
 class CriteriaBox(gtk.VBox):
 
+  # Section: Constants
+
   SETTER = 2
   GETTER = 3
 
@@ -217,7 +219,7 @@ class CriteriaBox(gtk.VBox):
 
     for i, spec in enumerate(self._columns):
       pairs.append(i)
-      pairs.append(spec[CriteriaBox.GETTER](children[i]))
+      pairs.append(spec[self.GETTER](children[i]))
 
     return pairs
 
@@ -231,7 +233,7 @@ class CriteriaBox(gtk.VBox):
 
     for i, spec in enumerate(self._columns):
       if i in indices:
-        spec[CriteriaBox.SETTER](children[i], values[indices.index(i)])
+        spec[self.SETTER](children[i], values[indices.index(i)])
 
 
   def get_row_values(self, row):
@@ -241,7 +243,7 @@ class CriteriaBox(gtk.VBox):
     children = row.get_children()
 
     for i, spec in enumerate(self._columns):
-      values.append(spec[CriteriaBox.GETTER](children[i]))
+      values.append(spec[self.GETTER](children[i]))
 
     return values
 
@@ -251,7 +253,7 @@ class CriteriaBox(gtk.VBox):
     children = row.get_children()
 
     for i, spec in enumerate(self._columns):
-      spec[CriteriaBox.SETTER](children[i], values[i])
+      spec[self.SETTER](children[i], values[i])
 
 
   def get_all_row_values(self):
