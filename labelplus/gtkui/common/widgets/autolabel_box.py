@@ -63,9 +63,9 @@ class AutolabelBox(CriteriaBox):
     case_store = labelplus.gtkui.common.gtklib.liststore_create(str,
       [_(x) for x in CASES])
 
-    RT.register(prop_store, __name__)
-    RT.register(op_store, __name__)
-    RT.register(case_store, __name__)
+    if __debug__: RT.register(prop_store, __name__)
+    if __debug__: RT.register(op_store, __name__)
+    if __debug__: RT.register(case_store, __name__)
 
     self.add_combobox_column(prop_store)
     self.add_combobox_column(op_store)

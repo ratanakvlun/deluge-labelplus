@@ -669,9 +669,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._img_error.hide()
 
 
-  # Section: Dialog: Handlers
-
-  # General
+  # Section: Dialog: Handlers: General
 
   def _do_close(self, *args):
 
@@ -719,7 +717,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
         dependent.set_sensitive(toggled)
 
 
-  # Move Completed
+  # Section: Dialog: Handlers: Move Completed
 
   def _do_select_mode(self, group, button, mode):
 
@@ -773,7 +771,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
       location_toggle.set_active(False)
 
 
-  # Autolabel Test
+  # Section: Dialog: Handlers: Criteria Test
 
   def _do_test_criteria(self, *args):
 

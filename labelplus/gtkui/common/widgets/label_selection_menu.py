@@ -98,7 +98,7 @@ class LabelSelectionMenu(gtk.Menu):
     item.set_name(id_)
     menu.append(item)
     self._items.append(item)
-    RT.register(item, __name__)
+    if __debug__: RT.register(item, __name__)
 
     children = labelplus.gtkui.common.gtklib.treemodel_get_children(model,
       iter_)
@@ -110,7 +110,7 @@ class LabelSelectionMenu(gtk.Menu):
       submenu = gtk.Menu()
       item.set_submenu(submenu)
       self._menus.append(submenu)
-      RT.register(submenu, __name__)
+      if __debug__: RT.register(submenu, __name__)
 
       if headers:
         self._items += labelplus.gtkui.common.gtklib.menu_add_items(submenu,
