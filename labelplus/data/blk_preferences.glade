@@ -155,7 +155,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <widget class="GtkSpinButton" id="spn_shared_limit_update_interval">
+                                          <widget class="GtkSpinButton" id="spn_shared_limit_interval">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="invisible_char">&#x25CF;</property>

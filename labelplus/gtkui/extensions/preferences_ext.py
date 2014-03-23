@@ -252,7 +252,7 @@ class PreferencesExt(WidgetEncapsulator):
     )
 
     self._daemon_option_group = (
-      self._spn_shared_limit_update_interval,
+      self._spn_shared_limit_interval,
       self._chk_move_on_changes,
       self._chk_move_after_recheck,
     )
