@@ -575,6 +575,7 @@ class TorrentViewExt(object):
         if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
+        log.exception("Error initializing LabelOptionsDialog")
         pass
 
 
@@ -674,6 +675,7 @@ class TorrentViewExt(object):
             if __debug__: RT.register(dialog, __name__)
             dialog.show()
           except:
+            log.exception("Error initializing LabelOptionsDialog")
             pass
         else:
           self._set_filter_sync_sidebar(ids)

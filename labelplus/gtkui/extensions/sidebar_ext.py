@@ -384,6 +384,7 @@ class SidebarExt(object):
         if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
+        log.exception("Error initializing AddLabelDialog")
         pass
 
 
@@ -395,6 +396,7 @@ class SidebarExt(object):
         if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
+        log.exception("Error initializing AddLabelDialog")
         pass
 
 
@@ -406,6 +408,7 @@ class SidebarExt(object):
         if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
+        log.exception("Error initializing RenameLabelDialog")
         pass
 
 
@@ -423,6 +426,7 @@ class SidebarExt(object):
         if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
+        log.exception("Error initializing LabelOptionsDialog")
         pass
 
 
@@ -638,6 +642,7 @@ class SidebarExt(object):
           if __debug__: RT.register(dialog, __name__)
           dialog.show()
         except:
+          log.exception("Error initializing LabelOptionsDialog")
           pass
     elif event.button == 3:
       self._menu.set_title(id)
