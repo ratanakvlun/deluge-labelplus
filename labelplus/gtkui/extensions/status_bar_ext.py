@@ -95,7 +95,7 @@ class StatusBarExt(object):
 
     try:
       self._store = plugin.store.copy()
-      RT.register(self._store, __name__)
+      if __debug__: RT.register(self._store, __name__)
 
       self._install_status_item()
 
@@ -133,7 +133,7 @@ class StatusBarExt(object):
 
     self._store.destroy()
     self._store = store.copy()
-    RT.register(self._store, __name__)
+    if __debug__: RT.register(self._store, __name__)
 
 
   # Section: Status Bar
@@ -195,7 +195,7 @@ class StatusBarExt(object):
 
     ext = self._plugin.get_extension("SidebarExt")
     ids = ext.get_selected_labels() if ext else None
-    if not ids or ID_ALL in ids:
+    if not ids or (len(ids) == 1 and ID_ALL in ids):
       ext = self._plugin.get_extension("TorrentViewExt")
       ids = ext.get_selected_torrent_labels() if ext else None
 
