@@ -414,6 +414,7 @@ class PreferencesExt(WidgetEncapsulator):
         else:
           self._prefs = prefs
           self._save_ui_options()
+          self._refresh_deluge()
 
 
     self._set_error(None)
@@ -655,6 +656,14 @@ class PreferencesExt(WidgetEncapsulator):
     self._set_test_result(result)
 
     twisted.internet.reactor.callLater(CLEAR_TEST_DELAY, clear_result)
+
+
+  # Section: Deluge: General
+
+  def _refresh_deluge(self):
+
+    window = deluge.component.get("MainWindow").window
+    twisted.internet.reactor.callLater(0.1, window.queue_draw)
 
 
   # Section: Deluge: Handlers
