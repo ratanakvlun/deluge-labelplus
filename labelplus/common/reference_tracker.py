@@ -75,9 +75,9 @@ class ReferenceTracker(object):
 
     if gc.isenabled() and collect:
       count = len(self._refs)
-      self.logger.debug("Running garbage collector...")
+      self.logger.info("Running garbage collector...")
       gc.collect()
-      self.logger.debug("References collected: %s", count-len(self._refs))
+      self.logger.info("References collected: %s", count-len(self._refs))
 
     if len(self._refs) > 0:
       self.logger.info("Remaining reference count: %s", len(self._refs))
