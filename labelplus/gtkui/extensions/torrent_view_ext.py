@@ -48,8 +48,11 @@ import labelplus.common.label
 
 from deluge.ui.client import client
 
-from labelplus.gtkui.common.widgets.label_options_dialog import LabelOptionsDialog
-from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
+from labelplus.gtkui.common.widgets.label_options_dialog import (
+  LabelOptionsDialog)
+
+from labelplus.gtkui.common.widgets.label_selection_menu import (
+  LabelSelectionMenu)
 
 from labelplus.gtkui.common.gtklib.dnd import TreeViewDragSourceProxy
 from labelplus.gtkui.common.gtklib.dnd import DragTarget
@@ -103,7 +106,7 @@ class TorrentViewExt(object):
 
     try:
       self._store = plugin.store.copy()
-      RT.register(self._store, __name__)
+      if __debug__: RT.register(self._store, __name__)
 
       self._add_column()
 
@@ -155,7 +158,7 @@ class TorrentViewExt(object):
     self._sep = self._menubar.add_torrentmenu_separator()
     self._menubar.torrentmenu.append(self._menu)
 
-    RT.register(self._sep, __name__)
+    if __debug__: RT.register(self._sep, __name__)
 
 
   def _install_view_tweaks(self):
@@ -321,7 +324,7 @@ class TorrentViewExt(object):
 
     self._store.destroy()
     self._store = store.copy()
-    RT.register(self._store, __name__)
+    if __debug__: RT.register(self._store, __name__)
 
     self._destroy_alternate_menu()
     self._alt_menu = self._create_alternate_menu()
@@ -375,8 +378,8 @@ class TorrentViewExt(object):
     item = gtk.MenuItem(DISPLAY_NAME)
     item.set_submenu(gtk.Menu())
 
-    RT.register(item, __name__)
-    RT.register(item.get_submenu(), __name__)
+    if __debug__: RT.register(item, __name__)
+    if __debug__: RT.register(item.get_submenu(), __name__)
 
     return item
 
@@ -397,7 +400,7 @@ class TorrentViewExt(object):
     menu.append(item)
     menu.show_all()
 
-    RT.register(menu, __name__)
+    if __debug__: RT.register(menu, __name__)
 
     return menu
 
@@ -506,8 +509,8 @@ class TorrentViewExt(object):
     root = gtk.MenuItem(_(TITLE_SET_FILTER))
     root.set_submenu(menu)
 
-    RT.register(menu, __name__)
-    RT.register(root, __name__)
+    if __debug__: RT.register(menu, __name__)
+    if __debug__: RT.register(root, __name__)
 
     return root
 
@@ -554,8 +557,8 @@ class TorrentViewExt(object):
     root = gtk.MenuItem(_(TITLE_SET_LABEL))
     root.set_submenu(menu)
 
-    RT.register(menu, __name__)
-    RT.register(root, __name__)
+    if __debug__: RT.register(menu, __name__)
+    if __debug__: RT.register(root, __name__)
 
     return root
 
@@ -569,7 +572,7 @@ class TorrentViewExt(object):
       try:
         ids = self.get_selected_torrent_labels()
         dialog = LabelOptionsDialog(self._plugin, ids[0])
-        RT.register(dialog, __name__)
+        if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
         pass
@@ -589,7 +592,7 @@ class TorrentViewExt(object):
 
     self._menu.get_submenu().connect("show", on_show, item)
 
-    RT.register(item, __name__)
+    if __debug__: RT.register(item, __name__)
 
     return item
 
@@ -639,8 +642,8 @@ class TorrentViewExt(object):
       get_drag_icon, on_drag_start)
     self._dnd_src_proxy.add_target(src_target)
 
-    RT.register(src_target, __name__)
-    RT.register(self._dnd_src_proxy, __name__)
+    if __debug__: RT.register(src_target, __name__)
+    if __debug__: RT.register(self._dnd_src_proxy, __name__)
 
 
   def _disable_dnd(self):
@@ -668,7 +671,7 @@ class TorrentViewExt(object):
         if self.is_filter(ids):
           try:
             dialog = LabelOptionsDialog(self._plugin, ids[0])
-            RT.register(dialog, __name__)
+            if __debug__: RT.register(dialog, __name__)
             dialog.show()
           except:
             pass
