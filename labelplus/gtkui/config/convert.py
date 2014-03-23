@@ -44,8 +44,17 @@ def post_map_v2_v3(spec, dict_in):
 
   for daemon in dict_in["daemon"]:
     state = dict_in["daemon"][daemon]["sidebar_state"]
+
     if not isinstance(state["selected"], list):
       state["selected"] = [state["selected"]]
+
+    for i, id_ in enumerate(state["selected"]):
+      if id_.startswith("-"):
+        state["selected"][i] = id_.partition(":")[2]
+
+    for i, id_ in enumerate(state["expanded"]):
+      if id_.startswith("-"):
+        state["expanded"][i] = id_.partition(":")[2]
 
   return dict_in
 
