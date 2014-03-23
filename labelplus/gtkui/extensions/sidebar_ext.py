@@ -687,7 +687,7 @@ class SidebarExt(object):
         id, data = model[path]
         ids.append(id)
 
-      self._state["selected"] = ids
+    self._state["selected"] = ids
 
     if self.is_active_page():
       ext = self._plugin.get_extension("TorrentViewExt")
