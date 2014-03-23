@@ -323,6 +323,7 @@ class SidebarExt(object):
     column.set_cell_data_func(renderer, render_cell_data)
     tree.append_column(column)
 
+    tree.set_name("%s_tree_view" % MODULE_NAME)
     tree.set_headers_visible(False)
     tree.set_enable_tree_lines(True)
     tree.set_search_equal_func(search_func)
@@ -335,19 +336,6 @@ class SidebarExt(object):
     tree.connect("row-expanded", self._on_row_expanded)
     tree.get_selection().connect("changed", self._on_selection_changed)
 
-    # Override style so expanders are indented
-    name = "%s_tree_view" % MODULE_NAME
-    tree.set_name(name)
-    path = tree.path()
-
-    rc_string = """
-        style '%s' { GtkTreeView::indent-expanders = 1 }
-        widget '%s' style '%s'
-    """ % (name, path, name)
-
-    gtk.rc_parse_string(rc_string)
-    gtk.rc_reset_styles(tree.get_toplevel().get_settings())
-
     self._tree = tree
 
     if __debug__: RT.register(tree, __name__)
@@ -358,6 +346,18 @@ class SidebarExt(object):
   def _install_label_tree(self):
 
     self._filterview.sidebar.add_tab(self._tree, MODULE_NAME, DISPLAY_NAME)
+
+    # Override style so expanders are indented
+    name = self._tree.get_name()
+    path = self._tree.path()
+
+    rc_string = """
+        style '%s' { GtkTreeView::indent-expanders = 1 }
+        widget '%s' style '%s'
+    """ % (name, path, name)
+
+    gtk.rc_parse_string(rc_string)
+    gtk.rc_reset_styles(self._tree.get_toplevel().get_settings())
 
 
   def _uninstall_label_tree(self):
