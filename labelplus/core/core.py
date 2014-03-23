@@ -732,10 +732,6 @@ class Core(CorePluginBase):
     for key in options.keys():
       if key not in labelplus.common.config.OPTION_DEFAULTS:
         del options[key]
-      elif (type(options[key]) !=
-          type(labelplus.common.config.OPTION_DEFAULTS[key])):
-        options[key] = copy.deepcopy(
-          labelplus.common.config.OPTION_DEFAULTS[key])
 
     for key in labelplus.common.config.OPTION_DEFAULTS:
       if key not in options:
