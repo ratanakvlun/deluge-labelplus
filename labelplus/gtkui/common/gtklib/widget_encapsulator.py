@@ -50,13 +50,13 @@ class WidgetEncapsulator(object):
     self._attr_prefix = attr_prefix
 
     self._model = gtk.glade.XML(filename, root)
-    RT.register(self._model, __name__)
+    if __debug__: RT.register(self._model, __name__)
 
     self._root_widget = self._model.get_widget(root)
 
     self._widgets = self._model.get_widget_prefix("")
     for widget in self._widgets:
-      RT.register(widget, __name__)
+      if __debug__: RT.register(widget, __name__)
 
       name = self._attr_prefix + widget.get_name()
       if not hasattr(self, name):

@@ -91,7 +91,7 @@ def menu_add_items(menu, pos, specs, *args):
     else:
       item = schematic[0]()
 
-    RT.register(item, __name__)
+    if __debug__: RT.register(item, __name__)
 
     if len(spec) > 1 and spec[1]:
       item.connect("activate", *(tuple(spec[1:])+args))
@@ -105,8 +105,10 @@ def menu_add_items(menu, pos, specs, *args):
 
 def menu_add_separator(menu, pos=-1):
 
-  sep = gtk.SeparatorMenuItem(); RT.register(sep, __name__)
+  sep = gtk.SeparatorMenuItem()
   menu.insert(sep, pos)
+
+  if __debug__: RT.register(sep, __name__)
 
   return sep
 
