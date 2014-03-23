@@ -47,8 +47,14 @@ import labelplus.common.label
 from deluge.ui.client import client
 
 from labelplus.common import LabelPlusError
-from labelplus.gtkui.common.widgets.label_selection_menu import LabelSelectionMenu
-from labelplus.gtkui.common.gtklib.widget_encapsulator import WidgetEncapsulator
+
+from labelplus.gtkui.common.widgets.label_selection_menu import (
+  LabelSelectionMenu)
+
+from labelplus.gtkui.common.gtklib.widget_encapsulator import (
+  WidgetEncapsulator)
+
+from labelplus.gtkui import RT
 
 
 from labelplus.common.label import (
@@ -57,22 +63,22 @@ from labelplus.common.label import (
 
 from labelplus.common.literals import (
   STR_NONE,
-
   ERR_INVALID_LABEL,
 )
-
-GLADE_FILE = labelplus.common.get_resource("blk_add_torrent_ext.glade")
-ROOT_WIDGET = "blk_add_torrent_ext"
-
-TORRENT_ID = 0
 
 
 log = logging.getLogger(__name__)
 
-from labelplus.gtkui import RT
-
 
 class AddTorrentExt(WidgetEncapsulator):
+
+  # Section: Constants
+
+  GLADE_FILE = labelplus.common.get_resource("blk_add_torrent_ext.glade")
+  ROOT_WIDGET = "blk_add_torrent_ext"
+
+  TORRENT_ID = 0
+
 
   # Section: Initialization
 
@@ -88,11 +94,11 @@ class AddTorrentExt(WidgetEncapsulator):
     self._mappings = {}
     self._handlers = []
 
-    super(AddTorrentExt, self).__init__(GLADE_FILE, ROOT_WIDGET, "_")
+    super(AddTorrentExt, self).__init__(self.GLADE_FILE, self.ROOT_WIDGET, "_")
 
     try:
       self._store = plugin.store.copy()
-      RT.register(self._store, __name__)
+      if __debug__: RT.register(self._store, __name__)
 
       self._setup_widgets()
       self._install_widgets()
@@ -178,7 +184,7 @@ class AddTorrentExt(WidgetEncapsulator):
     self._menu = LabelSelectionMenu(self._store.model, on_activate,
       root_items=items)
 
-    RT.register(self._menu, __name__)
+    if __debug__: RT.register(self._menu, __name__)
 
 
   # Section: Deinitialization
@@ -235,7 +241,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
     model, row = self._view.get_selection().get_selected()
     if row:
-      return model[row][TORRENT_ID]
+      return model[row][self.TORRENT_ID]
 
     return None
 
@@ -246,7 +252,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
     self._store.destroy()
     self._store = store.copy()
-    RT.register(self._store, __name__)
+    if __debug__: RT.register(self._store, __name__)
 
     self._destroy_menu()
     self._create_menu()
@@ -354,7 +360,7 @@ class AddTorrentExt(WidgetEncapsulator):
 
     def set_mapping(model, path, row):
 
-      id = model[row][TORRENT_ID]
+      id = model[row][self.TORRENT_ID]
       self._mappings[id] = label_id
 
 
