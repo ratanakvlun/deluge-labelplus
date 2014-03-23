@@ -56,14 +56,16 @@ from labelplus.common.literals import (
 )
 
 
-LABEL_ID = 0
-LABEL_DATA = 1
-
-
 log = logging.getLogger(__name__)
 
 
 class LabelStore(object):
+
+  # Section: Constants
+
+  LABEL_ID = 0
+  LABEL_DATA = 1
+
 
   # Section: Initialization
 
@@ -92,9 +94,9 @@ class LabelStore(object):
     return len(self._data)
 
 
-  def __getitem__(self, id):
+  def __getitem__(self, id_):
 
-    return self._data.get(id)
+    return self._data.get(id_)
 
 
   def __iter__(self):
@@ -102,9 +104,9 @@ class LabelStore(object):
     return iter(self._data)
 
 
-  def __contains__(self, id):
+  def __contains__(self, id_):
 
-    return id in self._data
+    return id_ in self._data
 
 
   def copy(self):
@@ -122,46 +124,46 @@ class LabelStore(object):
     self._build_descendent_data()
 
 
-  def get_model_iter(self, id):
+  def get_model_iter(self, id_):
 
-    if id in self._map and self.model:
-      return self.model.convert_child_iter_to_iter(None, self._map[id])
+    if id_ in self._map and self.model:
+      return self.model.convert_child_iter_to_iter(None, self._map[id_])
 
     return None
 
 
-  def get_model_path(self, id):
+  def get_model_path(self, id_):
 
-    iter = self.get_model_iter(id)
-    if iter:
-      return self.model.get_path(iter)
+    iter_ = self.get_model_iter(id_)
+    if iter_:
+      return self.model.get_path(iter_)
 
     return None
 
 
   # Section: Public: Label
 
-  def get_descendent_ids(self, id, max_depth=-1):
+  def get_descendent_ids(self, id_, max_depth=-1):
 
-    def add_descendents(iter, depth):
+    def add_descendents(iter_, depth):
 
       if max_depth != -1 and depth > max_depth:
         return
 
-      children = labelplus.gtkui.common.gtklib.treemodel_get_children(self.model,
-        iter)
+      children = labelplus.gtkui.common.gtklib.treemodel_get_children(
+        self.model, iter_)
 
       for child in children:
-        descendents.append(self.model[child][LABEL_ID])
+        descendents.append(self.model[child][self.LABEL_ID])
         add_descendents(child, depth+1)
 
 
     descendents = []
 
-    if id == ID_NULL or id in self._data:
+    if id_ == ID_NULL or id_ in self._data:
       if self.model:
-        iter = self.get_model_iter(id)
-        add_descendents(iter, 1)
+        iter_ = self.get_model_iter(id_)
+        add_descendents(iter_, 1)
 
     return descendents
 
@@ -170,16 +172,16 @@ class LabelStore(object):
 
     sum = 0
 
-    for id in ids:
-      if id in self._data:
-        sum += self._data[id]["count"]
+    for id_ in ids:
+      if id_ in self._data:
+        sum += self._data[id_]["count"]
 
     return sum
 
 
-  def is_user_label(self, id):
+  def is_user_label(self, id_):
 
-    if id and id not in RESERVED_IDS and id in self._data:
+    if id_ and id_ not in RESERVED_IDS and id_ in self._data:
       return True
 
     return False
@@ -190,8 +192,8 @@ class LabelStore(object):
     if not ids:
       return False
 
-    for id in ids:
-      if not self.is_user_label(id):
+    for id_ in ids:
+      if not self.is_user_label(id_):
         return False
 
     return True
@@ -204,28 +206,28 @@ class LabelStore(object):
     data[ID_ALL]["name"] = _(STR_ALL)
     data[ID_NONE]["name"] = _(STR_NONE)
 
-    for id in data:
+    for id_ in data:
       try:
-        data[id]["name"] = unicode(data[id]["name"], "utf8")
+        data[id_]["name"] = unicode(data[id_]["name"], "utf8")
       except (TypeError, UnicodeDecodeError):
         pass
 
 
   def _build_fullname_index(self, data):
 
-    def resolve_fullname(id):
+    def resolve_fullname(id_):
 
       parts = []
 
-      while id:
-        parts.append(data[id]["name"])
-        id = labelplus.common.label.get_parent_id(id)
+      while id_:
+        parts.append(data[id_]["name"])
+        id_ = labelplus.common.label.get_parent_id(id_)
 
       return "/".join(reversed(parts))
 
 
-    for id in data:
-      data[id]["fullname"] = resolve_fullname(id)
+    for id_ in data:
+      data[id_]["fullname"] = resolve_fullname(id_)
 
 
   def _build_store(self, data):
@@ -253,19 +255,19 @@ class LabelStore(object):
 
     if __debug__: RT.register(store, __name__)
 
-    for id in sorted(data):
-      if id in RESERVED_IDS:
+    for id_ in sorted(data):
+      if id_ in RESERVED_IDS:
         parent_id = ID_NULL
       else:
-        parent_id = labelplus.common.label.get_parent_id(id)
+        parent_id = labelplus.common.label.get_parent_id(id_)
 
       parent_iter = store_map.get(parent_id)
-      iter = store.append(parent_iter, [id, data[id]])
-      store_map[id] = iter
+      iter_ = store.append(parent_iter, [id_, data[id_]])
+      store_map[id_] = iter_
 
     sorted_model = gtk.TreeModelSort(store)
-    sorted_model.set_sort_func(LABEL_DATA, data_sort_asc)
-    sorted_model.set_sort_column_id(LABEL_DATA, gtk.SORT_ASCENDING)
+    sorted_model.set_sort_func(self.LABEL_DATA, data_sort_asc)
+    sorted_model.set_sort_column_id(self.LABEL_DATA, gtk.SORT_ASCENDING)
 
     if __debug__: RT.register(sorted_model, __name__)
 
@@ -277,12 +279,12 @@ class LabelStore(object):
 
   def _build_descendent_data(self):
 
-    for id in self._data:
-      self._data[id]["children"] = self.get_descendent_ids(id, 1)
-      self._data[id]["descendents"] = {}
+    for id_ in self._data:
+      self._data[id_]["children"] = self.get_descendent_ids(id_, 1)
+      self._data[id_]["descendents"] = {}
 
-      descendents = self.get_descendent_ids(id)
+      descendents = self.get_descendent_ids(id_)
 
-      self._data[id]["descendents"]["ids"] = descendents
-      self._data[id]["descendents"]["count"] = self.get_total_count(
+      self._data[id_]["descendents"]["ids"] = descendents
+      self._data[id_]["descendents"]["count"] = self.get_total_count(
         descendents)
