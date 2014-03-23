@@ -676,20 +676,20 @@ class SidebarExt(object):
 
   def _on_selection_changed(self, widget):
 
+    ids = []
+
     model, paths = widget.get_selected_rows()
     if paths:
-      ids = []
-
       for path in paths:
         id, data = model[path]
         ids.append(id)
 
       self._state["selected"] = ids
 
-      if self.is_active_page():
-        ext = self._plugin.get_extension("TorrentViewExt")
-        if ext and not ext.is_filter(ids):
-          ext.set_filter(ids)
+    if self.is_active_page():
+      ext = self._plugin.get_extension("TorrentViewExt")
+      if ext and not ext.is_filter(ids):
+        ext.set_filter(ids)
 
 
   # Section: Deluge Handlers
