@@ -215,7 +215,7 @@ class StatusBarExt(object):
 
       self._status_item.set_tooltip(tooltip)
 
-      deferred = client.labelplus.get_label_bandwidth_usages(ids)
+      deferred = client.labelplus.get_label_bandwidth_usages(list(set(ids)))
       labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
         process_result, process_result)
     else:
