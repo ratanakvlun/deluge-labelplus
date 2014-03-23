@@ -1461,10 +1461,16 @@ class Core(CorePluginBase):
 
     assert(label_id in self._labels)
 
+    changed = False
+
     for id in self._torrents:
       if apply_to_all or id not in self._mappings:
         if self._has_autolabel_match(id, label_id):
           self._set_torrent_label(id, label_id)
+          changed = True
+
+    if changed:
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   # Section: Torrent-Label: Move Completed
