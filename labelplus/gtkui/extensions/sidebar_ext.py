@@ -179,15 +179,12 @@ class SidebarExt(object):
     selection.unselect_all()
 
     if ids:
-      if ID_ALL in ids:
-        self._select_label(ID_ALL)
-      else:
-        path = self._scroll_to_nearest_id(ids)
-        if path:
-          self._tree.set_cursor(path)
+      path = self._scroll_to_nearest_id(ids)
+      if path:
+        self._tree.set_cursor(path)
 
-        for id in ids:
-          self._select_label(id)
+      for id in ids:
+        self._select_label(id)
 
     selection.handler_unblock_by_func(self._on_selection_changed)
 
