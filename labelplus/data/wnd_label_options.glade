@@ -1064,12 +1064,12 @@
                     <property name="spacing">5</property>
                     <property name="layout_style">end</property>
                     <child>
-                      <widget class="GtkButton" id="btn_apply">
-                        <property name="label" translatable="yes">Apply</property>
+                      <widget class="GtkButton" id="btn_close">
+                        <property name="label" translatable="yes">Close</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="do_submit"/>
+                        <signal name="clicked" handler="do_close"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -1078,12 +1078,12 @@
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkButton" id="btn_close">
-                        <property name="label" translatable="yes">Close</property>
+                      <widget class="GtkButton" id="btn_apply">
+                        <property name="label" translatable="yes">Apply</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="do_close"/>
+                        <signal name="clicked" handler="do_submit"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
