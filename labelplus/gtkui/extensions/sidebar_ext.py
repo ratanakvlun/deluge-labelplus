@@ -51,7 +51,9 @@ from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.gtklib import ImageMenuItem
 from labelplus.gtkui.common.widgets.name_input_dialog import AddLabelDialog
 from labelplus.gtkui.common.widgets.name_input_dialog import RenameLabelDialog
-from labelplus.gtkui.common.widgets.label_options_dialog import LabelOptionsDialog
+
+from labelplus.gtkui.common.widgets.label_options_dialog import (
+  LabelOptionsDialog)
 
 from labelplus.gtkui.common.gtklib.dnd import TreeViewDragDestProxy
 from labelplus.gtkui.common.gtklib.dnd import DragTarget
@@ -98,7 +100,7 @@ class SidebarExt(object):
 
     try:
       self._store = plugin.store.copy()
-      RT.register(self._store, __name__)
+      if __debug__: RT.register(self._store, __name__)
 
       self._create_label_tree()
       self._install_label_tree()
@@ -214,7 +216,7 @@ class SidebarExt(object):
 
     self._store.destroy()
     self._store = store.copy()
-    RT.register(self._store, __name__)
+    if __debug__: RT.register(self._store, __name__)
 
     value = self._tree.parent.get_vadjustment().get_value()
     gobject.idle_add(restore_adjustment, value)
@@ -348,9 +350,9 @@ class SidebarExt(object):
 
     self._tree = tree
 
-    RT.register(tree, __name__)
-    RT.register(column, __name__)
-    RT.register(renderer, __name__)
+    if __debug__: RT.register(tree, __name__)
+    if __debug__: RT.register(column, __name__)
+    if __debug__: RT.register(renderer, __name__)
 
 
   def _install_label_tree(self):
@@ -379,7 +381,7 @@ class SidebarExt(object):
 
       try:
         dialog = AddLabelDialog(self._plugin, ID_NULL)
-        RT.register(dialog, __name__)
+        if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
         pass
@@ -390,7 +392,7 @@ class SidebarExt(object):
       try:
         id = self._menu.get_title()
         dialog = AddLabelDialog(self._plugin, id)
-        RT.register(dialog, __name__)
+        if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
         pass
@@ -401,7 +403,7 @@ class SidebarExt(object):
       try:
         id = self._menu.get_title()
         dialog = RenameLabelDialog(self._plugin, id)
-        RT.register(dialog, __name__)
+        if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
         pass
@@ -418,7 +420,7 @@ class SidebarExt(object):
       try:
         id = self._menu.get_title()
         dialog = LabelOptionsDialog(self._plugin, id)
-        RT.register(dialog, __name__)
+        if __debug__: RT.register(dialog, __name__)
         dialog.show()
       except:
         pass
@@ -449,7 +451,7 @@ class SidebarExt(object):
 
     self._menu = menu
 
-    RT.register(self._menu, __name__)
+    if __debug__: RT.register(self._menu, __name__)
 
 
   def _destroy_menu(self):
@@ -562,9 +564,9 @@ class SidebarExt(object):
     self._dnd_dest_proxy.add_target(ids_target)
     self._dnd_dest_proxy.add_target(row_target)
 
-    RT.register(ids_target, __name__)
-    RT.register(row_target, __name__)
-    RT.register(self._dnd_dest_proxy, __name__)
+    if __debug__: RT.register(ids_target, __name__)
+    if __debug__: RT.register(row_target, __name__)
+    if __debug__: RT.register(self._dnd_dest_proxy, __name__)
 
 
   def _disable_dnd(self):
@@ -633,7 +635,7 @@ class SidebarExt(object):
       if self._store.is_user_label(id):
         try:
           dialog = LabelOptionsDialog(self._plugin, id)
-          RT.register(dialog, __name__)
+          if __debug__: RT.register(dialog, __name__)
           dialog.show()
         except:
           pass
