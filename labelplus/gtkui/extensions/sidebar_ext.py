@@ -278,6 +278,10 @@ class SidebarExt(object):
     paths = [y for y in (self._store.get_model_path(x) for x in ids) if y]
     path = self._get_nearest_path(paths)
     if path:
+      parent_path = path[:-1]
+      if parent_path:
+        self._tree.expand_to_path(parent_path)
+
       self._tree.scroll_to_cell(path)
       return path
 
