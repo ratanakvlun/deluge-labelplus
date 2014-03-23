@@ -172,6 +172,7 @@ class GtkUI(GtkPluginBase):
 
     for ext in EXTENSIONS:
       try:
+        log.debug("Initializing %s", ext.__name__)
         instance = ext(self)
         self._extensions.append(instance)
         if __debug__: RT.register(instance, ext.__name__)

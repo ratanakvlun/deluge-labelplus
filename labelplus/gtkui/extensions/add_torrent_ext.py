@@ -100,14 +100,19 @@ class AddTorrentExt(WidgetEncapsulator):
       self._store = plugin.store.copy()
       if __debug__: RT.register(self._store, __name__)
 
+      log.debug("Setting up widgets...")
       self._setup_widgets()
+
+      log.debug("Installing widgets...")
       self._install_widgets()
       self._register_handlers()
 
-      self._create_menu()
-
+      log.debug("Loading state...")
       self._display_torrent_label(None)
       self._update_sensitivity()
+
+      log.debug("Creating menu...")
+      self._create_menu()
 
       self._plugin.register_update_func(self.update_store)
     except:

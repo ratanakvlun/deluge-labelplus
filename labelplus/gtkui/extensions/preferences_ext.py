@@ -121,13 +121,16 @@ class PreferencesExt(WidgetEncapsulator):
     super(PreferencesExt, self).__init__(GLADE_FILE, ROOT_WIDGET, "_")
 
     try:
+      log.debug("Setting up widgets...")
       self._setup_widgets()
       self._index_widgets()
+
+      log.debug("Installing widgets...")
       self._install_widgets()
-
-      self._load_state()
-
       self._register_handlers()
+
+      log.debug("Loading state...")
+      self._load_state()
     except:
       self.unload()
       raise

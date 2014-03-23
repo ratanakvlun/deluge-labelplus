@@ -97,6 +97,7 @@ class StatusBarExt(object):
       self._store = plugin.store.copy()
       if __debug__: RT.register(self._store, __name__)
 
+      log.debug("Installing widgets...")
       self._install_status_item()
 
       self._plugin.register_update_func(self.update_store)

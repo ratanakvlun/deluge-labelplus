@@ -108,16 +108,15 @@ class TorrentViewExt(object):
       self._store = plugin.store.copy()
       if __debug__: RT.register(self._store, __name__)
 
+      log.debug("Installing widgets...")
       self._add_column()
-
-      self._create_menus()
-      self._install_context_menu()
-
+      self._register_handlers()
+      self._enable_dnd()
       self._install_view_tweaks()
 
-      self._register_handlers()
-
-      self._enable_dnd()
+      log.debug("Creating menu...")
+      self._create_menus()
+      self._install_context_menu()
 
       self._plugin.register_update_func(self.update_store)
     except:

@@ -102,19 +102,22 @@ class SidebarExt(object):
       self._store = plugin.store.copy()
       if __debug__: RT.register(self._store, __name__)
 
+      log.debug("Setting up widgets...")
       self._create_label_tree()
+
+      log.debug("Installing widgets...")
       self._install_label_tree()
-      self._load_state()
-
       self._register_handlers()
-
       self._enable_dnd()
 
+      log.debug("Loading state...")
+      self._load_state()
+      self._scroll_to_nearest_id(self._state["selected"])
+
+      log.debug("Creating menu...")
       self._create_menu()
 
       self._plugin.register_update_func(self.update_store)
-
-      self._scroll_to_nearest_id(self._state["selected"])
     except:
       self.unload()
       raise
