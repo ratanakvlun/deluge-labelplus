@@ -199,6 +199,11 @@ class StatusBarExt(object):
       ext = self._plugin.get_extension("TorrentViewExt")
       ids = ext.get_selected_torrent_labels() if ext else None
 
+    if ids:
+      for id in list(ids):
+        if id not in self._store:
+          ids.remove(id)
+
     if (ids and self._plugin.config["common"]["status_bar"] and
         ID_ALL not in ids):
       tooltip = "Bandwidth Used By: %s" % (self._store[ids[0]]["fullname"] if
