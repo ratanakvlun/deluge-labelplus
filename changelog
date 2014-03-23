@@ -8,6 +8,7 @@ Version 0.3.0.0
 - Label options added to torrent context menu
 - Revert label options by page
 
+- Dialogs are no longer modal
 - Popup file chooser replaced with browse dialog
 - Sidebar menu operates on right-clicked label without changing filter
 - Sidebar menu no longer contains "All" options
