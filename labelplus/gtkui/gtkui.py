@@ -198,7 +198,7 @@ class GtkUI(GtkPluginBase):
 
     self.initialized = False
 
-    RT.report()
+    if __debug__: RT.report()
 
     log.info("%s deinitialized", self.__class__.__name__)
 
