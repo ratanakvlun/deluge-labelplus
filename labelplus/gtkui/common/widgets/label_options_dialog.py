@@ -436,11 +436,12 @@ class LabelOptionsDialog(WidgetEncapsulator):
       handle_size = widget.allocation.height - \
         widget.get_property("max-position")
       max_dist = self._hb_test_criteria.allocation.height + handle_size*2
+      threshold = max_dist/2
 
-      if widget.allocation.height - widget.get_position() > max_dist:
+      if widget.allocation.height - widget.get_position() > threshold:
         twisted.internet.reactor.callLater(0.1, widget.set_position,
           widget.allocation.height - max_dist)
-      elif widget.allocation.height - widget.get_position() < max_dist:
+      else:
         twisted.internet.reactor.callLater(0.1, widget.set_position,
           widget.allocation.height)
 
