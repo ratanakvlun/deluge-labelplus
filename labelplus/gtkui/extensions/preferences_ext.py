@@ -57,7 +57,9 @@ from deluge.ui.client import client
 from labelplus.common import LabelPlusError
 from labelplus.gtkui.common.widgets.autolabel_box import AutolabelBox
 from labelplus.gtkui.common.gtklib.radio_button_group import RadioButtonGroup
-from labelplus.gtkui.common.gtklib.widget_encapsulator import WidgetEncapsulator
+
+from labelplus.gtkui.common.gtklib.widget_encapsulator import (
+  WidgetEncapsulator)
 
 
 from labelplus.common import (
@@ -164,7 +166,7 @@ class PreferencesExt(WidgetEncapsulator):
     rgrp.set_name("rgrp_move_completed_mode")
     self._rgrp_move_completed_mode = rgrp
 
-    RT.register(rgrp, __name__)
+    if __debug__: RT.register(rgrp, __name__)
 
 
   def _setup_autolabel_box(self):
@@ -178,7 +180,7 @@ class PreferencesExt(WidgetEncapsulator):
     self._blk_criteria_box.add(crbox)
     self._widgets.append(crbox)
 
-    RT.register(crbox, __name__)
+    if __debug__: RT.register(crbox, __name__)
 
 
   def _setup_test_combo_box(self):
@@ -186,7 +188,7 @@ class PreferencesExt(WidgetEncapsulator):
     prop_store = labelplus.gtkui.common.gtklib.liststore_create(str,
       [_(x) for x in labelplus.common.config.autolabel.PROPS])
 
-    RT.register(prop_store, __name__)
+    if __debug__: RT.register(prop_store, __name__)
 
     cell = gtk.CellRendererText()
     self._cmb_test_criteria.pack_start(cell)
@@ -194,7 +196,7 @@ class PreferencesExt(WidgetEncapsulator):
     self._cmb_test_criteria.set_model(prop_store)
     self._cmb_test_criteria.set_active(0)
 
-    RT.register(cell, __name__)
+    if __debug__: RT.register(cell, __name__)
 
 
   def _setup_criteria_area(self):
@@ -606,6 +608,7 @@ class PreferencesExt(WidgetEncapsulator):
         gtk.STOCK_OK, gtk.RESPONSE_OK,
       )
     )
+    if __debug__: RT.register(dialog, __name__)
 
     dialog.set_destroy_with_parent(True)
     dialog.connect("response", on_response)
@@ -617,11 +620,11 @@ class PreferencesExt(WidgetEncapsulator):
     dialog.set_filename(path)
     dialog.show_all()
 
-    location_toggle = labelplus.gtkui.common.gtklib.widget_get_descendents(dialog,
-      (gtk.ToggleButton,), 1)[0]
-    location_toggle.set_active(False)
-
-    RT.register(dialog, __name__)
+    widgets = labelplus.gtkui.common.gtklib.widget_get_descendents(dialog,
+      (gtk.ToggleButton,), 1)
+    if widgets:
+      location_toggle = widgets[0]
+      location_toggle.set_active(False)
 
 
   def _do_test_criteria(self, *args):
