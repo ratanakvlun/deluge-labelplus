@@ -386,7 +386,7 @@ class GtkUI(GtkPluginBase):
     self.last_updated = datetime.datetime.now()
     self.store.update(result)
 
-    for func in self._update_funcs:
+    for func in list(self._update_funcs):
       try:
         func(self.store)
       except:
