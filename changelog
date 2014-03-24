@@ -13,6 +13,7 @@ Version 0.3.0.0
 - Sidebar menu operates on right-clicked label without changing filter
 - Sidebar menu no longer contains "All" options
 - Status bar no longer opens label options
+- Dependency on MoveTools removed
 
 - Fix shared limit not updating when label added/removed
 
