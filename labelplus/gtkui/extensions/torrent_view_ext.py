@@ -112,7 +112,6 @@ class TorrentViewExt(object):
       self._add_column()
       self._register_handlers()
       self._enable_dnd()
-      self._install_view_tweaks()
 
       log.debug("Creating menu...")
       self._create_menus()
@@ -158,18 +157,6 @@ class TorrentViewExt(object):
     self._menubar.torrentmenu.append(self._menu)
 
     if __debug__: RT.register(self._sep, __name__)
-
-
-  def _install_view_tweaks(self):
-
-    def update_view(columns=None):
-
-      self._view._orig_update_view(columns)
-      gobject.idle_add(self._view.treeview.scroll_to_point, -1, 0)
-
-
-    self._view._orig_update_view = self._view.update_view
-    self._view.update_view = update_view
 
 
   def _register_handlers(self):
