@@ -1,3 +1,6 @@
+Version 0.3.0.1
+- Fix dialogs not closing when label is invalidated
+
 Version 0.3.0.0
 - Autolabel now uses criteria based matching
 - Test autolabel using a collapsible test area
