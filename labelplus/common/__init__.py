@@ -198,6 +198,9 @@ def normalize_dict(dict_in, template):
 
 def dict_equals(a, b):
 
+  if len(a) != len(b):
+    return False
+
   for key in a:
     if key not in b:
       return False
