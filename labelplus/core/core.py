@@ -334,7 +334,7 @@ class Core(CorePluginBase):
       deluge.component.get("FilterManager").deregister_filter(
         labelplus.common.STATUS_ID)
 
-    #self._rpc_deregister(labelplus.common.PLUGIN_NAME)
+    self._rpc_deregister(labelplus.common.PLUGIN_NAME)
 
     log.debug("%s deinitialized", self.__class__.__name__)
 
