@@ -1,3 +1,6 @@
+Version 0.3.0.3
+- Fix event deregister issue that conflicted with other plugins
+
 Version 0.3.0.2
 - Remove misbehaving scroll to top hack
 
