@@ -131,6 +131,8 @@ class PreferencesExt(WidgetEncapsulator):
 
       log.debug("Loading state...")
       self._load_state()
+
+      self._request_prefs()
     except:
       self.unload()
       raise
