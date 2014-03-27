@@ -126,9 +126,6 @@ class Core(CorePluginBase):
 
     log.debug("Resuming initialization...")
 
-    deluge.component.get("EventManager").deregister_event_handler(
-      "SessionStartedEvent", self._on_session_started)
-
     twisted.internet.reactor.callLater(0.1, self._initialize)
 
 
