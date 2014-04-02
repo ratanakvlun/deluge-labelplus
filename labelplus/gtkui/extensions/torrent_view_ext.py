@@ -86,8 +86,6 @@ class TorrentViewExt(object):
 
   def __init__(self, plugin):
 
-    labelplus.gtkui.common.gtklib.dnd.log.setLevel(logging.INFO)
-
     self._plugin = plugin
     self._view = deluge.component.get("TorrentView")
     self._menubar = deluge.component.get("MenuBar")

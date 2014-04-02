@@ -49,6 +49,7 @@ import labelplus.common.config
 import labelplus.common.label
 import labelplus.gtkui.config
 import labelplus.gtkui.config.convert
+import labelplus.gtkui.common.gtklib.dnd
 
 
 from twisted.python.failure import Failure
@@ -92,6 +93,7 @@ EXTENSIONS = (
 
 
 log = logging.getLogger(__name__)
+labelplus.gtkui.common.gtklib.dnd.log.setLevel(logging.INFO)
 
 
 class GtkUI(GtkPluginBase):

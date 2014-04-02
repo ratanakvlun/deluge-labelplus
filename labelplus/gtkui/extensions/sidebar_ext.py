@@ -82,8 +82,6 @@ class SidebarExt(object):
 
   def __init__(self, plugin):
 
-    labelplus.gtkui.common.gtklib.dnd.log.setLevel(logging.INFO)
-
     self._plugin = plugin
     self._filterview = deluge.component.get("FilterTreeView")
 
