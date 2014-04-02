@@ -55,6 +55,7 @@ from labelplus.gtkui.common.widgets.name_input_dialog import RenameLabelDialog
 from labelplus.gtkui.common.widgets.label_options_dialog import (
   LabelOptionsDialog)
 
+from labelplus.gtkui.common.gtklib.dnd import TreeViewDragSourceProxy
 from labelplus.gtkui.common.gtklib.dnd import TreeViewDragDestProxy
 from labelplus.gtkui.common.gtklib.dnd import DragTarget
 
@@ -92,6 +93,7 @@ class SidebarExt(object):
     self._tree = None
     self._menu = None
 
+    self._dnd_src_proxy = None
     self._dnd_dest_proxy = None
 
     self._handlers = []
@@ -331,7 +333,6 @@ class SidebarExt(object):
     tree.set_search_equal_func(search_func)
     tree.set_model(self._store.model)
     tree.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
-    tree.set_reorderable(True)
 
     tree.connect("button-press-event", self._on_button_pressed)
     tree.connect("row-collapsed", self._on_row_collapsed)
@@ -471,6 +472,25 @@ class SidebarExt(object):
 
   def _enable_dnd(self):
 
+    # Source Proxy
+
+    def load_row(widget, path, col, selection, *args):
+
+      model = widget.get_model()
+      iter_ = model.get_iter(path)
+      path_str = model.get_string_from_iter(iter_)
+      selection.set("TEXT", 8, path_str)
+
+      return True
+
+
+    def get_drag_icon(widget, x, y):
+
+      return (icon_single, 0, 0)
+
+
+    # Destination Proxy
+
     def check_dest_id(widget, path, col, pos, selection, *args):
 
       model = widget.get_model()
@@ -501,7 +521,12 @@ class SidebarExt(object):
 
       model = widget.get_model()
       id = model[path][LABEL_ID]
-      src_id = self.get_selected_labels()[0]
+
+      try:
+        src_path = selection.data
+        src_id = model[src_path][LABEL_ID]
+      except IndexError:
+        return False
 
       if (id == src_id or labelplus.common.label.is_ancestor(src_id, id) or
           not self._store.is_user_label(src_id)):
@@ -531,7 +556,8 @@ class SidebarExt(object):
       model = widget.get_model()
       dest_id = model[path][LABEL_ID]
 
-      src_id = self.get_selected_labels()[0]
+      src_path = selection.data
+      src_id = model[src_path][LABEL_ID]
       src_name = self._store[src_id]["name"]
 
       if dest_id != ID_NONE:
@@ -548,6 +574,21 @@ class SidebarExt(object):
       return False
 
 
+    icon_single = self._tree.render_icon(gtk.STOCK_DND, gtk.ICON_SIZE_DND)
+
+    src_target = DragTarget(
+      name="label_row",
+      scope=gtk.TARGET_SAME_APP,
+      action=gtk.gdk.ACTION_MOVE,
+      data_func=load_row,
+    )
+
+    self._dnd_src_proxy = TreeViewDragSourceProxy(self._tree, get_drag_icon)
+    self._dnd_src_proxy.add_target(src_target)
+
+    if __debug__: RT.register(src_target, __name__)
+    if __debug__: RT.register(self._dnd_src_proxy, __name__)
+
     ids_target = DragTarget(
       name="torrent_ids",
       scope=gtk.TARGET_SAME_APP,
@@ -558,7 +599,7 @@ class SidebarExt(object):
     )
 
     row_target = DragTarget(
-      name="GTK_TREE_MODEL_ROW",
+      name="label_row",
       scope=gtk.TARGET_SAME_APP,
       action=gtk.gdk.ACTION_MOVE,
       pos=gtk.TREE_VIEW_DROP_INTO_OR_BEFORE,
@@ -576,6 +617,10 @@ class SidebarExt(object):
 
 
   def _disable_dnd(self):
+
+    if self._dnd_src_proxy:
+      self._dnd_src_proxy.unload()
+      self._dnd_src_proxy = None
 
     if self._dnd_dest_proxy:
       self._dnd_dest_proxy.unload()
