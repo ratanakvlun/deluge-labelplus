@@ -482,8 +482,7 @@ class TreeViewDragDestProxy(object):
       if self.treeview.handler_is_connected(handler):
         self.treeview.disconnect(handler)
 
-    self._disable_autoscroll()
-    self._disable_autoexpand()
+    self._disable_auto()
 
     self.treeview.drag_dest_set_target_list(self._old_targets)
     self.treeview.unset_rows_drag_dest()
@@ -619,6 +618,18 @@ class TreeViewDragDestProxy(object):
     return True
 
 
+  def _enable_auto(self):
+
+    self._enable_autoscroll()
+    self._enable_autoexpand()
+
+
+  def _disable_auto(self):
+
+    self._disable_autoscroll()
+    self._disable_autoexpand()
+
+
   def _find_target(self, widget, context):
 
     src = context.get_source_widget()
@@ -657,8 +668,7 @@ class TreeViewDragDestProxy(object):
 
     log.debug("%s Do drag-motion at w(%d, %d)", self, x, y)
 
-    self._enable_autoscroll()
-    self._enable_autoexpand()
+    self._enable_auto()
 
     valid = False
 
@@ -700,7 +710,7 @@ class TreeViewDragDestProxy(object):
       log.debug("%s Drop zone: Invalid", self)
 
       context.drag_status(0, timestamp)
-      widget.do_drag_leave(widget, context, timestamp)
+      self._disable_auto()
 
     log.debug("%s Do drag-motion ended", self)
 
@@ -711,8 +721,7 @@ class TreeViewDragDestProxy(object):
 
     log.debug("%s Do drag-leave", self)
 
-    self._disable_autoscroll()
-    self._disable_autoexpand()
+    self._disable_auto()
 
     log.debug("%s Do drag-leave ended", self)
 
@@ -764,7 +773,7 @@ class TreeViewDragDestProxy(object):
         delete = result and context.action == gtk.gdk.ACTION_MOVE
 
         context.finish(result, delete, timestamp)
-        widget.do_drag_leave(widget, context, timestamp)
+        self._disable_auto()
 
         log.debug("%s Success: %s, Should delete: %s", self, result, delete)
 
@@ -780,7 +789,7 @@ class TreeViewDragDestProxy(object):
         log.debug("%s Drop zone: Invalid", self)
 
         context.drag_status(0, timestamp)
-        widget.do_drag_leave(widget, context, timestamp)
+        self._disable_auto()
 
       log.debug("%s Do drag-data-received ended", self)
 
@@ -824,7 +833,7 @@ class TreeViewDragDestProxy(object):
       log.debug("%s Do drag-drop failed", self)
 
       context.finish(False, False, timestamp)
-      widget.do_drag_leave(widget, context, timestamp)
+      self._disable_auto()
 
     log.debug("%s Do drag-drop ended", self)
 
