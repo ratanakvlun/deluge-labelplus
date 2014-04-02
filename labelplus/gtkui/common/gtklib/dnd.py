@@ -470,6 +470,7 @@ class TreeViewDragDestProxy(object):
       treeview.connect("drag-leave", self._do_drag_leave),
       treeview.connect("drag-data-received", self._do_drag_data_received),
       treeview.connect("drag-drop", self._do_drag_drop),
+      treeview.connect("drag-end", self._do_drag_end),
     ]
 
     log.debug("%s Created", self)
@@ -710,7 +711,6 @@ class TreeViewDragDestProxy(object):
       log.debug("%s Drop zone: Invalid", self)
 
       context.drag_status(0, timestamp)
-      self._disable_auto()
 
     log.debug("%s Do drag-motion ended", self)
 
@@ -771,9 +771,7 @@ class TreeViewDragDestProxy(object):
       if request_type == "get":
 
         delete = result and context.action == gtk.gdk.ACTION_MOVE
-
         context.finish(result, delete, timestamp)
-        self._disable_auto()
 
         log.debug("%s Success: %s, Should delete: %s", self, result, delete)
 
@@ -789,7 +787,6 @@ class TreeViewDragDestProxy(object):
         log.debug("%s Drop zone: Invalid", self)
 
         context.drag_status(0, timestamp)
-        self._disable_auto()
 
       log.debug("%s Do drag-data-received ended", self)
 
@@ -833,8 +830,16 @@ class TreeViewDragDestProxy(object):
       log.debug("%s Do drag-drop failed", self)
 
       context.finish(False, False, timestamp)
-      self._disable_auto()
 
     log.debug("%s Do drag-drop ended", self)
 
     return True
+
+
+  def _do_drag_end(self, widget, context):
+
+    log.info("%s Do drag-end", self)
+
+    self._disable_auto()
+
+    log.debug("%s Do drag-end ended", self)
