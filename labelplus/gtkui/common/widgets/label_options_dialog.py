@@ -269,10 +269,10 @@ class LabelOptionsDialog(WidgetEncapsulator):
     deferred = twisted.internet.defer.DeferredList(deferreds,
       consumeErrors=True)
 
+    self._wnd_label_options.set_sensitive(False)
+
     labelplus.common.deferred_timeout(deferred, self.REQUEST_TIMEOUT,
       on_timeout, process_result, None)
-
-    self._wnd_label_options.set_sensitive(False)
 
 
   def _save_options(self):
@@ -320,10 +320,10 @@ class LabelOptionsDialog(WidgetEncapsulator):
       deferred = client.labelplus.set_label_options(self._label_id, options,
         apply_to_all)
 
+      self._wnd_label_options.set_sensitive(False)
+
       labelplus.common.deferred_timeout(deferred, self.REQUEST_TIMEOUT,
         on_timeout, process_result, process_result, options)
-
-      self._wnd_label_options.set_sensitive(False)
     else:
       log.info("No options were changed")
 

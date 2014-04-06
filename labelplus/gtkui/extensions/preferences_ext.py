@@ -391,10 +391,10 @@ class PreferencesExt(WidgetEncapsulator):
 
     deferred = client.labelplus.get_preferences()
 
+    self._sw_settings.set_sensitive(False)
+
     labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
       process_result, process_result)
-
-    self._sw_settings.set_sensitive(False)
 
 
   def _save_prefs(self):
@@ -436,10 +436,10 @@ class PreferencesExt(WidgetEncapsulator):
     if not same:
       deferred = client.labelplus.set_preferences(prefs)
 
+      self._sw_settings.set_sensitive(False)
+
       labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
         process_result, process_result, prefs)
-
-      self._sw_settings.set_sensitive(False)
     else:
       log.debug("No options were changed")
 

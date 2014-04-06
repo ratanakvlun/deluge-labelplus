@@ -378,10 +378,10 @@ class NameInputDialog(WidgetEncapsulator):
       deferred = client.labelplus.move_label(self._label_id, self._parent_id,
         name)
 
+    self._wnd_name_input.set_sensitive(False)
+
     labelplus.common.deferred_timeout(deferred, self.REQUEST_TIMEOUT,
       on_timeout, process_result, process_result)
-
-    self._wnd_name_input.set_sensitive(False)
 
 
   def _do_open_select_menu(self, *args):
