@@ -1,3 +1,7 @@
+Version 0.3.0.7
+- Fix timestamp issue that caused label data to be constantly reloaded
+- Fix removal of unlabeled torrent not being reflected in label tree
+
 Version 0.3.0.6
 - Fix UI not being enabled in classic mode
 
