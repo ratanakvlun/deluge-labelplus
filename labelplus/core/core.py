@@ -671,7 +671,7 @@ class Core(CorePluginBase):
       self._remove_torrent_label(torrent_id)
       log.debug("Removing torrent %r from label %r", torrent_id, label_id)
 
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
+    self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   @check_init
