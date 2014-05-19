@@ -59,6 +59,7 @@ import labelplus.core.config.convert
 
 from deluge.plugins.pluginbase import CorePluginBase
 
+from labelplus.common import LabelUpdate
 from labelplus.common import LabelPlusError
 
 
@@ -461,6 +462,7 @@ class Core(CorePluginBase):
     return usages
 
 
+  # Deprecated
   @deluge.core.rpcserver.export
   @check_init
   def get_labels_data(self, timestamp=None):
@@ -475,6 +477,26 @@ class Core(CorePluginBase):
 
     if t <= last_changed:
       return self._get_labels_data()
+    else:
+      return None
+
+
+  @deluge.core.rpcserver.export
+  @check_init
+  def get_label_updates(self, since=None):
+
+    if since:
+      t = cPickle.loads(since)
+    else:
+      t = labelplus.common.DATETIME_010101
+
+    last_changed = max(self._timestamp["labels_changed"],
+      self._timestamp["mappings_changed"])
+
+    if t <= last_changed:
+      u = LabelUpdate(LabelUpdate.TYPE_FULL, datetime.datetime.now(),
+        self._get_labels_data())
+      return cPickle.dumps(u)
     else:
       return None
 
