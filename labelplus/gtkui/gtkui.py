@@ -139,7 +139,7 @@ class GtkUI(GtkPluginBase):
     log.debug("Waiting for core to be initialized...")
 
     if result == True:
-      client.labelplus.get_labels_data().addCallback(self._finish_init)
+      client.labelplus.get_label_updates().addCallback(self._finish_init)
     else:
       twisted.internet.reactor.callLater(INIT_POLLING_INTERVAL,
         self._poll_init)
@@ -375,7 +375,7 @@ class GtkUI(GtkPluginBase):
 
     if self.initialized:
       pickled_time = cPickle.dumps(self.last_updated)
-      deferred = client.labelplus.get_labels_data(pickled_time)
+      deferred = client.labelplus.get_label_updates(pickled_time)
       labelplus.common.deferred_timeout(deferred, REQUEST_TIMEOUT, on_timeout,
         process_result, process_result)
 
@@ -385,8 +385,13 @@ class GtkUI(GtkPluginBase):
     if not result:
       return
 
-    self.last_updated = datetime.datetime.now()
-    self.store.update(result)
+    update = cPickle.loads(result)
+
+    log.debug("Update: Type: %s, Timestamp: %s", update.type,
+      update.timestamp)
+
+    self.last_updated = update.timestamp
+    self.store.update(update.data)
 
     for func in list(self._update_funcs):
       try:
