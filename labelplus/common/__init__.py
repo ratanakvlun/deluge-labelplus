@@ -64,6 +64,18 @@ def get_resource(filename):
       MODULE_NAME, os.path.join("data", filename))
 
 
+class LabelUpdate(object):
+
+  TYPE_FULL = "Full"
+
+
+  def __init__(self, type_, timestamp, data):
+
+    self.type = type_
+    self.timestamp = timestamp
+    self.data = data
+
+
 # Section: Error
 
 class LabelPlusError(Exception):
