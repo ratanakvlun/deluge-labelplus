@@ -1,3 +1,6 @@
+Version 0.3.1.0
+- Add label assignment functionality to torrent context menu in WebUI
+
 Version 0.3.0.7
 - Fix timestamp issue that caused label data to be constantly reloaded
 - Fix removal of unlabeled torrent not being reflected in label tree
