@@ -501,6 +501,32 @@ class Core(CorePluginBase):
       return None
 
 
+  # New get_label_updates candidate, use dict instead of LabelUpdate class
+  @deluge.core.rpcserver.export
+  @check_init
+  def get_label_updates_dict(self, since=None):
+
+    if since:
+      t = cPickle.loads(since)
+    else:
+      t = labelplus.common.DATETIME_010101
+
+    last_changed = max(self._timestamp["labels_changed"],
+      self._timestamp["mappings_changed"])
+
+    if t <= last_changed:
+      u = LabelUpdate(LabelUpdate.TYPE_FULL, datetime.datetime.now(),
+        self._get_labels_data())
+
+      return {
+        "type": u.type,
+        "timestamp": cPickle.dumps(u.timestamp),
+        "data": u.data
+      }
+    else:
+      return None
+
+
   # Section: Public API: Label: Modifiers
 
   @deluge.core.rpcserver.export
