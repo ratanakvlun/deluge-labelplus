@@ -87,9 +87,7 @@ Deluge.plugins.labelplus.Plugin = Ext.extend(Deluge.Plugin, {
       }
     );
 
-    console.log('%s enabled', Deluge.plugins.labelplus.PLUGIN_NAME);
-
-    this._pollInit();
+    this.waitForClient(10);
   },
 
   onDisable: function() {
@@ -101,6 +99,23 @@ Deluge.plugins.labelplus.Plugin = Ext.extend(Deluge.Plugin, {
     this.deregisterTorrentStatus(Deluge.plugins.labelplus.STATUS_NAME);
 
     console.log('%s disabled', Deluge.plugins.labelplus.PLUGIN_NAME);
+  },
+
+  waitForClient: function(triesLeft) {
+    if (triesLeft < 1) {
+      console.log('%s RPC configuration timed out',
+        Deluge.plugins.labelplus.PLUGIN_NAME);
+      return;
+    }
+
+    if (deluge.login.isVisible() || !deluge.client.core ||
+        !deluge.client.labelplus) {
+      var self = this;
+      var t = deluge.login.isVisible() ? triesLeft : triesLeft-1;
+      setTimeout(function() { self.waitForClient.apply(self, [t]); }, 1000);
+    } else {
+      this._pollInit();
+    }
   },
 
   _pollInit: function() {
@@ -132,6 +147,8 @@ Deluge.plugins.labelplus.Plugin = Ext.extend(Deluge.Plugin, {
     if (result) {
       this._doUpdate(result);
       this._updateLoop();
+
+      console.log('%s enabled', Deluge.plugins.labelplus.PLUGIN_NAME);
     }
   },
 
