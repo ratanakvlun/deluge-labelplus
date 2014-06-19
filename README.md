@@ -7,7 +7,7 @@ based on Label 0.2 by Martijn Voncken, but adds much more functionality.
 
 This is mainly a GtkUI plugin. It adds a status column, a torrent
 submenu, a sidebar tree, and a status bar area. WebUI support is minimal
-with only a status column added.
+with only a status column and label assignment context menu.
 
 Features
 --------
