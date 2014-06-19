@@ -1,5 +1,6 @@
 Version 0.3.1.0
 - Add label assignment functionality to torrent context menu in WebUI
+- Fix move on path changes not being activated for labels with no children
 
 Version 0.3.0.7
 - Fix timestamp issue that caused label data to be constantly reloaded
