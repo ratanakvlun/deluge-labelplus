@@ -682,7 +682,7 @@ class Core(CorePluginBase):
   def on_torrent_added(self, torrent_id):
 
     label_id = self._find_autolabel_match(torrent_id)
-    if label_id:
+    if label_id and label_id != labelplus.common.label.ID_NONE:
       self._set_torrent_label(torrent_id, label_id)
       log.debug("Setting torrent %r to label %r", torrent_id, label_id)
 
