@@ -39,11 +39,13 @@ import re
 
 PROP_NAME = "Name"
 PROP_TRACKER = "Tracker"
+PROP_FILES = "Any file"
 PROP_LABEL = "Label"
 
 PROPS = (
   PROP_NAME,
   PROP_TRACKER,
+  PROP_FILES,
   PROP_LABEL
 )
 
