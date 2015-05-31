@@ -681,12 +681,8 @@ class Core(CorePluginBase):
   @check_init
   def on_torrent_added(self, torrent_id):
 
-    label_id = self._find_autolabel_match(torrent_id)
-    if label_id and label_id != labelplus.common.label.ID_NONE:
-      self._set_torrent_label(torrent_id, label_id)
-      log.debug("Setting torrent %r to label %r", torrent_id, label_id)
-
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
+    self._do_autolabel_torrent(torrent_id)
+    self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   @check_init
@@ -1505,6 +1501,18 @@ class Core(CorePluginBase):
           return id
 
     return labelplus.common.label.ID_NONE
+
+
+  def _do_autolabel_torrent(self, torrent_id):
+
+    assert(torrent_id in self._torrents)
+
+    label_id = self._find_autolabel_match(torrent_id)
+    if label_id != self._get_torrent_label_id(torrent_id):
+      self._set_torrent_label(torrent_id, label_id)
+      log.debug("Setting torrent %r to label %r", torrent_id, label_id)
+
+      self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   def _do_autolabel_torrents(self, label_id, apply_to_all=False):
