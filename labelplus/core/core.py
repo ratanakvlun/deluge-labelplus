@@ -1505,6 +1505,7 @@ class Core(CorePluginBase):
     props = {
       labelplus.common.config.autolabel.PROP_NAME: [name],
       labelplus.common.config.autolabel.PROP_TRACKER: trackers,
+      labelplus.common.config.autolabel.PROP_LABEL: [],
     }
 
     pm = deluge.component.get("CorePluginManager")
