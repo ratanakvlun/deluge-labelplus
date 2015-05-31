@@ -1473,7 +1473,9 @@ class Core(CorePluginBase):
     rules = options["autolabel_rules"]
     match_all = options["autolabel_match_all"]
 
-    status = self._torrents[torrent_id].get_status(["name", "trackers"])
+    status = deluge.component.get("Core").get_torrent_status(torrent_id,
+      ["name", "trackers", "label"])
+
     name = status["name"]
     trackers = [x["url"] for x in status["trackers"]]
 
@@ -1481,6 +1483,11 @@ class Core(CorePluginBase):
       labelplus.common.config.autolabel.PROP_NAME: [name],
       labelplus.common.config.autolabel.PROP_TRACKER: trackers,
     }
+
+    pm = deluge.component.get("CorePluginManager")
+    if "Label" in pm.get_enabled_plugins():
+      label = status.get("label")
+      props[labelplus.common.config.autolabel.PROP_LABEL] = [label]
 
     return labelplus.common.config.autolabel.find_match(props,
       rules, match_all)

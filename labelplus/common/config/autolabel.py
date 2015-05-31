@@ -39,10 +39,12 @@ import re
 
 PROP_NAME = "Name"
 PROP_TRACKER = "Tracker"
+PROP_LABEL = "Label"
 
 PROPS = (
   PROP_NAME,
   PROP_TRACKER,
+  PROP_LABEL
 )
 
 OP_CONTAINS = "contains"
