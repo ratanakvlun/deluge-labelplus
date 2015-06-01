@@ -169,3 +169,5 @@ def init_config(config, defaults, version, specs):
   for key in config.config.keys():
     if key not in defaults:
       del config.config[key]
+
+  return file_ver
