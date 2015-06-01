@@ -1133,15 +1133,24 @@ class Core(CorePluginBase):
 
     options["move_completed_path"] = \
       options["move_completed_path"].strip()
-
     if not options["move_completed_path"]:
       options["move_completed_mode"] = \
         labelplus.common.config.MOVE_FOLDER
       options["move_completed_path"] = self._get_deluge_move_path()
-
     if (options["move_completed_mode"] not in
         labelplus.common.config.MOVE_MODES):
       options["move_completed_mode"] = \
+        labelplus.common.config.MOVE_FOLDER
+
+    options["download_location_path"] = \
+      options["download_location_path"].strip()
+    if not options["download_location_path"]:
+      options["download_location_mode"] = \
+        labelplus.common.config.MOVE_FOLDER
+      options["download_location_path"] = self._get_deluge_save_path()
+    if (options["download_location_mode"] not in
+        labelplus.common.config.MOVE_MODES):
+      options["download_location_mode"] = \
         labelplus.common.config.MOVE_FOLDER
 
     options["max_connections"] = int(options["max_connections"])
