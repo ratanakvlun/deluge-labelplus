@@ -469,6 +469,7 @@ class Core(CorePluginBase):
 
   # Section: Public API: Label: Queries
 
+  # Deprecated
   @deluge.core.rpcserver.export
   @check_init
   def get_move_path_options(self, label_id):
@@ -476,12 +477,32 @@ class Core(CorePluginBase):
     if label_id not in self._labels:
       raise LabelPlusError(ERR_INVALID_LABEL)
 
-    parent_path = self._get_parent_move_path(label_id)
+    parent_path = self._get_parent_path(label_id,
+      labelplus.common.config.PATH_MOVE_COMPLETED)
 
     options = {
       "parent": parent_path,
       "subfolder": os.path.join(parent_path, self._labels[label_id]["name"]),
     }
+
+    return options
+
+
+  @deluge.core.rpcserver.export
+  @check_init
+  def get_path_options(self, label_id):
+
+    if label_id not in self._labels:
+      raise LabelPlusError(ERR_INVALID_LABEL)
+
+    options = {}
+
+    for path_type in labelplus.common.config.PATH_TYPES:
+      parent_path = self._get_parent_path(label_id, path_type)
+      options[path_type] = {
+        "parent": parent_path,
+        "subfolder": os.path.join(parent_path, self._labels[label_id]["name"]),
+      }
 
     return options
 
