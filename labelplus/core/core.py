@@ -1024,7 +1024,7 @@ class Core(CorePluginBase):
     }
 
     self._labels[id]["options"]["move_completed_path"] = \
-      self._resolve_move_path(id)
+      self._resolve_path(id, labelplus.common.config.PATH_MOVE_COMPLETED)
 
     if self._labels[id]["options"]["shared_limit"]:
       self._shared_limit_index.append(id)
@@ -1693,7 +1693,8 @@ class Core(CorePluginBase):
 
     options = self._labels[label_id]["options"]
 
-    path = self._resolve_move_path(label_id)
+    path = self._resolve_path(label_id,
+      labelplus.common.config.PATH_MOVE_COMPLETED)
     if path == options["move_completed_path"]:
       return
 
