@@ -71,6 +71,7 @@ from labelplus.common.label import ID_NULL, RESERVED_IDS
 from labelplus.common.config.autolabel import PROPS
 
 from labelplus.common.config import (
+  PATH_MOVE_COMPLETED,
   MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
   LABEL_DEFAULTS,
 )
@@ -241,7 +242,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
             return
 
         self._label_defaults = result[0][1]
-        self._move_path_options = result[1][1]
+        self._move_path_options = result[1][1][PATH_MOVE_COMPLETED]
         self._label_options = result[2][1]
 
         self._load_options(self._label_options)
@@ -263,7 +264,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
     deferreds = []
     deferreds.append(client.labelplus.get_label_defaults())
-    deferreds.append(client.labelplus.get_move_path_options(label_id))
+    deferreds.append(client.labelplus.get_path_options(label_id))
     deferreds.append(client.labelplus.get_label_options(label_id))
 
     deferred = twisted.internet.defer.DeferredList(deferreds,
