@@ -126,6 +126,13 @@ CONFIG_DEFAULTS_V2 = {
   "mappings": {}, # "torrent_id": "label_id"
 }
 
+LABEL_DEFAULTS_V3 = {
+  "download_location": False,
+  "download_location_path": "",
+  "download_location_mode": MOVE_FOLDER,
+}
+LABEL_DEFAULTS_V3.update(LABEL_DEFAULTS_V2)
+
 CONFIG_VERSION = 2
 CONFIG_DEFAULTS = CONFIG_DEFAULTS_V2
 OPTION_DEFAULTS = OPTION_DEFAULTS_V2
