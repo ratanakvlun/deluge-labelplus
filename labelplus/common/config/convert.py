@@ -45,10 +45,10 @@ import labelplus.common
 #   "version_in": version of input config data,
 #   "version_out": version of output config data,
 #   "defaults": dict of defaults for the target output version,
-#   "strict": whether or not invalid paths cause exceptions
-#   "deepcopy": whether or not to deepcopy when copying values
-#   "pre_func": called before mapping, pre_func(spec, dict),
-#   "post_func": called after mapping, post_func(spec, dict),
+#   "strict": whether or not invalid paths cause exceptions,
+#   "deepcopy": whether or not to deepcopy when copying values,
+#   "pre_func": called before mapping, void pre_func(spec, dict),
+#   "post_func": called after mapping, void post_func(spec, dict),
 #   "map": {
 #     "path/variable": "path/variable",
 #   },
@@ -76,7 +76,7 @@ def process_spec(spec, dict_in):
   # Pre function meant for mapping preparations
   pre_func = spec.get("pre_func")
   if pre_func:
-    dict_in = pre_func(spec, dict_in)
+    pre_func(spec, dict_in)
 
   # Mapping meant for excluding unused keys or remapping keys
   working_dict = {}
@@ -93,7 +93,7 @@ def process_spec(spec, dict_in):
     # Post function meant for altering values
     post_func = spec.get("post_func")
     if post_func:
-      working_dict = post_func(spec, working_dict)
+      post_func(spec, working_dict)
 
   # Make sure any missing keys are in the final dict
   dict_out = copy.deepcopy(spec["defaults"])
