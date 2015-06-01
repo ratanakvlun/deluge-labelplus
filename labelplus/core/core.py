@@ -1048,7 +1048,8 @@ class Core(CorePluginBase):
     self._labels[label_id]["name"] = label_name
 
     self._build_fullname_index(label_id)
-    self._update_move_completed_paths(label_id)
+    self._update_paths(label_id, labelplus.common.config.PATH_MOVE_COMPLETED)
+    self._apply_move_completed_paths(label_id, True)
 
     if self._prefs["options"]["move_on_changes"]:
       self._do_move_completed_by_label(label_id, True)
@@ -1104,7 +1105,8 @@ class Core(CorePluginBase):
     id = reparent(label_id, dest_id)
 
     self._labels[id]["name"] = dest_name
-    self._update_move_completed_paths(id)
+    self._update_paths(id, labelplus.common.config.PATH_MOVE_COMPLETED)
+    self._apply_move_completed_paths(id, True)
 
     if self._prefs["options"]["move_on_changes"]:
       self._do_move_completed_by_label(id, sublabels=True)
@@ -1225,7 +1227,8 @@ class Core(CorePluginBase):
     if options["move_completed_path"] != old["move_completed_path"]:
     # Path was modified; make sure descendent paths are updated
       for id in self._index[label_id]["children"]:
-        self._update_move_completed_paths(id)
+        self._update_paths(id, labelplus.common.config.PATH_MOVE_COMPLETED)
+        self._apply_move_completed_paths(id, True)
 
         if self._prefs["options"]["move_on_changes"]:
           self._do_move_completed_by_label(id, True)
