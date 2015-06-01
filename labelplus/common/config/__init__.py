@@ -37,6 +37,10 @@
 import copy
 
 
+PATH_DOWNLOAD_LOCATION = "download_location"
+PATH_MOVE_COMPLETED = "move_completed"
+PATH_TYPES = (PATH_DOWNLOAD_LOCATION, PATH_MOVE_COMPLETED)
+
 MOVE_PARENT = "parent"
 MOVE_SUBFOLDER = "subfolder"
 MOVE_FOLDER = "folder"
