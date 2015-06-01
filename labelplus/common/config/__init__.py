@@ -133,10 +133,19 @@ LABEL_DEFAULTS_V3 = {
 }
 LABEL_DEFAULTS_V3.update(LABEL_DEFAULTS_V2)
 
-CONFIG_VERSION = 2
-CONFIG_DEFAULTS = CONFIG_DEFAULTS_V2
+CONFIG_DEFAULTS_V3 = {
+  "prefs": {
+    "options": OPTION_DEFAULTS_V2,
+    "label": LABEL_DEFAULTS_V3,
+  },
+  "labels": {},   # "label_id": {"name": str, "data": dict}
+  "mappings": {}, # "torrent_id": "label_id"
+}
+
+CONFIG_VERSION = 3
 OPTION_DEFAULTS = OPTION_DEFAULTS_V2
-LABEL_DEFAULTS = LABEL_DEFAULTS_V2
+LABEL_DEFAULTS = LABEL_DEFAULTS_V3
+CONFIG_DEFAULTS = CONFIG_DEFAULTS_V3
 
 
 def get_version(config):
