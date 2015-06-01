@@ -1640,6 +1640,23 @@ class Core(CorePluginBase):
 
   # Section: Torrent-Label: Move Completed
 
+  def _apply_move_completed_paths(self, label_id, sublabels=False):
+    # Apply move completed options to torrents under given label
+
+    assert(label_id in self._labels)
+
+    options = self._labels[label_id]["options"]
+
+    if options["download_settings"] and options["move_completed"]:
+      for id in self._index[label_id]["torrents"]:
+        self._torrents[id].set_move_completed_path(
+          self._labels[label_id]["options"]["move_completed_path"])
+
+    if sublabels:
+      for id in self._index[label_id]["children"]:
+        self._apply_move_completed_paths(id, sublabels)
+
+
   def _apply_move_completed_path(self, label_id):
 
     assert(label_id in self._labels)
