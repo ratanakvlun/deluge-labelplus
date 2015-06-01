@@ -73,23 +73,27 @@ def convert(spec, config):
 
 def process_spec(spec, dict_in):
 
-  working_dict = {}
-
   # Pre function meant for mapping preparations
   pre_func = spec.get("pre_func")
   if pre_func:
     dict_in = pre_func(spec, dict_in)
 
-  # Mapping meant for excluding unused keys or rearranging keys
-  for src, dest in sorted(spec["map"].items(), key=lambda x: x[1].count("/")):
-    mapped = labelplus.common.get_path_mapped_dict(dict_in, src, dest,
-      spec["deepcopy"], spec["strict"])
-    labelplus.common.update_dict(working_dict, mapped)
+  # Mapping meant for excluding unused keys or remapping keys
+  working_dict = {}
+  if spec.get("map"):
+    if spec["map"]["*"] == "*":
+      working_dict = dict_in
+    else:
+      for src, dest in sorted(spec["map"].items(),
+          key=lambda x: x[1].count("/")):
+        mapped = labelplus.common.get_path_mapped_dict(dict_in, src, dest,
+          spec["deepcopy"], spec["strict"])
+        labelplus.common.update_dict(working_dict, mapped)
 
-  # Post function meant for altering values
-  post_func = spec.get("post_func")
-  if post_func:
-    working_dict = post_func(spec, working_dict)
+    # Post function meant for altering values
+    post_func = spec.get("post_func")
+    if post_func:
+      working_dict = post_func(spec, working_dict)
 
   # Make sure any missing keys are in the final dict
   dict_out = copy.deepcopy(spec["defaults"])
