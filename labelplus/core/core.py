@@ -141,7 +141,13 @@ class Core(CorePluginBase):
     self._orig_set_torrent = None
 
     self._core = deluge.configmanager.ConfigManager(DELUGE_CORE_CONFIG)
-    self._config = self._load_config()
+
+    try:
+      self._config = self._load_config()
+    except ValueError as e:
+      log.debug("Initialization failed: %s", e.message)
+      deluge.component.get("CorePluginManager").disable_plugin("LabelPlus")
+      return
 
     self._prefs = self._config["prefs"]
     self._labels = self._config["labels"]
