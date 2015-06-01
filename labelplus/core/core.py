@@ -134,9 +134,11 @@ class Core(CorePluginBase):
 
     def hook_set_torrent(torrent_id, label_id):
 
-      self.orig_set_torrent(torrent_id, label_id)
+      self._orig_set_torrent(torrent_id, label_id)
       self._do_autolabel_torrent(torrent_id)
 
+
+    self._orig_set_torrent = None
 
     self._core = deluge.configmanager.ConfigManager(DELUGE_CORE_CONFIG)
     self._config = self._load_config()
@@ -182,15 +184,13 @@ class Core(CorePluginBase):
     deluge.component.get("AlertManager").register_handler(
       "torrent_finished_alert", self.on_torrent_finished)
 
-    self.orig_set_torrent = None
-
     try:
       rs = deluge.component.get("RPCServer")
-      self.orig_set_torrent = rs.factory.methods["label.set_torrent"]
+      self._orig_set_torrent = rs.factory.methods["label.set_torrent"]
 
-      hook_set_torrent._rpcserver_export = self.orig_set_torrent._rpcserver_export
-      hook_set_torrent._rpcserver_auth_level = self.orig_set_torrent._rpcserver_auth_level
-      hook_set_torrent.__doc__ = self.orig_set_torrent.__doc__
+      hook_set_torrent._rpcserver_export = self._orig_set_torrent._rpcserver_export
+      hook_set_torrent._rpcserver_auth_level = self._orig_set_torrent._rpcserver_auth_level
+      hook_set_torrent.__doc__ = self._orig_set_torrent.__doc__
 
       rs.factory.methods["label.set_torrent"] = hook_set_torrent
       log.debug("Hooked into label.set_torrent")
@@ -336,10 +336,10 @@ class Core(CorePluginBase):
     self._initialized = False
 
     rs = deluge.component.get("RPCServer")
-    if self.orig_set_torrent and "label.set_torrent" in rs.factory.methods:
-      rs.factory.methods["label.set_torrent"] = self.orig_set_torrent
+    if self._orig_set_torrent and "label.set_torrent" in rs.factory.methods:
+      rs.factory.methods["label.set_torrent"] = self._orig_set_torrent
       log.debug("Unhooked label.set_torrent")
-    self.orig_set_torrent = None
+    self._orig_set_torrent = None
 
     deluge.component.get("EventManager").deregister_event_handler(
       "TorrentAddedEvent", self.on_torrent_added)
