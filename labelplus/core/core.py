@@ -209,10 +209,14 @@ class Core(CorePluginBase):
 
     config = deluge.configmanager.ConfigManager(CORE_CONFIG)
 
-    labelplus.common.config.init_config(config,
+    old_ver = labelplus.common.config.init_config(config,
       labelplus.common.config.CONFIG_DEFAULTS,
       labelplus.common.config.CONFIG_VERSION,
       labelplus.core.config.convert.CONFIG_SPECS)
+
+    if old_ver != labelplus.common.config.CONFIG_VERSION:
+      log.debug("Config file converted: v%s -> v%s",
+        old_ver, labelplus.common.config.CONFIG_VERSION)
 
     labelplus.core.config.remove_invalid_keys(config.config)
 
