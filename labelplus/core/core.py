@@ -1218,6 +1218,64 @@ class Core(CorePluginBase):
       self._do_autolabel_torrents(label_id, apply_to_all)
 
 
+  # Section: Label: Options: Paths
+
+  def _get_parent_path(self, label_id, path_type):
+    # Get label's parent path of the given type
+
+    assert(label_id in self._labels)
+    assert(path_type in labelplus.common.config.PATH_TYPES)
+
+    parent_id = labelplus.common.label.get_parent_id(label_id)
+    if parent_id in self._labels:
+      path = self._labels[parent_id]["options"]["%s_path" % path_type]
+    elif path_type == labelplus.common.config.PATH_MOVE_COMPLETED:
+      path = self._get_deluge_move_path()
+    else:
+      path = self._get_deluge_save_path()
+
+    return path
+
+
+  def _resolve_path(self, label_id, path_type):
+    # Resolve full path while accounting for relativity
+
+    assert(label_id in self._labels)
+    assert(path_type in labelplus.common.config.PATH_TYPES)
+
+    name = self._labels[label_id]["name"]
+    options = self._labels[label_id]["options"]
+
+    path = options["%s_path" % path_type]
+    mode = options["%s_mode" % path_type]
+
+    if mode != labelplus.common.config.MOVE_FOLDER:
+      path = self._get_parent_path(label_id, path_type)
+
+      if mode == labelplus.common.config.MOVE_SUBFOLDER:
+        path = os.path.join(path, name)
+
+    return path
+
+
+  def _update_paths(self, label_id, path_type):
+    # Ensure relative paths in label options are consistent
+
+    assert(label_id in self._labels)
+    assert(path_type in labelplus.common.config.PATH_TYPES)
+
+    options = self._labels[label_id]["options"]
+    path = self._resolve_path(label_id, path_type)
+
+    if path == options["%s_path" % path_type]:
+      return
+
+    options["%s_path" % path_type] = path
+
+    for id in self._index[label_id]["children"]:
+      self._update_paths(id, path_type)
+
+
   # Section: Label: Full Name
 
   def _resolve_fullname(self, label_id):
