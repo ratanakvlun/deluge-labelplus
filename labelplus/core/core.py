@@ -902,38 +902,6 @@ class Core(CorePluginBase):
     return descendents
 
 
-  def _get_parent_move_path(self, label_id):
-
-    assert(label_id in self._labels)
-
-    parent_id = labelplus.common.label.get_parent_id(label_id)
-    if parent_id in self._labels:
-      path = self._labels[parent_id]["options"]["move_completed_path"]
-    else:
-      path = self._get_deluge_move_path()
-
-    return path
-
-
-  def _resolve_move_path(self, label_id):
-
-    assert(label_id in self._labels)
-
-    name = self._labels[label_id]["name"]
-    options = self._labels[label_id]["options"]
-
-    mode = options["move_completed_mode"]
-    path = options["move_completed_path"]
-
-    if mode != labelplus.common.config.MOVE_FOLDER:
-      path = self._get_parent_move_path(label_id)
-
-      if mode == labelplus.common.config.MOVE_SUBFOLDER:
-        path = os.path.join(path, name)
-
-    return path
-
-
   def _get_label_bandwidth_usage(self, label_id):
 
     assert(label_id == labelplus.common.label.ID_NONE or
@@ -1679,35 +1647,6 @@ class Core(CorePluginBase):
     if sublabels:
       for id in self._index[label_id]["children"]:
         self._apply_move_completed_paths(id, sublabels)
-
-
-  def _apply_move_completed_path(self, label_id):
-
-    assert(label_id in self._labels)
-
-    for id in self._index[label_id]["torrents"]:
-      self._torrents[id].set_move_completed_path(
-          self._labels[label_id]["options"]["move_completed_path"])
-
-
-  def _update_move_completed_paths(self, label_id):
-
-    assert(label_id in self._labels)
-
-    options = self._labels[label_id]["options"]
-
-    path = self._resolve_path(label_id,
-      labelplus.common.config.PATH_MOVE_COMPLETED)
-    if path == options["move_completed_path"]:
-      return
-
-    options["move_completed_path"] = path
-
-    if options["download_settings"] and options["move_completed"]:
-      self._apply_move_completed_path(label_id)
-
-    for id in self._index[label_id]["children"]:
-      self._update_move_completed_paths(id)
 
 
   def _do_move_completed(self, torrent_ids):
