@@ -731,7 +731,11 @@ class Core(CorePluginBase):
   @check_init
   def on_torrent_added(self, torrent_id):
 
-    self._do_autolabel_torrent(torrent_id)
+    label_id = self._do_autolabel_torrent(torrent_id)
+
+    if label_id != labelplus.common.label.ID_NONE:
+      self._move_torrents([torrent_id])
+
     self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
