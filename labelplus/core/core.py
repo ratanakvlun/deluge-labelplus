@@ -1599,6 +1599,8 @@ class Core(CorePluginBase):
 
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
+    return label_id
+
 
   def _do_autolabel_torrents(self, label_id, apply_to_all=False):
 
