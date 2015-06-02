@@ -714,24 +714,16 @@ class Core(CorePluginBase):
       raise LabelPlusError(ERR_INVALID_LABEL)
 
     torrent_ids = [x for x in set(torrent_ids) if x in self._torrents]
+    if not torrent_ids:
+      return
 
     for id in torrent_ids:
       self._set_torrent_label(id, label_id)
 
-    do_move = False
-
     if self._prefs["options"]["move_on_changes"]:
-      if label_id == labelplus.common.label.ID_NONE:
-        do_move = self._core["move_completed"]
-      else:
-        options = self._labels[label_id]["options"]
-        do_move = options["download_settings"] and options["move_completed"]
-
-    if do_move:
       self._move_torrents(torrent_ids)
 
-    if torrent_ids:
-      self._timestamp["mappings_changed"] = datetime.datetime.now()
+    self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
   # Section: Public Callbacks
