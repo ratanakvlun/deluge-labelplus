@@ -982,8 +982,9 @@ class Core(CorePluginBase):
       "torrents": [],
     }
 
-    self._labels[id]["options"]["move_completed_path"] = \
-      self._resolve_path(id, labelplus.common.config.PATH_MOVE_COMPLETED)
+    for path_type in labelplus.common.config.PATH_TYPES:
+      self._labels[id]["options"]["%s_path" % path_type] = \
+        self._resolve_path(id, path_type)
 
     if self._labels[id]["options"]["shared_limit"]:
       self._shared_limit_index.append(id)
@@ -1007,7 +1008,10 @@ class Core(CorePluginBase):
     self._labels[label_id]["name"] = label_name
 
     self._build_fullname_index(label_id)
-    self._update_paths(label_id, labelplus.common.config.PATH_MOVE_COMPLETED)
+
+    for path_type in labelplus.common.config.PATH_TYPES:
+      self._update_paths(label_id, path_type)
+
     self._apply_move_completed_paths(label_id, True)
 
     if self._prefs["options"]["move_on_changes"]:
@@ -1064,7 +1068,10 @@ class Core(CorePluginBase):
     id = reparent(label_id, dest_id)
 
     self._labels[id]["name"] = dest_name
-    self._update_paths(id, labelplus.common.config.PATH_MOVE_COMPLETED)
+
+    for path_type in labelplus.common.config.PATH_TYPES:
+      self._update_paths(id, path_type)
+
     self._apply_move_completed_paths(id, True)
 
     if self._prefs["options"]["move_on_changes"]:
