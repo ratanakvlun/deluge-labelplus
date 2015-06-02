@@ -728,7 +728,7 @@ class Core(CorePluginBase):
         do_move = options["download_settings"] and options["move_completed"]
 
     if do_move:
-      self._do_move_completed(torrent_ids)
+      self._move_torrents(torrent_ids)
 
     if torrent_ids:
       self._timestamp["mappings_changed"] = datetime.datetime.now()
@@ -764,12 +764,7 @@ class Core(CorePluginBase):
 
       if self._prefs["options"]["move_after_recheck"]:
         # Try to move in case this alert was from a recheck
-
-        label_id = self._mappings[torrent_id]
-        options = self._labels[label_id]["options"]
-
-        if options["download_settings"] and options["move_completed"]:
-          self._do_move_completed([torrent_id])
+        self._move_torrents([torrent_id])
 
 
   @check_init
@@ -1104,9 +1099,8 @@ class Core(CorePluginBase):
     del self._index[label_id]
     del self._labels[label_id]
 
-    if (self._prefs["options"]["move_on_changes"] and
-        self._core["move_completed"]):
-      self._do_move_completed(torrent_ids)
+    if self._prefs["options"]["move_on_changes"]:
+      self._move_torrents(torrent_ids)
 
 
   # Section: Label: Options
