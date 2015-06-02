@@ -1007,7 +1007,7 @@ class Core(CorePluginBase):
     self._apply_move_completed_paths(label_id, True)
 
     if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed_by_label(label_id, True)
+      self._move_torrents_by_label(label_id, True)
 
 
   def _move_label(self, label_id, dest_id, dest_name):
@@ -1064,7 +1064,7 @@ class Core(CorePluginBase):
     self._apply_move_completed_paths(id, True)
 
     if self._prefs["options"]["move_on_changes"]:
-      self._do_move_completed_by_label(id, sublabels=True)
+      self._move_torrents_by_label(id, True)
 
 
   def _remove_label(self, label_id):
@@ -1176,7 +1176,7 @@ class Core(CorePluginBase):
     if (options["download_settings"] and options["move_completed"] and
         (not old["download_settings"] or not old["move_completed"]) and
         self._prefs["options"]["move_on_changes"]):
-      self._do_move_completed_by_label(label_id)
+      self._move_torrents_by_label(label_id)
 
     if options["move_completed_path"] != old["move_completed_path"]:
     # Path was modified; make sure descendent paths are updated
@@ -1185,10 +1185,10 @@ class Core(CorePluginBase):
         self._apply_move_completed_paths(id, True)
 
         if self._prefs["options"]["move_on_changes"]:
-          self._do_move_completed_by_label(id, True)
+          self._move_torrents_by_label(id, True)
 
       if self._prefs["options"]["move_on_changes"]:
-        self._do_move_completed_by_label(label_id)
+        self._move_torrents_by_label(label_id)
 
       self._timestamp["labels_changed"] = datetime.datetime.now()
 
