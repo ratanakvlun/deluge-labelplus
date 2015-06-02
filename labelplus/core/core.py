@@ -1167,6 +1167,8 @@ class Core(CorePluginBase):
 
     old = {
       "download_settings": options["download_settings"],
+      "download_location": options["download_location"],
+      "download_location_path": options["download_location_path"],
       "move_completed": options["move_completed"],
       "move_completed_path": options["move_completed_path"],
     }
@@ -1183,25 +1185,35 @@ class Core(CorePluginBase):
     for id in self._index[label_id]["torrents"]:
       self._apply_torrent_options(id)
 
-    # If move completed was just turned on and move on changes enabled...
-    if (options["download_settings"] and options["move_completed"] and
-        (not old["download_settings"] or not old["move_completed"]) and
-        self._prefs["options"]["move_on_changes"]):
-      self._move_torrents_by_label(label_id)
+    path_toggled_on = False
+    if options["download_settings"]:
+      if options["download_settings"] != old["download_settings"]:
+        if options["download_location"] or options["move_completed"]:
+          path_toggled_on = True
+      else:
+        for path_type in labelplus.common.config.PATH_TYPES:
+          if options[path_type] and options[path_type] != old[path_type]:
+            path_toggled_on = True
+            break
 
-    if options["move_completed_path"] != old["move_completed_path"]:
-    # Path was modified; make sure descendent paths are updated
-      for id in self._index[label_id]["children"]:
-        self._update_paths(id, labelplus.common.config.PATH_MOVE_COMPLETED)
-        self._apply_move_completed_paths(id, True)
+    changed_paths = []
+    for path_type in labelplus.common.config.PATH_TYPES:
+      if options["%s_path" % path_type] != old["%s_path" % path_type]:
+        for id in self._index[label_id]["children"]:
+          self._update_paths(id, path_type)
+        changed_paths.append(path_type)
 
-        if self._prefs["options"]["move_on_changes"]:
-          self._move_torrents_by_label(id, True)
-
-      if self._prefs["options"]["move_on_changes"]:
-        self._move_torrents_by_label(label_id)
-
+    if changed_paths:
       self._timestamp["labels_changed"] = datetime.datetime.now()
+
+      if labelplus.common.config.PATH_MOVE_COMPLETED in changed_paths:
+        self._apply_move_completed_paths(label_id, True)
+
+    if self._prefs["options"]["move_on_changes"]:
+      if changed_paths:
+        self._move_torrents_by_label(label_id, True)
+      elif path_toggled_on:
+        self._move_torrents_by_label(label_id, False)
 
     if options["autolabel_settings"] and apply_to_all is not None:
       self._do_autolabel_torrents(label_id, apply_to_all)
