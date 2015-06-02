@@ -1680,3 +1680,47 @@ class Core(CorePluginBase):
     if sublabels:
       for id in self._index[label_id]["children"]:
         self._do_move_completed_by_label(id, sublabels)
+
+
+  # Section: Torrent-Label: Move Torrents
+
+  def _move_torrents(self, torrent_ids):
+    # Move the specified torrents to where they should be
+
+    assert(all(x in self._torrents for x in torrent_ids))
+
+    for id in torrent_ids:
+      torrent = self._torrents[id]
+      status = torrent.get_status(["save_path", "move_completed_path"])
+
+      dest_path = status["save_path"]
+      label_id = self._mappings.get(id, labelplus.common.label.ID_NONE)
+
+      if label_id == labelplus.common.label.ID_NONE:
+        if torrent.handle.is_finished() and self._core["move_completed"]:
+          dest_path = status["move_completed_path"]
+      else:
+        options = self._labels[label_id]["options"]
+        if options["download_settings"]:
+          if torrent.handle.is_finished() and \
+              options[labelplus.common.config.PATH_MOVE_COMPLETED]:
+            dest_path = options["%s_path" %
+              labelplus.common.config.PATH_MOVE_COMPLETED]
+          elif options[labelplus.common.config.PATH_DOWNLOAD_LOCATION]:
+            dest_path = options["%s_path" %
+              labelplus.common.config.PATH_DOWNLOAD_LOCATION]
+
+      if dest_path != status["save_path"]:
+        torrent.move_storage(dest_path)
+
+
+  def _move_torrents_by_label(self, label_id, sublabels=False):
+    # Move all torrents under the given label
+
+    assert(label_id in self._labels)
+
+    self._move_torrents(self._index[label_id]["torrents"])
+
+    if sublabels:
+      for id in self._index[label_id]["children"]:
+        self._move_torrents_by_label(id, sublabels)
