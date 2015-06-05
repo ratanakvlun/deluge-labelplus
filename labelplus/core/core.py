@@ -1643,7 +1643,7 @@ class Core(CorePluginBase):
       self._timestamp["mappings_changed"] = datetime.datetime.now()
 
 
-  # Section: Torrent-Label: Move Completed
+  # Section: Torrent-Label: Path Options
 
   def _apply_move_completed_paths(self, label_id, sublabels=False):
     # Apply move completed options to torrents under given label
@@ -1661,8 +1661,6 @@ class Core(CorePluginBase):
       for id in self._index[label_id]["children"]:
         self._apply_move_completed_paths(id, sublabels)
 
-
-  # Section: Torrent-Label: Move Torrents
 
   def _move_torrents(self, torrent_ids):
     # Move the specified torrents to where they should be
