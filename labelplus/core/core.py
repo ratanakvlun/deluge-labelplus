@@ -308,14 +308,6 @@ class Core(CorePluginBase):
       self._remove_torrent_label(id)
 
 
-  def _normalize_move_modes(self):
-
-    root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
-    for id in root_ids:
-      self._labels[id]["options"]["move_completed_mode"] = \
-        labelplus.common.config.MOVE_FOLDER
-
-
   def _normalize_path_modes(self):
 
     root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
@@ -1668,39 +1660,6 @@ class Core(CorePluginBase):
     if sublabels:
       for id in self._index[label_id]["children"]:
         self._apply_move_completed_paths(id, sublabels)
-
-
-  def _do_move_completed(self, torrent_ids):
-
-    assert(all(x in self._torrents for x in torrent_ids))
-
-    for id in torrent_ids:
-      torrent = self._torrents[id]
-      status = torrent.get_status(["save_path", "move_completed_path"])
-
-      label_id = self._mappings.get(id, labelplus.common.label.ID_NONE)
-      if label_id == labelplus.common.label.ID_NONE:
-        dest_path = status["move_completed_path"]
-      else:
-        options = self._labels[label_id]["options"]
-        dest_path = options["move_completed_path"]
-
-      if torrent.handle.is_finished() and dest_path != status["save_path"]:
-        torrent.move_storage(dest_path)
-
-
-  def _do_move_completed_by_label(self, label_id, sublabels=False):
-
-    assert(label_id in self._labels)
-
-    options = self._labels[label_id]["options"]
-
-    if options["download_settings"] and options["move_completed"]:
-      self._do_move_completed(self._index[label_id]["torrents"])
-
-    if sublabels:
-      for id in self._index[label_id]["children"]:
-        self._do_move_completed_by_label(id, sublabels)
 
 
   # Section: Torrent-Label: Move Torrents
