@@ -219,7 +219,7 @@
                                 </child>
                                 <child>
                                   <widget class="GtkCheckButton" id="chk_move_on_changes">
-                                    <property name="label" translatable="yes">Move completed when move path or label changes</property>
+                                    <property name="label" translatable="yes">Move torrents when torrent label or path options change</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
@@ -233,7 +233,7 @@
                                 </child>
                                 <child>
                                   <widget class="GtkCheckButton" id="chk_move_after_recheck">
-                                    <property name="label" translatable="yes">Move completed after recheck</property>
+                                    <property name="label" translatable="yes">Move completed torrents after recheck</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
