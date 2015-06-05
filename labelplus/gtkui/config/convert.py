@@ -37,6 +37,7 @@
 from labelplus.gtkui.config import (
   CONFIG_DEFAULTS_V2,
   CONFIG_DEFAULTS_V3,
+  CONFIG_DEFAULTS_V4,
 )
 
 
@@ -99,8 +100,17 @@ CONFIG_SPEC_V2_V3 = {
   },
 }
 
+CONFIG_SPEC_V3_V4 = {
+  "version_in": 3,
+  "version_out": 4,
+  "defaults": CONFIG_DEFAULTS_V4,
+  "strict": False,
+  "deepcopy": False,
+  "map": { "*": "*" },
+}
 
 CONFIG_SPECS = {
   (1, 2): CONFIG_SPEC_V1_V2,
   (2, 3): CONFIG_SPEC_V2_V3,
+  (3, 4): CONFIG_SPEC_V3_V4,
 }

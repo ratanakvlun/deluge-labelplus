@@ -34,6 +34,9 @@
 #
 
 
+import copy
+
+from labelplus.common import update_dict
 from labelplus.common.label import ID_ALL
 
 
@@ -113,9 +116,17 @@ DAEMON_DEFAULTS_V3 = {
   },
 }
 
+# Version 4
+
+CONFIG_DEFAULTS_V4 = copy.deepcopy(CONFIG_DEFAULTS_V3)
+update_dict(CONFIG_DEFAULTS_V4, {
+  "common": {
+    "label_options_exp_state": [],
+  },
+}, True)
 
 # Current Version
 
-CONFIG_VERSION = 3
-CONFIG_DEFAULTS = CONFIG_DEFAULTS_V3
+CONFIG_VERSION = 4
+CONFIG_DEFAULTS = CONFIG_DEFAULTS_V4
 DAEMON_DEFAULTS = DAEMON_DEFAULTS_V3
