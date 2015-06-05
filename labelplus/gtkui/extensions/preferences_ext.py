@@ -262,6 +262,7 @@ class PreferencesExt(WidgetEncapsulator):
       self._spn_shared_limit_interval,
       self._chk_move_on_changes,
       self._chk_move_after_recheck,
+      self._chk_reset_on_label_unset,
     )
 
     self._exp_group = (
