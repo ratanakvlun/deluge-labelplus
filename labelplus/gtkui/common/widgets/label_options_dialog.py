@@ -472,6 +472,11 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
   def _index_widgets(self):
 
+    self._exp_group = (
+      self._exp_download_location,
+      self._exp_move_completed,
+    )
+
     self._option_groups = (
       (
         self._chk_download_settings,
@@ -543,6 +548,12 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._tgb_fullname.set_active(
         self._plugin.config["common"]["label_options_fullname"])
 
+      expanded = self._plugin.config["common"]["label_options_exp_state"]
+      for exp in expanded:
+        widget = getattr(self, "_" + exp, None)
+        if widget:
+          widget.set_expanded(True)
+
 
   def _save_state(self):
 
@@ -555,6 +566,13 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
       self._plugin.config["common"]["label_options_fullname"] = \
         self._tgb_fullname.get_active()
+
+      expanded = []
+      for exp in self._exp_group:
+        if exp.get_expanded():
+          expanded.append(exp.get_name())
+
+      self._plugin.config["common"]["label_options_exp_state"] = expanded
 
       if self._vp_criteria_area.get_data("was_mapped"):
         self._plugin.config["common"]["label_options_pane_pos"] = \
