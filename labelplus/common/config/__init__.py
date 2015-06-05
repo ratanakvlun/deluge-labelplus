@@ -130,6 +130,11 @@ CONFIG_DEFAULTS_V2 = {
   "mappings": {}, # "torrent_id": "label_id"
 }
 
+OPTION_DEFAULTS_V3 = {
+  "reset_on_label_unset": False,
+}
+OPTION_DEFAULTS_V3.update(OPTION_DEFAULTS_V2)
+
 LABEL_DEFAULTS_V3 = {
   "download_location": False,
   "download_location_path": "",
@@ -139,7 +144,7 @@ LABEL_DEFAULTS_V3.update(LABEL_DEFAULTS_V2)
 
 CONFIG_DEFAULTS_V3 = {
   "prefs": {
-    "options": OPTION_DEFAULTS_V2,
+    "options": OPTION_DEFAULTS_V3,
     "label": LABEL_DEFAULTS_V3,
   },
   "labels": {},   # "label_id": {"name": str, "data": dict}
@@ -147,7 +152,7 @@ CONFIG_DEFAULTS_V3 = {
 }
 
 CONFIG_VERSION = 3
-OPTION_DEFAULTS = OPTION_DEFAULTS_V2
+OPTION_DEFAULTS = OPTION_DEFAULTS_V3
 LABEL_DEFAULTS = LABEL_DEFAULTS_V3
 CONFIG_DEFAULTS = CONFIG_DEFAULTS_V3
 
