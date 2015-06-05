@@ -21,7 +21,7 @@
               <widget class="GtkScrolledWindow" id="sw_settings">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="vadjustment">0 0 741 71.299999999999997 641.70000000000005 713</property>
+                <property name="vadjustment">0 0 473 41.600000000000001 374.40000000000003 416</property>
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
@@ -243,6 +243,20 @@
                                     <property name="expand">True</property>
                                     <property name="fill">True</property>
                                     <property name="position">3</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckButton" id="chk_reset_on_label_unset">
+                                    <property name="label" translatable="yes">Reset torrent options to defaults when label unset</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">4</property>
                                   </packing>
                                 </child>
                               </widget>
