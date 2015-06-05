@@ -169,7 +169,7 @@ class Core(CorePluginBase):
 
     self._normalize_data()
     self._normalize_mappings()
-    self._normalize_move_modes()
+    self._normalize_path_modes()
 
     self._build_fullname_index()
     self._build_shared_limit_index()
@@ -314,6 +314,15 @@ class Core(CorePluginBase):
     for id in root_ids:
       self._labels[id]["options"]["move_completed_mode"] = \
         labelplus.common.config.MOVE_FOLDER
+
+
+  def _normalize_path_modes(self):
+
+    root_ids = self._get_descendent_labels(labelplus.common.label.ID_NULL, 1)
+    for id in root_ids:
+      for path_type in labelplus.common.config.PATH_TYPES:
+        self._labels[id]["options"]["%s_mode" % path_type] = \
+          labelplus.common.config.MOVE_FOLDER
 
 
   def _build_shared_limit_index(self):
