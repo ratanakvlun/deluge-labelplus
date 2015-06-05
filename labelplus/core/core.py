@@ -302,7 +302,7 @@ class Core(CorePluginBase):
         if self._mappings[id] in self._labels:
           self._apply_torrent_options(id)
           continue
-        else:
+        elif self._prefs["options"]["reset_on_label_unset"]:
           self._reset_torrent_options(id)
 
       self._remove_torrent_label(id)
@@ -1556,7 +1556,8 @@ class Core(CorePluginBase):
       self._remove_torrent_label(torrent_id)
 
     if label_id == labelplus.common.label.ID_NONE:
-      self._reset_torrent_options(torrent_id)
+      if self._prefs["options"]["reset_on_label_unset"]:
+        self._reset_torrent_options(torrent_id)
     else:
       self._mappings[torrent_id] = label_id
       self._index[label_id]["torrents"].append(torrent_id)
