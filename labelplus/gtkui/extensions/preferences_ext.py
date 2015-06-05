@@ -67,7 +67,7 @@ from labelplus.common import (
 )
 
 from labelplus.common.config import (
-  MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
+  PATH_TYPES, MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
 )
 
 from labelplus.common.literals import (
@@ -162,16 +162,17 @@ class PreferencesExt(WidgetEncapsulator):
 
   def _setup_radio_button_groups(self):
 
-    rgrp = RadioButtonGroup((
-      (self._rb_move_completed_to_parent, MOVE_PARENT),
-      (self._rb_move_completed_to_subfolder, MOVE_SUBFOLDER),
-      (self._rb_move_completed_to_folder, MOVE_FOLDER),
-    ))
+    for path_type in PATH_TYPES:
+      rgrp = RadioButtonGroup((
+        (getattr(self, "_rb_%s_to_parent" % path_type), MOVE_PARENT),
+        (getattr(self, "_rb_%s_to_subfolder" % path_type), MOVE_SUBFOLDER),
+        (getattr(self, "_rb_%s_to_folder" % path_type), MOVE_FOLDER),
+      ))
 
-    rgrp.set_name("rgrp_move_completed_mode")
-    self._rgrp_move_completed_mode = rgrp
+      rgrp.set_name("rgrp_%s_mode" % path_type)
+      self.__dict__["_rgrp_%s_mode" % path_type] = rgrp
 
-    if __debug__: RT.register(rgrp, __name__)
+      if __debug__: RT.register(rgrp, __name__)
 
 
   def _setup_autolabel_box(self):
@@ -273,6 +274,9 @@ class PreferencesExt(WidgetEncapsulator):
     self._option_groups = (
       (
         self._chk_download_settings,
+        self._chk_download_location,
+        self._rgrp_download_location_mode,
+        self._txt_download_location_path,
         self._chk_move_completed,
         self._rgrp_move_completed_mode,
         self._txt_move_completed_path,
@@ -602,10 +606,13 @@ class PreferencesExt(WidgetEncapsulator):
     def on_response(widget, response):
 
       if self.valid and response == gtk.RESPONSE_OK:
-        self._txt_move_completed_path.set_text(widget.get_filename())
+        txt_widget.set_text(widget.get_filename())
 
       widget.destroy()
 
+
+    path_type = widget.name[widget.name.index("_")+1:widget.name.rindex("_")]
+    txt_widget = self.__dict__["_txt_%s_path" % path_type]
 
     dialog = gtk.FileChooserDialog(_(TITLE_SELECT_FOLDER),
       self._blk_preferences.get_toplevel(),
@@ -620,7 +627,7 @@ class PreferencesExt(WidgetEncapsulator):
     dialog.set_destroy_with_parent(True)
     dialog.connect("response", on_response)
 
-    path = self._txt_move_completed_path.get_text()
+    path = txt_widget.get_text()
     if not os.path.exists(path):
       path = ""
 
