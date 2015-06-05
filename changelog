@@ -1,3 +1,8 @@
+Version 0.3.2.0
+- Add autolabel criteria: label, filename
+- Add option to move torrents to label specific download destination
+- Add preference for resetting torrent options on label unset
+
 Version 0.3.1.0
 - Add label assignment functionality to torrent context menu in WebUI
 - Fix move on path changes not being activated for labels with no children
