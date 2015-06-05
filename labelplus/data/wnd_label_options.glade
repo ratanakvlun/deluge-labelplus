@@ -181,8 +181,8 @@
                                     <property name="can_focus">False</property>
                                     <property name="top_padding">5</property>
                                     <property name="bottom_padding">5</property>
-                                    <property name="left_padding">16</property>
-                                    <property name="right_padding">16</property>
+                                    <property name="left_padding">5</property>
+                                    <property name="right_padding">5</property>
                                     <child>
                                       <widget class="GtkVBox" id="vbox3">
                                         <property name="visible">True</property>
