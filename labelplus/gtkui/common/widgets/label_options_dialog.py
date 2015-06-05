@@ -71,8 +71,7 @@ from labelplus.common.label import ID_NULL, RESERVED_IDS
 from labelplus.common.config.autolabel import PROPS
 
 from labelplus.common.config import (
-  PATH_MOVE_COMPLETED,
-  MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
+  PATH_TYPES, MOVE_PARENT, MOVE_SUBFOLDER, MOVE_FOLDER,
   LABEL_DEFAULTS,
 )
 
@@ -122,8 +121,11 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._menu = None
 
     self._label_defaults = {}
-    self._move_path_options = {}
+    self._path_options = {}
     self._label_options = {}
+
+    for path_type in PATH_TYPES:
+      self._path_options[path_type] = {}
 
     super(LabelOptionsDialog, self).__init__(self.GLADE_FILE, self.ROOT_WIDGET,
       "_")
@@ -216,6 +218,17 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._set_error(error.tr())
 
 
+  def _get_path_type(self, widget):
+
+    path_type = widget.get_name()[
+      widget.get_name().index("_")+1:widget.get_name().rindex("_")]
+
+    if path_type in PATH_TYPES:
+      return path_type
+
+    return None
+
+
   # Section: Options
 
   def _request_options(self, label_id):
@@ -242,7 +255,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
             return
 
         self._label_defaults = result[0][1]
-        self._move_path_options = result[1][1][PATH_MOVE_COMPLETED]
+        self._path_options = result[1][1]
         self._label_options = result[2][1]
 
         self._load_options(self._label_options)
@@ -353,7 +366,9 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._setup_test_combo_box()
     self._setup_criteria_area()
 
-    self._rgrp_move_completed_mode.connect("changed", self._do_select_mode)
+    for path_type in PATH_TYPES:
+      self.__dict__["_rgrp_%s_mode" % path_type].connect(
+        "changed", self._do_select_mode)
 
     self.connect_signals({
       "do_close": self._do_close,
@@ -370,15 +385,17 @@ class LabelOptionsDialog(WidgetEncapsulator):
 
   def _setup_radio_button_groups(self):
 
-    rgrp = RadioButtonGroup((
-      (self._rb_move_completed_to_parent, MOVE_PARENT),
-      (self._rb_move_completed_to_subfolder, MOVE_SUBFOLDER),
-      (self._rb_move_completed_to_folder, MOVE_FOLDER),
-    ))
-    if __debug__: RT.register(rgrp, __name__)
+    for path_type in PATH_TYPES:
+      rgrp = RadioButtonGroup((
+        (getattr(self, "_rb_%s_to_parent" % path_type), MOVE_PARENT),
+        (getattr(self, "_rb_%s_to_subfolder" % path_type), MOVE_SUBFOLDER),
+        (getattr(self, "_rb_%s_to_folder" % path_type), MOVE_FOLDER),
+      ))
 
-    rgrp.set_name("rgrp_move_completed_mode")
-    self._rgrp_move_completed_mode = rgrp
+      rgrp.set_name("rgrp_%s_mode" % path_type)
+      self.__dict__["_rgrp_%s_mode" % path_type] = rgrp
+
+      if __debug__: RT.register(rgrp, __name__)
 
 
   def _setup_autolabel_box(self):
@@ -458,6 +475,9 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._option_groups = (
       (
         self._chk_download_settings,
+        self._chk_download_location,
+        self._rgrp_download_location_mode,
+        self._lbl_download_location_path,
         self._chk_move_completed,
         self._rgrp_move_completed_mode,
         self._lbl_move_completed_path,
@@ -490,6 +510,9 @@ class LabelOptionsDialog(WidgetEncapsulator):
       self._chk_bandwidth_settings: (self._blk_bandwidth_settings_group,),
       self._chk_queue_settings: (self._blk_queue_settings_group,),
       self._chk_autolabel_settings: (self._blk_autolabel_settings_group,),
+
+      self._chk_download_location: (self._blk_download_location_group,),
+      self._rb_download_location_to_folder: (self._txt_download_location_path,),
 
       self._chk_move_completed: (self._blk_move_completed_group,),
       self._rb_move_completed_to_folder: (self._txt_move_completed_path,),
@@ -570,15 +593,16 @@ class LabelOptionsDialog(WidgetEncapsulator):
     for group in self._option_groups:
       self._set_widget_values(group, options)
 
-    mode = options["move_completed_mode"]
-    path = options["move_completed_path"]
+    for path_type in PATH_TYPES:
+      mode = options["%s_mode" % path_type]
+      path = options["%s_path" % path_type]
 
-    self._txt_move_completed_path.set_text(path)
+      self.__dict__["_txt_%s_path" % path_type].set_text(path)
 
-    if mode != MOVE_FOLDER:
-      path = self._move_path_options.get(mode, "")
+      if mode != MOVE_FOLDER:
+        path = self._path_options[path_type].get(mode, "")
 
-    self._set_path_label(path)
+      self._set_path_label(path, path_type)
 
 
   def _get_options(self):
@@ -606,7 +630,9 @@ class LabelOptionsDialog(WidgetEncapsulator):
     if not self._label_defaults:
       self._label_defaults = LABEL_DEFAULTS
 
-    self._move_path_options = {}
+    for path_type in PATH_TYPES:
+      self._path_options[path_type] = {}
+
     self._label_options = {}
 
     self._load_options(self._label_defaults)
@@ -645,10 +671,11 @@ class LabelOptionsDialog(WidgetEncapsulator):
     self._set_test_result(None)
 
 
-  def _set_path_label(self, path):
+  def _set_path_label(self, path, path_type):
 
-    self._lbl_move_completed_path.set_text(path)
-    self._lbl_move_completed_path.set_tooltip_text(path)
+    lbl_widget = self.__dict__["_lbl_%s_path" % path_type]
+    lbl_widget.set_text(path)
+    lbl_widget.set_tooltip_text(path)
 
 
   def _set_test_result(self, result):
@@ -719,22 +746,24 @@ class LabelOptionsDialog(WidgetEncapsulator):
         dependent.set_sensitive(toggled)
 
 
-  # Section: Dialog: Handlers: Move Completed
+  # Section: Dialog: Handlers: Paths
 
   def _do_select_mode(self, group, button, mode):
 
-    self._do_toggle_dependents(self._rb_move_completed_to_folder)
+    path_type = self._get_path_type(group)
+    self._do_toggle_dependents(self.__dict__["_rb_%s_to_folder" % path_type])
 
     if mode == MOVE_FOLDER:
-      self._on_txt_changed(self._txt_move_completed_path)
+      self._on_txt_changed(self.__dict__["_txt_%s_path" % path_type])
     else:
-      path = self._move_path_options.get(mode, "")
-      self._set_path_label(path)
+      path = self._path_options[path_type].get(mode, "")
+      self._set_path_label(path, path_type)
 
 
   def _on_txt_changed(self, widget):
 
-    self._set_path_label(widget.get_text())
+    path_type = self._get_path_type(widget)
+    self._set_path_label(widget.get_text(), path_type)
 
 
   def _do_open_file_dialog(self, widget):
@@ -742,10 +771,13 @@ class LabelOptionsDialog(WidgetEncapsulator):
     def on_response(widget, response):
 
       if self.valid and response == gtk.RESPONSE_OK:
-        self._txt_move_completed_path.set_text(widget.get_filename())
+        txt_widget.set_text(widget.get_filename())
 
       widget.destroy()
 
+
+    path_type = self._get_path_type(widget)
+    txt_widget = self.__dict__["_txt_%s_path" % path_type]
 
     dialog = gtk.FileChooserDialog(_(TITLE_SELECT_FOLDER),
       self._wnd_label_options, gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
@@ -759,7 +791,7 @@ class LabelOptionsDialog(WidgetEncapsulator):
     dialog.set_destroy_with_parent(True)
     dialog.connect("response", on_response)
 
-    path = self._txt_move_completed_path.get_text()
+    path = txt_widget.get_text()
     if not os.path.exists(path):
       path = ""
 
