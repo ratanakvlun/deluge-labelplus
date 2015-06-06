@@ -1,3 +1,6 @@
+Version 0.3.2.1
+- Fix browse button exception when using remote clients
+
 Version 0.3.2.0
 - Add autolabel criteria: label, filename
 - Add option to move torrents to label specific download destination
