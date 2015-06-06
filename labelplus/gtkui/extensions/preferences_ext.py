@@ -454,7 +454,8 @@ class PreferencesExt(WidgetEncapsulator):
   def _load_state(self):
 
     if not client.is_localhost():
-      self._btn_browse.hide()
+      for path_type in PATH_TYPES:
+        self.__dict__["_btn_%s_browse" % path_type].hide()
 
     if self._plugin.initialized:
       expanded = self._plugin.config["common"]["prefs_state"]

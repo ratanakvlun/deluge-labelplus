@@ -534,7 +534,8 @@ class LabelOptionsDialog(WidgetEncapsulator):
   def _load_state(self):
 
     if not client.is_localhost():
-      self._btn_browse.hide()
+      for path_type in PATH_TYPES:
+        self.__dict__["_btn_%s_browse" % path_type].hide()
 
     if self._plugin.initialized:
       pos = self._plugin.config["common"]["label_options_pos"]
