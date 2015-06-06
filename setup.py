@@ -36,7 +36,7 @@ from setuptools import setup, find_packages
 __plugin_name__ = "LabelPlus"
 __author__ = "Ratanak Lun"
 __author_email__ = "ratanakvlun@gmail.com"
-__version__ = "0.3.2.0"
+__version__ = "0.3.2.1"
 __url__ = "http://github.com/ratanakvlun"
 __license__ = "GPLv3"
 __description__ = "Assign labels to torrents"
