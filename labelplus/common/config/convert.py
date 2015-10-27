@@ -81,7 +81,7 @@ def process_spec(spec, dict_in):
   # Mapping meant for excluding unused keys or remapping keys
   working_dict = {}
   if spec.get("map"):
-    if spec["map"]["*"] == "*":
+    if spec["map"].get("*") == "*":
       working_dict = dict_in
     else:
       for src, dest in sorted(spec["map"].items(),
