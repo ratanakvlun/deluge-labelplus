@@ -135,7 +135,9 @@ class Core(CorePluginBase):
     def hook_set_torrent(torrent_id, label_id):
 
       self._orig_set_torrent(torrent_id, label_id)
-      self._do_autolabel_torrent(torrent_id)
+      target_label_id = self._find_autolabel_match(torrent_id)
+      if target_label_id != labelplus.common.label.ID_NONE:
+        self._do_autolabel_torrent(torrent_id)
 
 
     self._orig_set_torrent = None
