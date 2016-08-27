@@ -1158,7 +1158,7 @@ class Core(CorePluginBase):
       if (prop not in labelplus.common.config.autolabel.PROPS or
           op not in labelplus.common.config.autolabel.OPS or
           case not in labelplus.common.config.autolabel.CASES or
-          not query):
+          (not query and prop != labelplus.common.config.autolabel.PROP_LABEL)):
         options["autolabel_rules"].remove(rule)
 
 
