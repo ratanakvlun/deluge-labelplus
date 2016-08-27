@@ -79,9 +79,9 @@ CASES = (
 
 OP_FUNCS = {
   OP_CONTAINS: lambda x,y,z: re.search(re.escape(y), x, z),
-  OP_DOESNT_CONTAIN: lambda x,y,z: not OP_FUNCS[OP_CONTAINS](x, y, z),
+  OP_DOESNT_CONTAIN: lambda x,y,z: OP_FUNCS[OP_CONTAINS](x, y, z),
   OP_IS: lambda x,y,z: re.search('^' + re.escape(y) + '$', x, z),
-  OP_IS_NOT: lambda x,y,z: not OP_FUNCS[OP_IS](x, y, z),
+  OP_IS_NOT: lambda x,y,z: OP_FUNCS[OP_IS](x, y, z),
   OP_STARTS_WITH: lambda x,y,z: re.search('^' + re.escape(y), x, z),
   OP_ENDS_WITH: lambda x,y,z: re.search(re.escape(y) + '$', x, z),
   OP_MATCHES_REGEX: lambda x,y,z: re.search(y, x, z),
@@ -112,7 +112,9 @@ def find_match(props, rules, match_all=False, use_unicode=True):
 
   for rule in rules:
     values = props.get(rule[FIELD_PROP]) or []
-    op_func = OP_FUNCS[rule[FIELD_OP]]
+    op = rule[FIELD_OP]
+    op_func = OP_FUNCS[op]
+    negate = op in [OP_DOESNT_CONTAIN, OP_IS_NOT]
 
     flags = re.UNICODE if use_unicode else 0
 
@@ -127,6 +129,9 @@ def find_match(props, rules, match_all=False, use_unicode=True):
       if op_func(value, query, flags):
         has_match = True
         break
+
+    if negate:
+      has_match = not has_match
 
     if match_all and not has_match:
       return False
